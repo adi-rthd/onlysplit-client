@@ -1,0 +1,18 @@
+import React from 'react';
+import { Outlet } from 'react-router-dom';
+import SideNavBar from '../components/navigation/SideNavBar';
+import BottomNav from '../components/navigation/BottomNav';
+
+const MainLayout = () => {
+  return (
+    <div className="flex flex-col md:flex-row min-h-screen bg-background">
+      <SideNavBar />
+      <main className="flex-1 md:ml-64 p-4 md:p-container-padding-desktop pb-24 md:pb-4">
+        <Outlet />
+      </main>
+      <BottomNav />
+    </div>
+  );
+};
+
+export default MainLayout;

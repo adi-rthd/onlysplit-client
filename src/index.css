@@ -1,0 +1,166 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/forms";
+@plugin "@tailwindcss/container-queries";
+
+@theme {
+  /* Custom Colors */
+  --color-on-error: #690005;
+  --color-outline: #918fa0;
+  --color-on-tertiary: #510074;
+  --color-on-surface-variant: #c7c4d7;
+  --color-on-secondary-fixed: #001b3e;
+  --color-on-tertiary-container: #feeeff;
+  --color-tertiary-fixed: #f6d9ff;
+  --color-surface-container-low: #1b1c1d;
+  --color-on-surface: #e3e2e3;
+  --color-surface-container-highest: #343536;
+  --color-on-tertiary-fixed-variant: #7200a3;
+  --color-error: #ffb4ab;
+  --color-on-secondary: #003064;
+  --color-on-primary-fixed: #0c006b;
+  --color-surface-dim: #121315;
+  --color-secondary-fixed-dim: #aac7ff;
+  --color-secondary: #aac7ff;
+  --color-surface: #121315;
+  --color-on-error-container: #ffdad6;
+  --color-surface-container-high: #292a2b;
+  --color-neon-lime: #E4F222;
+  --color-inverse-surface: #e3e2e3;
+  --color-tertiary-fixed-dim: #e9b3ff;
+  --color-surface-container: #1f2021;
+  --color-primary: #c2c1ff;
+  --color-on-background: #e3e2e3;
+  --color-primary-container: #5e5ce6;
+  --color-glass-stroke: rgba(255, 255, 255, 0.08);
+  --color-on-primary-container: #f4f1ff;
+  --color-surface-charcoal: #0D0E10;
+  --color-tertiary-container: #a23cd5;
+  --color-on-secondary-container: #002957;
+  --color-tertiary: #e9b3ff;
+  --color-secondary-container: #3e90ff;
+  --color-on-secondary-fixed-variant: #00468d;
+  --color-background: #121315;
+  --color-glow-purple: rgba(94, 92, 230, 0.15);
+  --color-surface-container-lowest: #0d0e0f;
+  --color-on-primary: #1800a7;
+  --color-primary-fixed-dim: #c2c1ff;
+  --color-secondary-fixed: #d6e3ff;
+  --color-surface-tint: #c2c1ff;
+  --color-on-primary-fixed-variant: #332dbc;
+  --color-inverse-primary: #4d4ad5;
+  --color-inverse-on-surface: #303032;
+  --color-surface-variant: #343536;
+  --color-surface-bright: #38393a;
+  --color-error-container: #93000a;
+  --color-outline-variant: #464554;
+  --color-primary-fixed: #e2dfff;
+  --color-on-tertiary-fixed: #310048;
+
+  /* Custom Spacing */
+  --spacing-section-gap: 80px;
+  --spacing-container-padding-mobile: 16px;
+  --spacing-unit: 4px;
+  --spacing-container-padding-desktop: 32px;
+  --spacing-gutter: 24px;
+
+  /* Custom Font Families */
+  --font-body-lg: "Inter", sans-serif;
+  --font-display-lg: "Geist", sans-serif;
+  --font-body-md: "Inter", sans-serif;
+  --font-headline-lg-mobile: "Geist", sans-serif;
+  --font-label-caps: "JetBrains Mono", monospace;
+  --font-headline-lg: "Geist", sans-serif;
+  --font-data-mono: "JetBrains Mono", monospace;
+
+  /* Custom Border Radius */
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1.25rem;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-surface-charcoal);
+    color: var(--color-on-surface);
+    font-family: var(--font-body-md);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@utility glass-card {
+  background: rgba(13, 14, 16, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@utility glass-panel {
+  background: rgba(13, 14, 16, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@utility neon-glow {
+  box-shadow: 0 0 50px 0 rgba(94, 92, 230, 0.15);
+}
+
+@utility text-gradient {
+  background: linear-gradient(to right, #c2c1ff, #aac7ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@utility btn-inner-glow {
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
+}
+
+@utility hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ── Auth page utilities ── */
+
+@utility auth-input {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  &:focus-within {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(194, 193, 255, 0.25);
+    box-shadow: 0 0 0 3px rgba(94, 92, 230, 0.08);
+  }
+}
+
+@utility auth-card {
+  background: rgba(18, 19, 22, 0.6);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.02),
+    0 8px 40px rgba(0, 0, 0, 0.4),
+    0 0 80px rgba(94, 92, 230, 0.06);
+}
+
+@utility auth-cta {
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.15),
+    0 4px 20px rgba(94, 92, 230, 0.25);
+  transition: all 0.25s ease;
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
+      0 6px 28px rgba(94, 92, 230, 0.35);
+  }
+  &:active {
+    transform: translateY(0px);
+  }
+}
