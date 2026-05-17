@@ -5,7 +5,6 @@ import React, {
 } from 'react';
 
 import { useNavigate } from 'react-router-dom';
-
 import { GlassPanel } from '../components/ui/GlassCard';
 import {
   Wallet, TrendingUp, ArrowUpRight, ArrowDownRight, Plus, Utensils, Users
@@ -16,7 +15,7 @@ import GroupCard from '../components/ui/GroupCard';
 import { motion } from 'framer-motion';
 
 import { useGroupStore } from '../store/groupStore';
-import { useDashboardStore } from '../store/dashboardStore';
+import { useDashboardStore } from '../store/DashboardStore';
 import { formatCurrency } from '../services/currencyService'
 
 const Dashboard = () => {
@@ -257,8 +256,8 @@ const Dashboard = () => {
               <button
                 onClick={() => setGraphView('monthly')}
                 className={`px-3 py-1.5 rounded-md text-[11px] font-medium transition-all ${graphView === 'monthly'
-                    ? 'bg-primary-container text-white'
-                    : 'text-on-surface-variant hover:text-on-surface'
+                  ? 'bg-primary-container text-white'
+                  : 'text-on-surface-variant hover:text-on-surface'
                   }`}
               >
                 Monthly
@@ -266,8 +265,8 @@ const Dashboard = () => {
               <button
                 onClick={() => setGraphView('groups')}
                 className={`px-3 py-1.5 rounded-md text-[11px] font-medium transition-all ${graphView === 'groups'
-                    ? 'bg-primary-container text-white'
-                    : 'text-on-surface-variant hover:text-on-surface'
+                  ? 'bg-primary-container text-white'
+                  : 'text-on-surface-variant hover:text-on-surface'
                   }`}
               >
                 By Group
