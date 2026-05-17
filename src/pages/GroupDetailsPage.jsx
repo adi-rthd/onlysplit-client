@@ -15,7 +15,7 @@ import ExpenseCard from '../components/ui/ExpenseCard';
 import SettlementCard from '../components/ui/SettlementCard';
 import SettleUpModal from '../components/modals/SettleUpModal';
 import MemberBalanceList from '../components/ui/MemberBalanceList';
-import { formatCurrency } from '../../services/currencyService';
+import { formatCurrency } from '../services/currencyService';
 import { ROUTES } from '../constants/routes';
 
 const GroupDetailsPage = () => {
