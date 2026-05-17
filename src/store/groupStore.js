@@ -41,6 +41,7 @@ export const useGroupStore = create((set, get) => ({
     try {
       const data = await groupService.getGroupById(id);
       const groupObj = data?.data || data;
+
       set({ currentGroup: groupObj, isLoading: false });
       return groupObj;
     } catch (error) {

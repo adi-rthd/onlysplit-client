@@ -1,30 +1,65 @@
+// src/routes/AppRoutes.jsx
+
 import React, { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
+
 import { ROUTES } from '../constants/routes';
+
 import ProtectedRoute from '../guards/ProtectedRoute';
 import PublicRoute from '../guards/PublicRoute';
+
 import MainLayout from '../layouts/MainLayout';
+
 import PageLoader from '../components/ui/PageLoader';
 
-// ── Lazy-loaded pages (route-based code splitting) ──
+// ─────────────────────────────────────────────────────────────
+// Lazy Loaded Pages
+// ─────────────────────────────────────────────────────────────
+
 const LandingPage = lazy(() => import('../pages/LandingPage'));
+
 const LoginPage = lazy(() => import('../pages/auth/LoginPage'));
 const SignupPage = lazy(() => import('../pages/auth/SignupPage'));
+
 const Dashboard = lazy(() => import('../pages/Dashboard'));
+
 const GroupsPage = lazy(() => import('../pages/GroupsPage'));
+const GroupDetailsPage = lazy(() => import('../pages/GroupDetailsPage'));
+
 const ActivityFeed = lazy(() => import('../pages/ActivityFeed'));
+
 const AnalyticsPage = lazy(() => import('../pages/AnalyticsPage'));
+
 const SettingsPage = lazy(() => import('../pages/SettingsPage'));
-const AddExpenseModal = lazy(() => import('../components/modals/AddExpenseModal'));
+
+const SettlementsPage = lazy(() => import('../pages/SettlementsPage'));
+
+// ─────────────────────────────────────────────────────────────
+// Lazy Loaded Modals
+// ─────────────────────────────────────────────────────────────
+
+const AddExpenseModal = lazy(() =>
+  import('../components/modals/AddExpenseModal')
+);
+
+const CreateGroupModal = lazy(() =>
+  import('../components/modals/CreateGroupModal')
+);
 
 const AppRoutes = () => {
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
-        {/* ── Public routes ── */}
+        {/* ───────────────────────────────────────────── */}
+        {/* PUBLIC ROUTES */}
+        {/* ───────────────────────────────────────────── */}
+
         <Route path={ROUTES.LANDING} element={<LandingPage />} />
 
-        {/* ── Auth routes (redirect if already logged in) ── */}
+        {/* ───────────────────────────────────────────── */}
+        {/* AUTH ROUTES */}
+        {/* ───────────────────────────────────────────── */}
+
         <Route
           path={ROUTES.LOGIN}
           element={
@@ -33,6 +68,7 @@ const AppRoutes = () => {
             </PublicRoute>
           }
         />
+
         <Route
           path={ROUTES.SIGNUP}
           element={
@@ -42,7 +78,10 @@ const AppRoutes = () => {
           }
         />
 
-        {/* ── Protected routes (require authentication) ── */}
+        {/* ───────────────────────────────────────────── */}
+        {/* PROTECTED ROUTES */}
+        {/* ───────────────────────────────────────────── */}
+
         <Route
           element={
             <ProtectedRoute>
@@ -50,15 +89,61 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         >
-          <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
-          <Route path={ROUTES.GROUPS} element={<GroupsPage />} />
-          <Route path={ROUTES.GROUP_DETAILS} element={lazy(() => import('../pages/GroupDetailsPage')).render ? React.createElement(lazy(() => import('../pages/GroupDetailsPage'))) : <GroupsPage />} />
-          <Route path={ROUTES.ACTIVITY} element={<ActivityFeed />} />
-          <Route path={ROUTES.SETTLEMENTS} element={lazy(() => import('../pages/SettlementsPage')).render ? React.createElement(lazy(() => import('../pages/SettlementsPage'))) : <Dashboard />} />
-          <Route path={ROUTES.ANALYTICS} element={<AnalyticsPage />} />
-          <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
-          <Route path={ROUTES.PROFILE} element={<SettingsPage />} />
-          <Route path={ROUTES.PAYMENTS} element={<Dashboard />} />
+          {/* Dashboard */}
+          <Route
+            path={ROUTES.DASHBOARD}
+            element={<Dashboard />}
+          />
+
+          {/* Groups */}
+          <Route
+            path={ROUTES.GROUPS}
+            element={<GroupsPage />}
+          />
+
+          {/* Group Details */}
+          <Route
+            path={ROUTES.GROUP_DETAILS}
+            element={<GroupDetailsPage />}
+          />
+
+          {/* Activity */}
+          <Route
+            path={ROUTES.ACTIVITY}
+            element={<ActivityFeed />}
+          />
+
+          {/* Settlements */}
+          <Route
+            path={ROUTES.SETTLEMENTS}
+            element={<SettlementsPage />}
+          />
+
+          {/* Analytics */}
+          <Route
+            path={ROUTES.ANALYTICS}
+            element={<AnalyticsPage />}
+          />
+
+          {/* Settings */}
+          <Route
+            path={ROUTES.SETTINGS}
+            element={<SettingsPage />}
+          />
+
+          {/* Profile */}
+          <Route
+            path={ROUTES.PROFILE}
+            element={<SettingsPage />}
+          />
+
+          {/* Payments */}
+          <Route
+            path={ROUTES.PAYMENTS}
+            element={<Dashboard />}
+          />
+
+          {/* Add Expense Modal Route */}
           <Route
             path={ROUTES.ADD_EXPENSE}
             element={
@@ -68,12 +153,14 @@ const AppRoutes = () => {
               </>
             }
           />
+
+          {/* Create Group Modal Route */}
           <Route
             path={ROUTES.CREATE_GROUP}
             element={
               <>
                 <GroupsPage />
-                {React.createElement(lazy(() => import('../components/modals/CreateGroupModal')))}
+                <CreateGroupModal />
               </>
             }
           />
