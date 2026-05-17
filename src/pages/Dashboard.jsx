@@ -21,7 +21,7 @@ import { formatCurrency } from '../services/currencyService'
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [graphView, setGraphView] = useState('monthly'); // 'monthly' | 'groups'
+  const [graphView, setGraphView] = useState('monthly');
 
   const groups = useGroupStore(
     (state) => state.groups
@@ -256,21 +256,19 @@ const Dashboard = () => {
             <div className="flex items-center bg-surface-container-high rounded-lg p-0.5 gap-0.5">
               <button
                 onClick={() => setGraphView('monthly')}
-                className={`px-3 py-1.5 rounded-md text-[11px] font-medium transition-all ${
-                  graphView === 'monthly'
+                className={`px-3 py-1.5 rounded-md text-[11px] font-medium transition-all ${graphView === 'monthly'
                     ? 'bg-primary-container text-white'
                     : 'text-on-surface-variant hover:text-on-surface'
-                }`}
+                  }`}
               >
                 Monthly
               </button>
               <button
                 onClick={() => setGraphView('groups')}
-                className={`px-3 py-1.5 rounded-md text-[11px] font-medium transition-all ${
-                  graphView === 'groups'
+                className={`px-3 py-1.5 rounded-md text-[11px] font-medium transition-all ${graphView === 'groups'
                     ? 'bg-primary-container text-white'
                     : 'text-on-surface-variant hover:text-on-surface'
-                }`}
+                  }`}
               >
                 By Group
               </button>
