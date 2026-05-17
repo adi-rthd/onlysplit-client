@@ -17,6 +17,16 @@ const expenseService = {
     }
   },
 
+  getGroupExpenses: async (groupId, params = {}) => {
+    try {
+      const { data } = await client.get(`/groups/${groupId}/expenses`, { params });
+      return data;
+    } catch (error) {
+      handleApiError(error, 'Failed to load group expenses.');
+      return null;
+    }
+  },
+
   getExpenseById: async (id) => {
     try {
       const { data } = await client.get(`/expenses/${id}`);

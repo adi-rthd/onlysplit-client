@@ -52,15 +52,28 @@ const AppRoutes = () => {
         >
           <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
           <Route path={ROUTES.GROUPS} element={<GroupsPage />} />
+          <Route path={ROUTES.GROUP_DETAILS} element={lazy(() => import('../pages/GroupDetailsPage')).render ? React.createElement(lazy(() => import('../pages/GroupDetailsPage'))) : <GroupsPage />} />
           <Route path={ROUTES.ACTIVITY} element={<ActivityFeed />} />
+          <Route path={ROUTES.SETTLEMENTS} element={lazy(() => import('../pages/SettlementsPage')).render ? React.createElement(lazy(() => import('../pages/SettlementsPage'))) : <Dashboard />} />
           <Route path={ROUTES.ANALYTICS} element={<AnalyticsPage />} />
           <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
+          <Route path={ROUTES.PROFILE} element={<SettingsPage />} />
+          <Route path={ROUTES.PAYMENTS} element={<Dashboard />} />
           <Route
             path={ROUTES.ADD_EXPENSE}
             element={
               <>
                 <Dashboard />
                 <AddExpenseModal />
+              </>
+            }
+          />
+          <Route
+            path={ROUTES.CREATE_GROUP}
+            element={
+              <>
+                <GroupsPage />
+                {React.createElement(lazy(() => import('../components/modals/CreateGroupModal')))}
               </>
             }
           />

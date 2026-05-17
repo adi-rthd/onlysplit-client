@@ -28,7 +28,14 @@ const SideNavBar = () => {
         </div>
       </div>
       
-      <div className="px-4 mb-6">
+      <div className="px-4 mb-6 space-y-3">
+        <motion.button 
+          whileTap={{ scale: 0.95 }}
+          onClick={() => navigate(ROUTES.CREATE_GROUP)} 
+          className="w-full bg-surface-container-high border border-glass-stroke text-on-surface rounded-lg py-2.5 px-4 font-medium flex items-center justify-center gap-2 hover:bg-white/5 transition-colors"
+        >
+          <Plus size={18} /> Create Group
+        </motion.button>
         <motion.button 
           whileTap={{ scale: 0.95 }}
           onClick={() => navigate(ROUTES.ADD_EXPENSE)} 

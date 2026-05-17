@@ -15,9 +15,18 @@ const authService = {
   login: async (credentials) => {
     try {
       useAuthStore.getState().setAuthenticating(true);
-      const { data } = await client.post('/auth/login', credentials);
-      useAuthStore.getState().setAuth({ user: data.user, token: data.token });
-      toast.success(`Welcome back, ${data.user?.firstName || 'there'}!`);
+      let { data } = await client.post('/auth/login', credentials);
+      
+      data = data?.data || data;
+      const token = data.token || data.accessToken || data.jwt || (typeof data === 'string' ? data : null);
+      const user = data.user || { email: credentials.email, ...data };
+      
+      if (!token) {
+        throw new Error('No token received from backend');
+      }
+
+      useAuthStore.getState().setAuth({ user, token });
+      toast.success(`Welcome back, ${user?.firstName || 'there'}!`);
       return data;
     } catch (error) {
       handleApiError(error, 'Login failed. Please check your credentials.');
@@ -34,7 +43,18 @@ const authService = {
     try {
       useAuthStore.getState().setAuthenticating(true);
       const { data } = await client.post('/auth/signup', userData);
-      useAuthStore.getState().setAuth({ user: data.user, token: data.token });
+
+      const token = data.token || data.accessToken || data.jwt || null;
+      const user = data.user || { ...userData };
+
+      if (token) {
+        useAuthStore.getState().setAuth({ user, token });
+      } else {
+        // Some APIs require login after signup
+        toast.success('Account created! Please log in.');
+        return data;
+      }
+
       toast.success('Account created! Welcome to OnlySplit.');
       return data;
     } catch (error) {

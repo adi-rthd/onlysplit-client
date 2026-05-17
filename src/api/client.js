@@ -2,7 +2,7 @@ import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -15,7 +15,11 @@ client.interceptors.request.use(
   (config) => {
     const token = useAuthStore.getState().token;
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      if (config.headers && typeof config.headers.set === 'function') {
+        config.headers.set('Authorization', `Bearer ${token}`);
+      } else {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },
@@ -34,15 +38,21 @@ client.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      // Future: implement refresh-token rotation here.
-      // const newToken = await useAuthStore.getState().refreshToken();
-      // if (newToken) {
-      //   originalRequest.headers.Authorization = `Bearer ${newToken}`;
-      //   return client(originalRequest);
-      // }
-
-      // For now, force logout on any 401.
-      useAuthStore.getState().logout();
+      try {
+        const authStore = useAuthStore.getState();
+        const { data } = await axios.post(`${client.defaults.baseURL}/auth/refresh`, {}, {
+          withCredentials: true // Assuming refresh token is in a cookie
+        });
+        
+        if (data && data.token) {
+          authStore.setAuth({ user: data.user || authStore.user, token: data.token });
+          originalRequest.headers.Authorization = `Bearer ${data.token}`;
+          return client(originalRequest);
+        }
+      } catch (refreshError) {
+        // Force logout on refresh failure
+        useAuthStore.getState().logout();
+      }
     }
 
     return Promise.reject(error);

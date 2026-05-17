@@ -8,10 +8,15 @@ export const ROUTES = {
   // Protected
   DASHBOARD: '/dashboard',
   GROUPS: '/groups',
+  GROUP_DETAILS: '/groups/:id',
   ACTIVITY: '/activity',
   ANALYTICS: '/analytics',
   SETTINGS: '/settings',
   ADD_EXPENSE: '/add-expense',
+  CREATE_GROUP: '/create-group',
+  SETTLEMENTS: '/settlements',
+  PAYMENTS: '/payments',
+  PROFILE: '/profile',
 };
 
 // Routes that require authentication
