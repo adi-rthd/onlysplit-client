@@ -2,6 +2,16 @@
 
 import axios from 'axios';
 
+const SUPPORTED_CURRENCIES = [
+    'INR',
+    'USD',
+    'EUR',
+    'GBP',
+    'AED',
+    'CAD',
+    'AUD',
+    'SGD'
+];
 const currencyApi = axios.create({
     baseURL: 'https://api.frankfurter.dev/v2',
     timeout: 10000,
@@ -14,7 +24,11 @@ export const getCurrencies = async () => {
     try {
         const response = await currencyApi.get('/currencies');
 
-        return response.data;
+        return response.data.filter(currency =>
+            SUPPORTED_CURRENCIES.includes(
+                currency.iso_code
+            )
+        );
     } catch (error) {
         console.error('Failed to fetch currencies:', error);
         throw error;
@@ -31,7 +45,7 @@ export const formatCurrency = (
     locale = undefined
 ) => {
     try {
-        
+
         return new Intl.NumberFormat(locale, {
             style: 'currency',
             currency: currencyCode,
