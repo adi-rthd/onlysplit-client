@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { GlassPanel } from '../components/ui/GlassCard';
-import { 
-  ArrowLeft, 
-  Plus, 
+import {
+  ArrowLeft,
+  Plus,
   CheckCircle2,
   Users,
   Receipt
@@ -15,7 +15,7 @@ import ExpenseCard from '../components/ui/ExpenseCard';
 import SettlementCard from '../components/ui/SettlementCard';
 import SettleUpModal from '../components/modals/SettleUpModal';
 import MemberBalanceList from '../components/ui/MemberBalanceList';
-import { formatCurrency } from '../utils/formatCurrency';
+import { formatCurrency } from '../../services/currencyService';
 import { ROUTES } from '../constants/routes';
 
 const GroupDetailsPage = () => {
@@ -71,7 +71,7 @@ const GroupDetailsPage = () => {
   return (
     <>
       <header className="mb-8">
-        <button 
+        <button
           onClick={() => navigate(ROUTES.GROUPS)}
           className="flex items-center gap-2 text-on-surface-variant hover:text-on-surface mb-4 transition-colors"
         >
@@ -90,14 +90,14 @@ const GroupDetailsPage = () => {
           </div>
 
           <div className="flex gap-3 w-full md:w-auto">
-            <button 
+            <button
               onClick={() => setShowSettleModal(true)}
               className="flex-1 md:flex-none bg-surface-container-high border border-glass-stroke text-on-surface px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 hover:bg-white/5 transition-colors font-medium"
             >
               <CheckCircle2 size={18} />
               <span>Settle Up</span>
             </button>
-            <button 
+            <button
               onClick={() => navigate(ROUTES.ADD_EXPENSE)}
               className="flex-1 md:flex-none bg-gradient-to-r from-primary-container to-secondary-container text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity font-medium"
             >
@@ -151,13 +151,13 @@ const GroupDetailsPage = () => {
         {/* LEFT COLUMN: EXPENSES & SETTLEMENTS */}
         <div className="lg:col-span-2 space-y-6">
           <div className="flex items-center gap-4 border-b border-glass-stroke pb-2">
-            <button 
+            <button
               className={`pb-2 px-1 font-medium text-sm transition-colors ${activeTab === 'expenses' ? 'text-primary border-b-2 border-primary' : 'text-on-surface-variant hover:text-on-surface'}`}
               onClick={() => setActiveTab('expenses')}
             >
               Expenses
             </button>
-            <button 
+            <button
               className={`pb-2 px-1 font-medium text-sm transition-colors ${activeTab === 'settlements' ? 'text-primary border-b-2 border-primary' : 'text-on-surface-variant hover:text-on-surface'}`}
               onClick={() => setActiveTab('settlements')}
             >
@@ -211,10 +211,10 @@ const GroupDetailsPage = () => {
               <Users size={18} /> Group Balances
             </h3>
             <GlassPanel className="p-4">
-              <MemberBalanceList 
-                members={membersList} 
-                currency={currentGroup.currency} 
-                onSettleUp={handleSettleUp} 
+              <MemberBalanceList
+                members={membersList}
+                currency={currentGroup.currency}
+                onSettleUp={handleSettleUp}
               />
             </GlassPanel>
           </div>
@@ -223,7 +223,7 @@ const GroupDetailsPage = () => {
 
       {/* MODALS */}
       {showSettleModal && (
-        <SettleUpModal 
+        <SettleUpModal
           groupId={groupId}
           receiverId={settleReceiverId}
           defaultAmount={settleAmount}

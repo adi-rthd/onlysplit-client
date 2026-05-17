@@ -1,7 +1,7 @@
 import React from 'react';
 import { GlassPanel } from './GlassCard';
 import { Utensils, Edit2, Trash2 } from 'lucide-react';
-import { formatCurrency } from '../../utils/formatCurrency';
+import { formatCurrency } from '../../services/currencyService';
 
 const ExpenseCard = ({ expense, onEdit, onDelete }) => {
   const date = new Date(expense.expenseDate || expense.createdAt).toLocaleDateString('en-US', {

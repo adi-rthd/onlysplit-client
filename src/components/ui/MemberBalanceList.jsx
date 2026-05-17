@@ -1,6 +1,6 @@
 import React from 'react';
 import { GlassPanel } from './GlassCard';
-import { formatCurrency } from '../../utils/formatCurrency';
+import { formatCurrency } from '../../services/currencyService';
 
 const MemberBalanceList = ({ members, currency = 'USD', onSettleUp }) => {
   if (!members || members.length === 0) {

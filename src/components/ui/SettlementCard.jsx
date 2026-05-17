@@ -1,7 +1,7 @@
 import React from 'react';
 import { GlassPanel } from './GlassCard';
 import { CheckCircle2, Circle } from 'lucide-react';
-import { formatCurrency } from '../../utils/formatCurrency';
+import { formatCurrency } from '../../services/currencyService';
 
 const SettlementCard = ({ settlement }) => {
   const isCompleted = settlement.status === 'completed' || settlement.isCompleted;
