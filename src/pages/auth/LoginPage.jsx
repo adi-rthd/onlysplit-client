@@ -46,7 +46,7 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen bg-[#05060a] flex items-center justify-center px-5 relative overflow-hidden">
-      {/* Background */}
+
       <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,rgba(94,92,230,0.16)_0%,transparent_70%)] pointer-events-none" />
 
       <div className="absolute bottom-[-15%] right-[-8%] w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle,rgba(62,144,255,0.08)_0%,transparent_70%)] pointer-events-none" />

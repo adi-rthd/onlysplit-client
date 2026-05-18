@@ -65,22 +65,28 @@ const LandingPage = () => {
   return (
     <div className="min-h-screen bg-[#05060a] overflow-hidden text-white">
 
+      <div className="absolute top-[-5%] left-[-5%] w-[800px] h-[800px] rounded-full bg-[radial-gradient(circle,rgba(94,92,230,0.10)_0%,transparent_90%)] blur-3xl pointer-events-none" />
+
+      <div className="absolute bottom-[-10%] right-[-8%] w-[660px] h-[660px] rounded-full bg-[radial-gradient(circle,rgba(62,144,255,0.06)_0%,transparent_90%)] blur-3xl pointer-events-none" />
       {/* ================= HEADER ================= */}
 
       <header className="sticky top-0 z-50 w-full border-b border-white/[0.04] bg-black/30 backdrop-blur-2xl">
 
         <div className="max-w-7xl mx-auto h-20 px-4 lg:px-8 flex items-center justify-between">
 
-          {/* LOGO */}
           <div className="flex items-center gap-3">
 
             <div className="relative">
-              <div className="absolute inset-0 bg-primary-container/40 blur-xl rounded-full" />
 
-              <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-br from-primary-container to-[#5f6fff] flex items-center justify-center shadow-[0_8px_30px_rgba(94,92,230,0.35)]">
-                <span className="text-white font-black text-lg">
-                  OS
-                </span>
+              <div className="absolute inset-0 bg-primary-container/30 blur-2xl rounded-full scale-125" />
+              <div
+                className=" relative w-12 h-12 flex items-center justify-center rounded-2xl overflow-hidden"
+              >
+                <img
+                  src="/logo.png"
+                  alt="OnlySplit"
+                  className="w-full h-full object-contain drop-shadow-[0_8px_25px_rgba(94,92,230,0.35)]"
+                />
               </div>
             </div>
 
