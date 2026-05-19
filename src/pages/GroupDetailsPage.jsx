@@ -160,25 +160,21 @@ const GroupDetailsPage = () => {
 
             <button
               onClick={() =>
-                navigate(ROUTES.ADD_EXPENSE)
+                navigate(ROUTES.ADD_EXPENSE.replace(':id', groupId))
               }
-              className="
-                flex-1 md:flex-none
-                bg-gradient-to-r
-                from-primary-container
-                to-secondary-container
-                text-white
-                px-4 py-2.5
-                rounded-lg
-                flex items-center justify-center gap-2
-                hover:opacity-90
-                transition-opacity
-                font-medium
-              "
-            >
+              className=" flex-1 md:flex-none bg-gradient-to-r from-primary-container to-secondary-container text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity font-medium">
               <Plus size={18} />
 
               <span>Add Expense</span>
+            </button>
+            <button
+              onClick={() =>
+                     navigate(ROUTES.INVITE_MODAL.replace(':id', groupId))
+               }
+              className=" flex-1 md:flex-none bg-gradient-to-r from-primary-container to-secondary-container text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity font-medium">
+              <Plus size={18} />
+
+              <span>Invite</span>
             </button>
           </div>
         </div>

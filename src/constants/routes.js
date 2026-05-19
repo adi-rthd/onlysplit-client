@@ -32,11 +32,14 @@ export const ROUTES = {
 
   SETTLEMENTS: '/settlements',
 
-  ADD_EXPENSE: '/add-expense',
+  ADD_EXPENSE: '/add-expense/:id',
 
   CREATE_GROUP: '/create-group',
 
-  FRIEND_MODAL : '/friends-group'
+  FRIEND_MODAL : '/friends-group',
+
+  INVITE_MODAL : '/invite-group/:id',
+
 };
 
 // Routes that require authentication
@@ -53,6 +56,8 @@ export const PROTECTED_ROUTES = [
   ROUTES.SETTLEMENTS,
   ROUTES.ADD_EXPENSE,
   ROUTES.CREATE_GROUP,
+  ROUTES.FRIEND_MODAL,
+  ROUTES.INVITE_MODAL
 ];
 
 // Routes that should redirect authenticated users

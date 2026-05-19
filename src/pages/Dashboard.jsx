@@ -204,7 +204,7 @@ const Dashboard = () => {
 
             <ArrowUpRight
               className="text-error"
-              size={24}
+              size={33}
             />
           </div>
 
@@ -212,7 +212,7 @@ const Dashboard = () => {
 
           <p className="text-on-surface-variant text-sm">
             Across{' '}
-            {summary?.activeGroups || 0}{' '}
+            {summary?.youOweGroups || 0}{' '}
             groups
           </p>
         </GlassPanel>
@@ -226,14 +226,14 @@ const Dashboard = () => {
 
             <ArrowDownRight
               className="text-neon-lime"
-              size={24}
+              size={33}
             />
           </div>
 
           {renderCurrencyTotals('youAreOwed')}
 
           <p className="text-on-surface-variant text-sm">
-            {summary?.youOwe || 0} pending settlements
+            {summary?.youAreOwedGroups || 0} pending settlements
           </p>
         </GlassPanel>
       </div>

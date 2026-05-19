@@ -12,6 +12,7 @@ import MainLayout from '../layouts/MainLayout';
 
 import PageLoader from '../components/ui/PageLoader';
 import FriendshipModal from '../components/modals/FriendshipModal';
+import InviteGroupModal from '../components/modals/InviteGroupModal';
 
 // ─────────────────────────────────────────────────────────────
 // Lazy Loaded Pages
@@ -43,7 +44,7 @@ const AddExpenseModal = lazy(() =>
   import('../components/modals/AddExpenseModal')
 );
 
-const CreateGroupModal = lazy(() => 
+const CreateGroupModal = lazy(() =>
   import('../components/modals/CreateGroupModal')
 );
 
@@ -148,10 +149,7 @@ const AppRoutes = () => {
           <Route
             path={ROUTES.ADD_EXPENSE}
             element={
-              <>
-                <Dashboard />
                 <AddExpenseModal />
-              </>
             }
           />
 
@@ -172,6 +170,15 @@ const AppRoutes = () => {
               <>
                 <GroupsPage />
                 <FriendshipModal />
+              </>
+            }
+          />
+          <Route
+            path={ROUTES.INVITE_MODAL}
+                element={
+              <>
+                <GroupsPage />
+                <InviteGroupModal />
               </>
             }
           />

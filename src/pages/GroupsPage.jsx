@@ -1,17 +1,34 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GlassPanel } from '../components/ui/GlassCard';
-import { Plus, Users, Utensils } from 'lucide-react';
+import { Bell, Plus, Users, Utensils } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useGroupStore } from '../store/groupStore';
 import GroupCard from '../components/ui/GroupCard';
 import { ROUTES } from '../constants/routes';
 import { formatCurrency } from '../services/currencyService';
+import InviteGroupStore from '../services/groupInviteService';
 
 const GroupsPage = () => {
   const navigate = useNavigate();
+  const [groupInvites, setGroupInvites] = useState([]);
+
   const { groups, isLoading, fetchGroups } = useGroupStore();
 
+  const loadData = async () => {
+    setLoading(true);
+
+    try {
+      const invitesData = await InviteGroupStore.getGroupInvites(groupId)
+      setGroupInvites(
+        invitesData || []
+      );
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
     fetchGroups();
   }, [fetchGroups]);
@@ -62,6 +79,33 @@ const GroupsPage = () => {
           >
             <Plus size={18} />
             <span>Friends</span>
+          </button>
+          <button
+            onClick={() =>
+              navigate(ROUTES.INVITE_MODAL.replace(':id', 'bell'))
+            }
+            className="relative flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-surface-container-low border border-glass-stroke text-on-surface hover:bg-white/5 transition-all font-medium"
+          >
+            <Bell size={18} />
+
+            <span className="hidden sm:block">
+              Invites
+            </span>
+
+            {groupInvites.length > 0 && (
+              <>
+                {/* Pulse */}
+                <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-yellow-400 animate-ping" />
+
+                {/* Dot */}
+                <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-yellow-400" />
+
+                {/* Count */}
+                <span className="absolute -top-2 -right-2 min-w-[20px] h-5 px-1 rounded-full bg-primary text-white text-[11px] flex items-center justify-center font-semibold">
+                  {groupInvites.length}
+                </span>
+              </>
+            )}
           </button>
         </div>
       </header>
