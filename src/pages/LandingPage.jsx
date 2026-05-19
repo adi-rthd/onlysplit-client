@@ -487,7 +487,7 @@ const LandingPage = () => {
                       <div className="flex-1 min-w-0">
 
                         <h4 className="text-[28px] sm:text-[32px] leading-tight font-bold text-white">
-                          Goa Trip
+                          A Trip
                         </h4>
 
                         <p className="text-white/45 text-sm sm:text-[15px] mt-2 leading-normal">
@@ -514,7 +514,7 @@ const LandingPage = () => {
                     </p>
 
                     <p className="text-[54px] sm:text-[64px] md:text-[72px] leading-none font-black text-primary mt-4 tracking-tight">
-                      $1,245
+                      ₹12,445
                     </p>
 
                     <p className="text-white/35 text-sm mt-3 leading-relaxed">

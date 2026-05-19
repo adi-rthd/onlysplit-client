@@ -21,15 +21,11 @@ const LoginPage = () => {
 
   const { isAuthenticating } = useAuthStore();
 
-  const from =
-    location.state?.from?.pathname ||
-    ROUTES.DASHBOARD;
+  const from = location.state?.from?.pathname || ROUTES.DASHBOARD;
 
   const [email, setEmail] = useState('');
-  const [password, setPassword] =
-    useState('');
-  const [showPassword, setShowPassword] =
-    useState(false);
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

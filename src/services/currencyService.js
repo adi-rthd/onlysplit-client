@@ -59,6 +59,18 @@ export const formatCurrency = (
     }
 };
 
+export const formatCompact = (amount, currencyCode = 'USD') => {
+    try {
+      return new Intl.NumberFormat(undefined, {
+        style: 'currency',
+        currency: currencyCode,
+        notation: 'compact',
+        maximumFractionDigits: 1
+      }).format(amount);
+    } catch {
+      return `${amount}`;
+    }
+  };
 /**
  * Get exchange rates
  */
