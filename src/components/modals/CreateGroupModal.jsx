@@ -1,47 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import {
-  X,
-  Users,
-  Type,
-  Loader2,
-  ChevronDown,
-  Check
-} from 'lucide-react';
-
+import { X, Users, Type, Loader2, ChevronDown, Check } from 'lucide-react';
 import { Listbox } from '@headlessui/react';
-
 import { useGroupStore } from '../../store/groupStore';
 import toast from 'react-hot-toast';
 import { getCurrencies } from '../../services/currencyService';
 
 const CreateGroupModal = () => {
   const navigate = useNavigate();
-
-  const { createGroup, isLoading } =
-    useGroupStore();
-
-  const [currencies, setCurrencies] =
-    useState([]);
-
   const [name, setName] = useState('');
 
-  const [description, setDescription] =
-    useState('');
-
-  const [currency, setCurrency] =
-    useState('INR');
+  const { createGroup, isLoading } = useGroupStore();
+  const [currencies, setCurrencies] = useState([]);
+  const [description, setDescription] = useState('');
+  const [currency, setCurrency] = useState('INR');
 
   useEffect(() => {
     const fetchCurrencies = async () => {
       try {
         const data = await getCurrencies();
-
         setCurrencies(data);
       } catch (error) {
         console.error(error);
-
         toast.error(
           'Failed to load currencies'
         );
@@ -58,10 +39,7 @@ const CreateGroupModal = () => {
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      toast.error(
-        'Group name is required'
-      );
-
+      toast.error('Group name is required');
       return;
     }
 
@@ -75,12 +53,7 @@ const CreateGroupModal = () => {
         });
 
       if (newGroup) {
-        navigate(
-          `/groups/${newGroup.id ||
-          newGroup.groupId ||
-          ''
-          }`
-        );
+        navigate(`/groups/${newGroup.id || newGroup.groupId || ''}`);
       } else {
         navigate('/groups');
       }
@@ -111,17 +84,7 @@ const CreateGroupModal = () => {
           scale: 0.95,
           y: 20
         }}
-        className="
-          w-full
-          max-w-lg
-          bg-surface-charcoal/95
-          backdrop-blur-2xl
-          border
-          border-glass-stroke
-          rounded-3xl
-          shadow-2xl
-          overflow-visible
-        "
+        className=" w-full max-w-lg bg-surface-charcoal/95 backdrop-blur-2xl border border-glass-stroke rounded-3xl shadow-2xl overflow-visible"
       >
         {/* HEADER */}
         <header className="flex items-center justify-between px-6 py-5 border-b border-glass-stroke bg-white/[0.03]">

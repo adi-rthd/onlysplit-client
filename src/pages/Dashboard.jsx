@@ -381,7 +381,7 @@ const Dashboard = () => {
           </GlassPanel>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {groups.slice(0, 6).map((group) => (
+            {groups.slice(0, 3).map((group) => (
               <GroupCard key={group.id || group.groupId} group={group} />
             ))}
           </div>

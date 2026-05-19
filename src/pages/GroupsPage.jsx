@@ -14,35 +14,31 @@ const GroupsPage = () => {
 
   useEffect(() => {
     fetchGroups();
-  }, []);
+  }, [fetchGroups]);
 
   const totalGroups = groups?.length || 0;
 
-  const currencyTotals = useMemo(() => {
-    if (!groups || groups.length === 0) return {};
+  const totalSpending = useMemo(() => {
+    if (!groups || groups.length === 0) return 0;
+
     return groups.reduce((acc, group) => {
-      const cur = group.currency || 'USD';
-      if (!acc[cur]) {
-        acc[cur] = 0;
-      }
-      acc[cur] += Number(group.totalExpenses || group.totalSpending || 0);
-      return acc;
-    }, {});
+      return acc + Number(group.totalExpenses || group.totalSpending || 0);
+    }, 0);
   }, [groups]);
 
-  const renderSpendingTotals = () => {
-    const entries = Object.entries(currencyTotals);
-    if (isLoading || entries.length === 0) return <div className="text-[32px] font-bold text-on-surface mb-1">--</div>;
-    return (
-      <div className="space-y-1 mb-2">
-        {entries.map(([currency, total]) => (
-          <div key={currency} className="text-[28px] md:text-[32px] font-bold text-on-surface leading-none">
-            {formatCurrency(total, currency)}
-          </div>
-        ))}
-      </div>
-    );
-  };
+  // const renderSpendingTotals = () => {
+  //   const entries = Object.entries(currencyTotals);
+  //   if (isLoading || entries.length === 0) return <div className="text-[32px] font-bold text-on-surface mb-1">--</div>;
+  //   return (
+  //     <div className="space-y-1 mb-2">
+  //       {entries.map(([currency, total]) => (
+  //         <div key={currency} className="text-[28px] md:text-[32px] font-bold text-on-surface leading-none">
+  //           {formatCurrency(total, currency)}
+  //         </div>
+  //       ))}
+  //     </div>
+  //   );
+  // };
 
   return (
     <>
@@ -59,6 +55,13 @@ const GroupsPage = () => {
           >
             <Plus size={18} />
             <span>Create Group</span>
+          </button>
+          <button
+            onClick={() => navigate(ROUTES.FRIEND_MODAL)}
+            className="w-full md:w-auto bg-gradient-to-r from-primary-container to-secondary-container text-white px-6 py-2.5 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity font-medium"
+          >
+            <Plus size={18} />
+            <span>Friends</span>
           </button>
         </div>
       </header>
@@ -80,7 +83,9 @@ const GroupsPage = () => {
             <span className="font-label-caps text-[12px] text-on-surface-variant">TOTAL GROUP SPENDING</span>
             <Utensils className="text-error" size={24} />
           </div>
-          {renderSpendingTotals()}
+          <div className="text-[32px] font-bold text-on-surface mb-1">
+            {isLoading ? '--' : formatCurrency(totalSpending, 'INR')}
+          </div>
         </GlassPanel>
       </div>
 

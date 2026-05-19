@@ -8,7 +8,6 @@ const SettlementsPage = () => {
   const { settlements, isLoading, fetchSettlements } = useSettlementStore();
 
   useEffect(() => {
-    // Fetch all settlements across all groups
     fetchSettlements();
   }, [fetchSettlements]);
 

@@ -10,13 +10,6 @@ export const useSettlementStore = create((set, get) => ({
   fetchBalances: async (groupId) => {
     set({ isLoading: true, error: null });
     try {
-      // Assuming settlementService might have a getBalances method in the future,
-      // but for now we'll just use the existing client inside a service if we had one.
-      // Wait, we didn't add getBalances to settlementService. Let's assume we can add it,
-      // or we can just fetch settlements and extract balances if that's how it works.
-      // But let's import client here just for the balance endpoint or I will update settlementService.
-      // Actually, let's keep the client call here or add it to settlementService.
-      // I will add it to settlementService.
       const data = await settlementService.getBalances(groupId);
       set({ balances: Array.isArray(data) ? data : [], isLoading: false });
       return data;

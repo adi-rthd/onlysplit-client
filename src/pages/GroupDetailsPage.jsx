@@ -96,7 +96,7 @@ const GroupDetailsPage = () => {
           onClick={() => navigate(ROUTES.GROUPS)}
           className="text-primary hover:underline"
         >
-          Back to Groups
+          Back
         </button>
       </div>
     );
@@ -121,7 +121,7 @@ const GroupDetailsPage = () => {
           <ArrowLeft size={16} />
 
           <span className="text-sm font-medium">
-            Back to Groups
+            Back
           </span>
         </button>
 

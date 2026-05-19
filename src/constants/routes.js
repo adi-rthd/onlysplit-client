@@ -35,6 +35,8 @@ export const ROUTES = {
   ADD_EXPENSE: '/add-expense',
 
   CREATE_GROUP: '/create-group',
+
+  FRIEND_MODAL : '/friends-group'
 };
 
 // Routes that require authentication

@@ -13,7 +13,7 @@ export const useGroupStore = create((set, get) => ({
       const newGroup = await groupService.createGroup(groupData);
       if (newGroup) {
         set((state) => ({
-          groups: [newGroup, ...state.groups],
+          groups: [newGroup?.data, ...state.groups],
           isLoading: false
         }));
       }

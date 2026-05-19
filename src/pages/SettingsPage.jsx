@@ -1,36 +1,10 @@
-// src/pages/SettingsPage.jsx
-
 import React, { useEffect, useRef, useState } from 'react';
-
-import {
-  User,
-  Shield,
-  Camera,
-  Mail,
-  Globe,
-  Bell,
-  CreditCard,
-  Lock,
-  Check,
-  IndianRupee,
-  Smartphone,
-  Moon,
-  Trash2,
-  ChevronRight,
-  BadgeCheck,
-  KeyRound,
-  UploadCloud,
-  AlertTriangle
-} from 'lucide-react';
-
+import { User, Shield, Camera, Mail, Globe, Bell, CreditCard, Lock, Check, IndianRupee, Smartphone, Moon, Trash2, ChevronRight, BadgeCheck, KeyRound, UploadCloud, AlertTriangle} from 'lucide-react';
 import { GlassPanel } from '../components/ui/GlassCard';
-
-import {
-  getProfile,
-  updateProfile
-} from '../services/settingsService';
+import { getProfile, updateProfile } from '../services/settingsService';
 
 const SettingsPage = () => {
+  
   const fileInputRef = useRef(null);
 
   const [loading, setLoading] = useState(true);
