@@ -22,19 +22,21 @@ import { getCurrencies } from '../../services/currencyService';
 
 import { useAuthStore } from '../../store/authStore';
 import useCurrencyStore from '../../store/useCurrencyStore';
+
 const AddExpenseModal = () => {
   const navigate = useNavigate();
 
   const { groupId } = useParams();
+
   const { user } = useAuthStore();
-  const { currency: storeCurrency } = useCurrencyStore();
+
+  const { currency: storeCurrency } =
+    useCurrencyStore();
 
   const {
     groups,
     fetchGroups,
   } = useGroupStore();
-
-  
 
   const {
     createExpense,
@@ -57,16 +59,20 @@ const AddExpenseModal = () => {
     setSelectedGroupId,
   ] = useState(groupId || '');
 
-  const [splitMethod, setSplitMethod] =
-    useState('equal');
+  const [
+    splitMethod,
+    setSplitMethod,
+  ] = useState('equal');
 
   const [
     selectedMembers,
     setSelectedMembers,
   ] = useState([]);
 
-  const [splitValues, setSplitValues] =
-    useState({});
+  const [
+    splitValues,
+    setSplitValues,
+  ] = useState({});
 
   const isGroupContext =
     Boolean(groupId);
@@ -119,12 +125,12 @@ const AddExpenseModal = () => {
       ) {
         return [];
       }
-
-      return selectedGroup.members.filter(
-        (member) =>
-          member.userId !==
-          user?.id
-      );
+      return selectedGroup.members
+      // return selectedGroup.members.filter(
+      //   (member) =>
+      //     member.userId !==
+      //     user?.id
+      // );
     }, [
       selectedGroup,
       user,
@@ -137,11 +143,13 @@ const AddExpenseModal = () => {
     if (members.length > 0) {
       setSelectedMembers(
         members.map(
-          (member) => member.userId
+          (member) =>
+            member.userId
         )
       );
     }
   }, [selectedGroupId]);
+
   useEffect(() => {
     if (!selectedGroup) {
       return;
@@ -150,18 +158,25 @@ const AddExpenseModal = () => {
     const filteredMembers =
       selectedGroup.members.filter(
         (member) =>
-          member.userId !== user?.id
+          member.userId !==
+          user?.id
       );
 
     setSelectedMembers(
       filteredMembers.map(
-        (member) => member.userId
+        (member) =>
+          member.userId
       )
     );
   }, [selectedGroupId]);
+
   const currencySymbol =
     useMemo(() => {
-      const activeCurrency = selectedGroup?.currency || storeCurrency || 'INR';
+      const activeCurrency =
+        selectedGroup?.currency ||
+        storeCurrency ||
+        'INR';
+
       if (
         activeCurrency ===
         'INR'
@@ -172,18 +187,46 @@ const AddExpenseModal = () => {
       const currencyItem =
         currencies.find(
           (c) =>
-            (c.iso_code || c.code) ===
+            (
+              c.iso_code ||
+              c.code
+            ) ===
             activeCurrency
         );
 
       return (
         currencyItem?.symbol ||
-        (activeCurrency === 'USD' ? '$' : activeCurrency)
+        (
+          activeCurrency ===
+          'USD'
+            ? '$'
+            : activeCurrency
+        )
       );
     }, [
       currencies,
       selectedGroup,
       storeCurrency,
+    ]);
+
+  const totalPercentage =
+    useMemo(() => {
+      return selectedMembers.reduce(
+        (
+          acc,
+          memberId
+        ) =>
+          acc +
+          Number(
+            splitValues[
+              memberId
+            ] || 0
+          ),
+        0
+      );
+    }, [
+      selectedMembers,
+      splitValues,
     ]);
 
   const toggleMember = (
@@ -223,7 +266,8 @@ const AddExpenseModal = () => {
         ) {
           return prev.filter(
             (id) =>
-              id !== memberId
+              id !==
+              memberId
           );
         }
 
@@ -286,7 +330,7 @@ const AddExpenseModal = () => {
             const percent =
               Number(
                 splitValues[
-                memberId
+                  memberId
                 ] || 0
               );
 
@@ -294,12 +338,16 @@ const AddExpenseModal = () => {
               userId:
                 memberId,
 
+              percentage:
+                percent,
+
               amount:
                 Number(
                   (
-                    (totalAmount *
-                      percent) /
-                    100
+                    (
+                      totalAmount *
+                      percent
+                    ) / 100
                   ).toFixed(
                     2
                   )
@@ -319,7 +367,11 @@ const AddExpenseModal = () => {
               memberId,
 
             amount:
-              totalAmount,
+              Number(
+                splitValues[
+                  memberId
+                ] || 0
+              ),
           })
         );
       }
@@ -337,7 +389,7 @@ const AddExpenseModal = () => {
               acc +
               Number(
                 splitValues[
-                memberId
+                  memberId
                 ] || 0
               ),
             0
@@ -348,7 +400,7 @@ const AddExpenseModal = () => {
             const shares =
               Number(
                 splitValues[
-                memberId
+                  memberId
                 ] || 0
               );
 
@@ -356,11 +408,15 @@ const AddExpenseModal = () => {
               userId:
                 memberId,
 
+              shares,
+
               amount:
                 Number(
                   (
-                    (totalAmount *
-                      shares) /
+                    (
+                      totalAmount *
+                      shares
+                    ) /
                     totalShares
                   ).toFixed(
                     2
@@ -403,27 +459,13 @@ const AddExpenseModal = () => {
         splitMethod ===
         'percentage'
       ) {
-        const totalPercent =
-          selectedMembers.reduce(
-            (
-              acc,
-              memberId
-            ) =>
-              acc +
-              Number(
-                splitValues[
-                memberId
-                ] || 0
-              ),
-            0
-          );
-
         if (
-          totalPercent !==
-          100
+          Math.round(
+            totalPercentage
+          ) !== 100
         ) {
           toast.error(
-            'Total percentage must equal 100%'
+            `Total percentage is ${totalPercentage}%. It must equal 100%.`
           );
 
           return;
@@ -432,18 +474,27 @@ const AddExpenseModal = () => {
 
       try {
         const payload = {
-          groupId: selectedGroupId,
-          title: description,
+          groupId:
+            selectedGroupId,
+          title:
+            description,
           description: '',
-          amount: parseFloat(amount),
-          category: 'General',
-          splitType: splitMethod,
-          splits: splitMethod === 'equal' ? [] : generateSplits(),
+          amount:
+            parseFloat(
+              amount
+            ),
+          category:
+            'General',
+          splitType:
+            splitMethod,
+          splits:
+            generateSplits(),
         };
 
         await createExpense(
           payload
         );
+
         navigate(-1);
       } catch (error) {
         console.error(
@@ -472,7 +523,6 @@ const AddExpenseModal = () => {
         }}
         className="w-full max-w-lg bg-surface-charcoal/90 backdrop-blur-2xl border border-glass-stroke rounded-2xl shadow-2xl flex flex-col overflow-hidden"
       >
-        {/* HEADER */}
         <header className="flex items-center justify-between px-6 py-5 border-b border-glass-stroke bg-white/5">
           <h2 className="text-xl font-bold">
             Add Expense
@@ -488,9 +538,7 @@ const AddExpenseModal = () => {
           </button>
         </header>
 
-        {/* BODY */}
         <div className="p-6 space-y-6 overflow-y-auto max-h-[80vh] hide-scrollbar">
-          {/* AMOUNT */}
           <div className="flex flex-col items-center py-1">
             <label className="text-[12px] font-label-caps text-primary tracking-widest mb-2">
               AMOUNT
@@ -517,7 +565,6 @@ const AddExpenseModal = () => {
             </div>
           </div>
 
-          {/* DESCRIPTION */}
           <div className="space-y-1.5">
             <label className="text-[10px] font-label-caps text-on-surface-variant uppercase">
               Description
@@ -539,7 +586,6 @@ const AddExpenseModal = () => {
             </div>
           </div>
 
-          {/* GROUP */}
           {!isGroupContext && (
             <div className="space-y-1.5">
               <label className="text-[10px] font-label-caps text-on-surface-variant uppercase">
@@ -578,7 +624,6 @@ const AddExpenseModal = () => {
             </div>
           )}
 
-          {/* SPLIT METHOD */}
           <div className="space-y-3">
             <label className="text-[10px] font-label-caps text-on-surface-variant uppercase">
               Split Method
@@ -598,14 +643,15 @@ const AddExpenseModal = () => {
                       method
                     )
                   }
-                  className={`flex-1 py-2 rounded-lg font-medium text-xs transition-colors capitalize ${splitMethod ===
+                  className={`flex-1 py-2 rounded-lg font-medium text-xs transition-colors capitalize ${
+                    splitMethod ===
                     method
-                    ? 'bg-primary-container text-white shadow-sm'
-                    : 'text-on-surface-variant hover:text-on-surface'
-                    }`}
+                      ? 'bg-primary-container text-white shadow-sm'
+                      : 'text-on-surface-variant hover:text-on-surface'
+                  }`}
                 >
                   {method ===
-                    'percentage'
+                  'percentage'
                     ? 'Percent'
                     : method}
                 </button>
@@ -613,7 +659,6 @@ const AddExpenseModal = () => {
             </div>
           </div>
 
-          {/* SPLIT WITH */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-[10px] font-label-caps text-on-surface-variant uppercase">
@@ -645,10 +690,11 @@ const AddExpenseModal = () => {
                       key={
                         member.userId
                       }
-                      className={`rounded-xl border px-4 py-3 transition-all ${isSelected
-                        ? 'border-primary bg-primary/10'
-                        : 'border-glass-stroke bg-surface-container-low'
-                        }`}
+                      className={`rounded-xl border px-4 py-3 transition-all ${
+                        isSelected
+                          ? 'border-primary bg-primary/10'
+                          : 'border-glass-stroke bg-surface-container-low'
+                      }`}
                     >
                       <div className="flex items-center justify-between gap-3">
                         <button
@@ -659,10 +705,12 @@ const AddExpenseModal = () => {
                           }
                           className="flex items-center gap-3 flex-1 text-left"
                         >
-                          <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${isSelected
-                            ? 'bg-primary border-primary'
-                            : 'border-outline'
-                            }`}>
+                          <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
+                            isSelected
+                              ? 'bg-primary border-primary'
+                              : 'border-outline'
+                          }`}
+                          >
                             {isSelected && (
                               <Check size={12} className="text-white" />
                             )}
@@ -678,42 +726,55 @@ const AddExpenseModal = () => {
                         {splitMethod !==
                           'equal' &&
                           isSelected && (
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-2">
                               <input
                                 type="number"
                                 value={
                                   splitValues[
-                                  member.userId
+                                    member.userId
                                   ] || ''
                                 }
-                                onChange={(
-                                  e
-                                ) =>
+                                onChange={(e) =>
                                   handleSplitValueChange(
                                     member.userId,
-                                    e
-                                      .target
-                                      .value
+                                    e.target.value
                                   )
                                 }
                                 placeholder={
                                   splitMethod ===
-                                    'percentage'
+                                  'percentage'
                                     ? '%'
                                     : splitMethod ===
                                       'shares'
-                                      ? 'shares'
-                                      : '100'
+                                    ? 'shares'
+                                    : '100'
                                 }
                                 className="w-20 bg-black/20 border border-glass-stroke rounded-lg px-3 py-1.5 text-sm outline-none"
                               />
 
                               {splitMethod ===
                                 'percentage' && (
+                                <div className="flex items-center gap-2 min-w-[72px]">
                                   <span className="text-sm text-on-surface-variant">
                                     %
                                   </span>
-                                )}
+
+                                  <span
+                                    className={`text-xs font-semibold ${
+                                      Math.round(
+                                        totalPercentage
+                                      ) === 100
+                                        ? 'text-green-400'
+                                        : 'text-red-400'
+                                    }`}
+                                  >
+                                    {
+                                      totalPercentage
+                                    }
+                                    /100
+                                  </span>
+                                </div>
+                              )}
                             </div>
                           )}
                       </div>
@@ -725,7 +786,6 @@ const AddExpenseModal = () => {
           </div>
         </div>
 
-        {/* FOOTER */}
         <footer className="p-6 border-t border-glass-stroke bg-white/5 flex justify-end gap-3">
           <button
             onClick={() =>
