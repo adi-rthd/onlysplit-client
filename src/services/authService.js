@@ -1,3 +1,5 @@
+// src/services/authService.js
+
 import client from '../api/client';
 import { useAuthStore } from '../store/authStore';
 import { handleApiError } from '../utils/apiErrorHandler';
@@ -5,31 +7,68 @@ import toast from 'react-hot-toast';
 
 /**
  * Auth service — all authentication-related API calls.
- * Each method handles its own error display via the centralized error handler.
+ * Handles:
+ * - login/signup/logout
+ * - token persistence
+ * - silent refresh
+ * - current user fetching
  */
 const authService = {
   /**
+   * Login user
    * @param {{ email: string, password: string }} credentials
-   * @returns {Promise<{ user: object, token: string } | null>}
    */
   login: async (credentials) => {
     try {
       useAuthStore.getState().setAuthenticating(true);
+
       let { data } = await client.post('/auth/login', credentials);
-      
+
       data = data?.data || data;
-      const token = data.token || data.accessToken || data.jwt || (typeof data === 'string' ? data : null);
-      const user = data.user || { email: credentials.email, ...data };
-      
+
+      const token =
+        data.token ||
+        data.accessToken ||
+        data.jwt ||
+        null;
+
+      const refreshToken =
+        data.refreshToken || null;
+
+      const user =
+        data.user || {
+          email: credentials.email,
+          ...data,
+        };
+
       if (!token) {
         throw new Error('No token received from backend');
       }
 
-      useAuthStore.getState().setAuth({ user, token });
-      toast.success(`Welcome back, ${user?.firstName || 'there'}!`);
+      // Persist tokens
+      localStorage.setItem('token', token);
+
+      if (refreshToken) {
+        localStorage.setItem('refreshToken', refreshToken);
+      }
+
+      // Update store
+      useAuthStore.getState().setAuth({
+        user,
+        token,
+      });
+
+      toast.success(
+        `Welcome back, ${user?.firstName || 'there'}!`
+      );
+
       return data;
     } catch (error) {
-      handleApiError(error, 'Login failed. Please check your credentials.');
+      handleApiError(
+        error,
+        'Login failed. Please check your credentials.'
+      );
+
       return null;
     } finally {
       useAuthStore.getState().setAuthenticating(false);
@@ -37,63 +76,203 @@ const authService = {
   },
 
   /**
-   * @param {{ firstName: string, lastName: string, email: string, password: string }} userData
+   * Signup user
+   * @param {{
+   * firstName: string,
+   * lastName: string,
+   * email: string,
+   * password: string
+   * }} userData
    */
   signup: async (userData) => {
     try {
       useAuthStore.getState().setAuthenticating(true);
-      const { data } = await client.post('/auth/signup', userData);
 
-      const token = data.token || data.accessToken || data.jwt || null;
-      const user = data.user || { ...userData };
+      let { data } = await client.post(
+        '/auth/signup',
+        userData
+      );
 
-      if (token) {
-        useAuthStore.getState().setAuth({ user, token });
-      } else {
-        // Some APIs require login after signup
-        toast.success('Account created! Please log in.');
+      data = data?.data || data;
+
+      const token =
+        data.token ||
+        data.accessToken ||
+        data.jwt ||
+        null;
+
+      const refreshToken =
+        data.refreshToken || null;
+
+      const user =
+        data.user || {
+          ...userData,
+        };
+
+      // Some APIs require login after signup
+      if (!token) {
+        toast.success(
+          'Account created! Please log in.'
+        );
+
         return data;
       }
 
-      toast.success('Account created! Welcome to OnlySplit.');
+      // Persist tokens
+      localStorage.setItem('token', token);
+
+      if (refreshToken) {
+        localStorage.setItem(
+          'refreshToken',
+          refreshToken
+        );
+      }
+
+      // Update store
+      useAuthStore.getState().setAuth({
+        user,
+        token,
+      });
+
+      toast.success(
+        'Account created! Welcome to OnlySplit.'
+      );
+
       return data;
     } catch (error) {
-      handleApiError(error, 'Signup failed. Please try again.');
+      handleApiError(
+        error,
+        'Signup failed. Please try again.'
+      );
+
       return null;
     } finally {
       useAuthStore.getState().setAuthenticating(false);
     }
   },
 
+  /**
+   * Logout user
+   */
   logout: () => {
+    // Clear persisted auth
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+
+    // Clear store
     useAuthStore.getState().logout();
+
     toast.success('Logged out successfully.');
   },
 
   /**
-   * Fetch the currently authenticated user profile from the backend.
+   * Fetch currently authenticated user
    */
   getCurrentUser: async () => {
     try {
       const { data } = await client.get('/auth/me');
-      useAuthStore.getState().setUser(data);
-      return data;
+
+      const user = data?.data || data;
+
+      useAuthStore.getState().setUser(user);
+
+      return user;
     } catch (error) {
-      handleApiError(error, 'Failed to load profile.');
+      handleApiError(
+        error,
+        'Failed to load profile.'
+      );
+
       return null;
     }
   },
 
   /**
-   * Future: rotate access token using a refresh token stored in an httpOnly cookie.
+   * Restore session from localStorage
+   */
+  restoreSession: async () => {
+    try {
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        return false;
+      }
+
+      // Fetch latest user data
+      const user = await authService.getCurrentUser();
+
+      if (!user) {
+        return false;
+      }
+
+      useAuthStore.getState().setAuth({
+        user,
+        token,
+      });
+
+      return true;
+    } catch {
+      return false;
+    }
+  },
+
+  /**
+   * Refresh access token
    */
   refreshToken: async () => {
     try {
-      const { data } = await client.post('/auth/refresh');
-      useAuthStore.getState().setAuth({ user: data.user, token: data.token });
-      return data.token;
-    } catch {
-      useAuthStore.getState().logout();
+      const refreshToken =
+        localStorage.getItem('refreshToken');
+
+      if (!refreshToken) {
+        throw new Error('No refresh token found');
+      }
+
+      let { data } = await client.post(
+        '/auth/refresh',
+        {
+          refreshToken,
+        }
+      );
+
+      data = data?.data || data;
+
+      const token =
+        data.token ||
+        data.accessToken ||
+        data.jwt;
+
+      const newRefreshToken =
+        data.refreshToken || refreshToken;
+
+      const user =
+        data.user || null;
+
+      if (!token) {
+        throw new Error(
+          'No access token returned'
+        );
+      }
+
+      // Persist new tokens
+      localStorage.setItem('token', token);
+      localStorage.setItem(
+        'refreshToken',
+        newRefreshToken
+      );
+
+      // Update auth store
+      useAuthStore.getState().setAuth({
+        user,
+        token,
+      });
+
+      return token;
+    } catch (error) {
+      console.error('Refresh token failed:', error);
+
+      authService.logout();
+
       return null;
     }
   },

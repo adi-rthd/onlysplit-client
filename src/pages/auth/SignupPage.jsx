@@ -22,19 +22,15 @@ const SignupPage = () => {
 
   const { isAuthenticating } = useAuthStore();
 
-  const [firstName, setFirstName] =
-    useState('');
+  const [firstName, setFirstName] = useState('');
 
-  const [lastName, setLastName] =
-    useState('');
+  const [lastName, setLastName] = useState('');
 
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = ('');
 
-  const [password, setPassword] =
-    useState('');
+  const [password, setPassword] = useState('');
 
-  const [showPassword, setShowPassword] =
-    useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
