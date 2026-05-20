@@ -31,7 +31,7 @@ const GroupsPage = () => {
 
     init();
   }, []);
-    const handleDeleteGroup = async (groupId) => {
+  const handleDeleteGroup = async (groupId) => {
     try {
       await groupService.deleteGroup(groupId);
 
@@ -68,9 +68,9 @@ const GroupsPage = () => {
           <p className="text-on-surface-variant">Manage your shared expenses and groups.</p>
         </div>
 
-        <div className="flex gap-3 w-full md:w-auto">
+        <div className="flex gap-3 w-full md:w-auto overflow-x-auto md:overflow-visible pb-2 md:pb-0 hide-scrollbar snap-x snap-mandatory">
           <GlowButton
-            className='min-w-[140px] h-[82px] border border-[#4F46FF]'
+            className='min-w-[160px] h-[82px] snap-start   shrink-0 border border-[#4F46FF]'
             icon={Plus}
             onClick={() =>
               navigate(ROUTES.CREATE_GROUP)
@@ -79,10 +79,19 @@ const GroupsPage = () => {
             Create Group
           </GlowButton>
           <GlowButton
-            className='min-w-[140px] h-[82px] border border-[#4F46FF]'
+            className='min-w-[160px] h-[82px] snap-start   shrink-0 border border-[#4F46FF]'
             icon={Plus}
             onClick={() =>
               navigate(ROUTES.FRIEND_MODAL)
+            }
+          >
+            Add Friends
+          </GlowButton>
+          <GlowButton
+            className='min-w-[160px] h-[82px] snap-start   shrink-0 border border-[#4F46FF]'
+            icon={Plus}
+            onClick={() =>
+              navigate( ROUTES.INVITE_MODAL.replace(':id', 'bell'))
             }
           >
             Add Friends
@@ -93,10 +102,10 @@ const GroupsPage = () => {
                 ROUTES.INVITE_MODAL.replace(':id', 'bell')
               )
             }
-            className="relative flex items-center gap-2 px-4 py-3 rounded-2xl bg-surface-container-low border border-glass-stroke hover:bg-white/5 transition-all"
+            className="relative flex items-center justify-center gap-2 min-w-[120px] h-[82px] shrink-0 snap-start rounded-2xl bg-surface-container-low border border-glass-stroke   hover:bg-white/5 transition-all"
           >
 
-            <span className="hidden sm:block font-medium">
+            <span className="sm:block font-medium">
               Invites
             </span>
 
@@ -164,7 +173,7 @@ const GroupsPage = () => {
           </GlassPanel>
         ) : (
           groups.map((group) => (
-            <GroupCard key={group.id} group={group} onDelete={handleDeleteGroup}/>
+            <GroupCard key={group.id} group={group} onDelete={handleDeleteGroup} />
           ))
         )}
       </div>
