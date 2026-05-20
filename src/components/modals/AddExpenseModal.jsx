@@ -21,6 +21,7 @@
   import { getCurrencies } from '../../services/currencyService';
 
   import { useAuthStore } from '../../store/authStore';
+  import useCurrencyStore from '../../store/useCurrencyStore';
 
   const AddExpenseModal = () => {
     const navigate = useNavigate();
@@ -28,6 +29,7 @@
     const { groupId } = useParams();
 
     const { user } = useAuthStore();
+    const { currency: storeCurrency } = useCurrencyStore();
 
     const {
       groups,
@@ -159,28 +161,29 @@
     }, [selectedGroupId]);
     const currencySymbol =
       useMemo(() => {
+        const activeCurrency = selectedGroup?.currency || storeCurrency || 'INR';
         if (
-          selectedGroup
-            ?.currency ===
+          activeCurrency ===
           'INR'
         ) {
           return '₹';
         }
 
-        const currency =
+        const currencyItem =
           currencies.find(
             (c) =>
-              c.code ===
-              selectedGroup?.currency
+              (c.iso_code || c.code) ===
+              activeCurrency
           );
 
         return (
-          currency?.symbol ||
-          '$'
+          currencyItem?.symbol ||
+          (activeCurrency === 'USD' ? '$' : activeCurrency)
         );
       }, [
         currencies,
         selectedGroup,
+        storeCurrency,
       ]);
 
     const toggleMember = (

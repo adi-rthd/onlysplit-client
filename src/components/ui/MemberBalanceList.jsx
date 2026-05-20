@@ -1,8 +1,11 @@
 import React from 'react';
 import { GlassPanel } from './GlassCard';
 import { formatCurrency } from '../../services/currencyService';
+import useCurrencyStore from '../../store/useCurrencyStore';
 
-const MemberBalanceList = ({ members, currency = 'USD', onSettleUp }) => {
+const MemberBalanceList = ({ members, currency: propCurrency, onSettleUp }) => {
+  const { currency: storeCurrency, locale } = useCurrencyStore();
+  const currency = propCurrency || storeCurrency || 'INR';
   if (!members || members.length === 0) {
     return (
       <div className="text-center py-4 text-on-surface-variant text-sm">
@@ -21,7 +24,7 @@ const MemberBalanceList = ({ members, currency = 'USD', onSettleUp }) => {
 
         let statusText = "Settled up";
         let statusColor = "text-on-surface-variant";
-        let amountText = formatCurrency(Math.abs(balance), currency);
+        let amountText = formatCurrency(Math.abs(balance), currency, locale);
 
         if (isPositive) {
           statusText = `${member.name} owes you`;

@@ -27,11 +27,13 @@ import { formatCurrency } from '../services/currencyService';
 
 import { ROUTES } from '../constants/routes';
 import GlowButton from '../components/ui/GlowButton';
+import useCurrencyStore from '../store/useCurrencyStore';
 
 const GroupDetailsPage = () => {
   const { id: groupId } = useParams();
 
   const navigate = useNavigate();
+  const { currency: storeCurrency, locale } = useCurrencyStore();
 
   const {
     currentGroup,
@@ -72,7 +74,7 @@ const GroupDetailsPage = () => {
     loadData();
   }, [groupId]);
 
-  const currency = currentGroup?.currency || 'INR';
+  const currency = currentGroup?.currency || storeCurrency || 'INR';
 
   const totals = useMemo(() => {
     const totalSpent =
@@ -223,7 +225,8 @@ const GroupDetailsPage = () => {
           <h2 className="mt-4 text-4xl font-black text-on-surface">
             {formatCurrency(
               totals.totalSpent,
-              currency
+              currency,
+              locale
             )}
           </h2>
         </GlassPanel>
@@ -236,7 +239,8 @@ const GroupDetailsPage = () => {
           <h2 className="mt-4 text-4xl font-black text-error">
             {formatCurrency(
               totals.youOwe,
-              currency
+              currency,
+              locale
             )}
           </h2>
         </GlassPanel>
@@ -249,7 +253,8 @@ const GroupDetailsPage = () => {
           <h2 className="mt-4 text-4xl font-black text-neon-lime">
             {formatCurrency(
               totals.youAreOwed,
-              currency
+              currency,
+              locale
             )}
           </h2>
         </GlassPanel>

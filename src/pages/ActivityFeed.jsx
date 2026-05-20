@@ -21,8 +21,10 @@ import {
 import {
   formatCurrency,
 } from '../services/currencyService';
+import useCurrencyStore from '../store/useCurrencyStore';
 
 const ActivityFeed = () => {
+  const { currency, locale } = useCurrencyStore();
   const {
     activities,
     isLoading,
@@ -164,7 +166,8 @@ const ActivityFeed = () => {
                                 activity.amount
                               ),
                               activity.currency ||
-                                'INR'
+                                currency,
+                              locale
                             )}
                           </p>
                         </div>

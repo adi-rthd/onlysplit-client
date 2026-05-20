@@ -47,7 +47,7 @@ const groupService = {
 
   deleteGroup: async (groupId) => {
     try {
-      await client.delete(`/groups/${groupId}`);
+      await client.delete(`/groups/${groupId}/delete`);
       toast.success('Group deleted.');
       return true;
     } catch (error) {

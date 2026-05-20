@@ -6,15 +6,17 @@ import { Listbox } from '@headlessui/react';
 import { useGroupStore } from '../../store/groupStore';
 import toast from 'react-hot-toast';
 import { getCurrencies } from '../../services/currencyService';
+import useCurrencyStore from '../../store/useCurrencyStore';
 
 const CreateGroupModal = () => {
   const navigate = useNavigate();
   const [name, setName] = useState('');
+  const { currency: defaultCurrency } = useCurrencyStore();
 
   const { createGroup, isLoading } = useGroupStore();
   const [currencies, setCurrencies] = useState([]);
   const [description, setDescription] = useState('');
-  const [currency, setCurrency] = useState('INR');
+  const [currency, setCurrency] = useState(defaultCurrency || 'INR');
 
   useEffect(() => {
     const fetchCurrencies = async () => {

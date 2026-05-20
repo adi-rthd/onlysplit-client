@@ -9,6 +9,7 @@ import { GlassPanel } from '../components/ui/GlassCard';
 import {
   Wallet, TrendingUp, ArrowUpRight, ArrowDownRight, Plus, Utensils, Users
 } from 'lucide-react';
+import groupService from '../services/groupService';
 
 import GroupCard from '../components/ui/GroupCard';
 
@@ -41,7 +42,15 @@ const Dashboard = () => {
   const fetchSummary = useDashboardStore(
     (state) => state.fetchSummary
   );
+  const handleDeleteGroup = async (groupId) => {
+    try {
+      await groupService.deleteGroup(groupId);
 
+      await fetchGroups();
+    } catch (err) {
+      toast.error('Failed to delete group');
+    }
+  };
   useEffect(() => {
     const loadData = async () => {
       await fetchGroups();
@@ -80,7 +89,7 @@ const Dashboard = () => {
     );
   };
 
-  const formatCompact = (amount, currencyCode = 'USD') => {
+  const formatCompact = (amount, currencyCode = 'INR') => {
     try {
       return new Intl.NumberFormat(undefined, {
         style: 'currency',
@@ -94,7 +103,7 @@ const Dashboard = () => {
   };
 
   const monthlyChart = useMemo(() => {
-    const currency = summary?.currency || groups?.[0]?.currency || 'USD';
+    const currency = summary?.currency || groups?.[0]?.currency || 'INR';
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const monthlyData = Array(12).fill(0);
     let total = 0;
@@ -127,7 +136,7 @@ const Dashboard = () => {
   }, [groups, summary]);
 
   const groupChart = useMemo(() => {
-    const currency = summary?.currency || groups?.[0]?.currency || 'USD';
+    const currency = summary?.currency || groups?.[0]?.currency || 'INR';
     if (!groups?.length) return { bars: [], yLabels: ['0', '0', '0'] };
 
     const maxVal = Math.max(...groups.map(g => Number(g.totalSpending || 0)));
@@ -166,7 +175,7 @@ const Dashboard = () => {
             this month.
           </p>
         </div>
-        <NotificationBell/>
+        <NotificationBell />
       </header>
 
       {/* SUMMARY */}
@@ -385,7 +394,7 @@ const Dashboard = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {groups.slice(0, 3).map((group) => (
-              <GroupCard key={group.id || group.groupId} group={group} />
+              <GroupCard key={group.id || group.groupId} group={group} onDelete={handleDeleteGroup} />
             ))}
           </div>
         )}

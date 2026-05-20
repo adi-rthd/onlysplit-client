@@ -9,12 +9,15 @@ import {
 import { GlassPanel } from './GlassCard';
 
 import { formatCurrency } from '../../services/currencyService';
+import useCurrencyStore from '../../store/useCurrencyStore';
 
 const ExpenseCard = ({
   expense,
   onEdit,
   onDelete,
 }) => {
+  const { currency: storeCurrency, locale } = useCurrencyStore();
+
   const formattedDate = new Date(
     expense.expenseDate ||
       expense.createdAt
@@ -28,7 +31,7 @@ const ExpenseCard = ({
   );
 
   const currency =
-    expense.currency || 'INR';
+    expense.currency || storeCurrency || 'INR';
 
   return (
     <GlassPanel className="group mb-4 flex items-center justify-between rounded-3xl border border-white/10 p-5 transition-all duration-300 hover:border-primary/30 hover:bg-white/[0.03] hover:shadow-[0_0_30px_rgba(99,102,241,0.12)]">
@@ -61,7 +64,8 @@ const ExpenseCard = ({
           <p className="text-2xl font-bold text-on-surface">
             {formatCurrency(
               amount,
-              currency
+              currency,
+              locale
             )}
           </p>
 

@@ -3,156 +3,199 @@
 import axios from 'axios';
 
 const SUPPORTED_CURRENCIES = [
-    'INR',
-    'USD',
-    'EUR',
-    'GBP',
-    'AED',
-    'CAD',
-    'AUD',
-    'SGD'
+  'INR',
+  'USD',
+  'EUR',
+  'GBP',
+  'AED',
+  'CAD',
+  'AUD',
+  'SGD',
 ];
+
 const currencyApi = axios.create({
-    baseURL: 'https://api.frankfurter.dev/v2',
-    timeout: 10000,
+  baseURL: 'https://api.frankfurter.dev/v2',
+  timeout: 10000,
 });
 
 /**
- * Get all currencies
+ * Get all supported currencies
  */
 export const getCurrencies = async () => {
-    try {
-        const response = await currencyApi.get('/currencies');
+  try {
+    const response =
+      await currencyApi.get('/currencies');
 
-        return response.data.filter(currency =>
-            SUPPORTED_CURRENCIES.includes(
-                currency.iso_code
-            )
-        );
-    } catch (error) {
-        console.error('Failed to fetch currencies:', error);
-        throw error;
-    }
+    return response.data.filter(currency =>
+      SUPPORTED_CURRENCIES.includes(
+        currency.iso_code
+      )
+    );
+  } catch (error) {
+    console.error(
+      'Failed to fetch currencies:',
+      error
+    );
+
+    throw error;
+  }
 };
 
 /**
- * Format currency dynamically
- * No local constants needed
+ * Format currency
  */
 export const formatCurrency = (
-    amount,
-    currencyCode = 'USD',
-    locale = undefined
+  amount,
+  currencyCode = 'INR',
+  locale = 'en-IN'
 ) => {
-    try {
+  try {
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: currencyCode || 'INR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(Number(amount || 0));
+  } catch (error) {
+    console.error(
+      'Currency formatting failed:',
+      error
+    );
 
-        return new Intl.NumberFormat(locale, {
-            style: 'currency',
-            currency: currencyCode,
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 2,
-        }).format(amount);
-    } catch (error) {
-        console.error('Currency formatting failed:', error);
-
-        return `${currencyCode} ${amount}`;
-    }
+    return `₹${amount || 0}`;
+  }
 };
 
-export const formatCompact = (amount, currencyCode = 'USD') => {
-    try {
-      return new Intl.NumberFormat(undefined, {
-        style: 'currency',
-        currency: currencyCode,
-        notation: 'compact',
-        maximumFractionDigits: 1
-      }).format(amount);
-    } catch {
-      return `${amount}`;
-    }
-  };
+/**
+ * Compact currency formatting
+ * Example:
+ * ₹1.2L
+ * $2.3K
+ */
+export const formatCompact = (
+  amount,
+  currencyCode = 'INR',
+  locale = 'en-IN'
+) => {
+  try {
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: currencyCode || 'INR',
+      notation: 'compact',
+      maximumFractionDigits: 1,
+    }).format(Number(amount || 0));
+  } catch (error) {
+    console.error(
+      'Compact formatting failed:',
+      error
+    );
+
+    return `₹${amount || 0}`;
+  }
+};
+
 /**
  * Get exchange rates
  */
 export const getRates = async (
-    base = 'USD',
-    quotes = []
+  base = 'INR',
+  quotes = []
 ) => {
-    try {
-        const response = await currencyApi.get('/rates', {
-            params: {
-                base,
-                quotes: quotes.join(','),
-            },
-        });
+  try {
+    const response = await currencyApi.get(
+      '/rates',
+      {
+        params: {
+          base,
+          quotes: quotes.join(','),
+        },
+      }
+    );
 
-        return response.data;
-    } catch (error) {
-        console.error('Failed to fetch rates:', error);
-        throw error;
-    }
+    return response.data;
+  } catch (error) {
+    console.error(
+      'Failed to fetch rates:',
+      error
+    );
+
+    throw error;
+  }
 };
 
 /**
  * Get single exchange rate
  */
 export const getRate = async (
-    base = 'USD',
-    quote = 'INR'
+  base = 'INR',
+  quote = 'USD'
 ) => {
-    try {
-        const response = await currencyApi.get(
-            `/rate/${base}/${quote}`
-        );
+  try {
+    const response = await currencyApi.get(
+      `/rate/${base}/${quote}`
+    );
 
-        return response.data;
-    } catch (error) {
-        console.error('Failed to fetch rate:', error);
-        throw error;
-    }
+    return response.data;
+  } catch (error) {
+    console.error(
+      'Failed to fetch rate:',
+      error
+    );
+
+    throw error;
+  }
 };
 
 /**
  * Convert currency
  */
 export const convertCurrency = async (
-    amount,
-    base = 'USD',
-    quote = 'INR'
+  amount,
+  base = 'INR',
+  quote = 'USD'
 ) => {
-    try {
-        const response = await getRate(base, quote);
+  try {
+    const response = await getRate(
+      base,
+      quote
+    );
 
-        const convertedAmount = Number(
-            (amount * response.rate).toFixed(2)
-        );
+    const convertedAmount = Number(
+      (
+        Number(amount || 0) * response.rate
+      ).toFixed(2)
+    );
 
-        return {
-            amount,
+    return {
+      amount: Number(amount || 0),
 
-            formattedAmount: formatCurrency(
-                amount,
-                base
-            ),
+      formattedAmount: formatCurrency(
+        amount,
+        base
+      ),
 
-            base,
+      base,
 
-            quote,
+      quote,
 
-            rate: response.rate,
+      rate: response.rate,
 
-            convertedAmount,
+      convertedAmount,
 
-            formattedConvertedAmount:
-                formatCurrency(
-                    convertedAmount,
-                    quote
-                ),
+      formattedConvertedAmount:
+        formatCurrency(
+          convertedAmount,
+          quote
+        ),
 
-            date: response.date,
-        };
-    } catch (error) {
-        console.error('Currency conversion failed:', error);
-        throw error;
-    }
+      date: response.date,
+    };
+  } catch (error) {
+    console.error(
+      'Currency conversion failed:',
+      error
+    );
+
+    throw error;
+  }
 };

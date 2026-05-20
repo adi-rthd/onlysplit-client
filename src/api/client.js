@@ -5,8 +5,8 @@ import { useAuthStore } from '../store/authStore';
 
 const client = axios.create({
   baseURL:
-    "https://onlysplit-api.onlylabs.in/api" ||
-    'http://localhost:5000/api',
+    // "https://onlysplit-api.onlylabs.in/api" ||
+    'http://localhost:5190/api',
 
   headers: {
     'Content-Type': 'application/json',

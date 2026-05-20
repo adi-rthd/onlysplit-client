@@ -4,11 +4,28 @@ import { motion } from 'framer-motion';
 import { X, DollarSign, Loader2 } from 'lucide-react';
 import { useSettlementStore } from '../../store/settlementStore';
 import toast from 'react-hot-toast';
+import useCurrencyStore from '../../store/useCurrencyStore';
+import { useGroupStore } from '../../store/groupStore';
 
 const SettleUpModal = ({ groupId, payerId, receiverId, defaultAmount = 0, onClose }) => {
   const navigate = useNavigate();
-  const { createSettlement } = useSettlementStore(); // Wait, createSettlement needs to be in store, or we call service directly
-  // We can call service directly or add it to store
+  const { createSettlement } = useSettlementStore();
+  const { currency: storeCurrency } = useCurrencyStore();
+  const { groups } = useGroupStore();
+
+  const group = groups?.find(g => g.id === groupId);
+  const currencyCode = group?.currency || storeCurrency || 'INR';
+
+  const getCurrencySymbol = (code) => {
+    switch (code) {
+      case 'INR': return '₹';
+      case 'USD': return '$';
+      case 'EUR': return '€';
+      case 'GBP': return '£';
+      default: return code;
+    }
+  };
+  const currencySymbol = getCurrencySymbol(currencyCode);
   
   const [amount, setAmount] = useState(defaultAmount.toString());
   const [note, setNote] = useState('');
@@ -63,7 +80,7 @@ const SettleUpModal = ({ groupId, payerId, receiverId, defaultAmount = 0, onClos
           <div className="flex flex-col items-center py-4">
             <label className="text-[12px] font-label-caps text-primary tracking-widest mb-2">AMOUNT</label>
             <div className="flex items-center text-5xl font-bold">
-              <span className="opacity-50 mr-1">$</span>
+              <span className="opacity-50 mr-1">{currencySymbol}</span>
               <input 
                 type="number" 
                 className="bg-transparent border-none p-0 w-40 text-center focus:ring-0 outline-none text-on-surface" 

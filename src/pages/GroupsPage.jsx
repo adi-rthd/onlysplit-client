@@ -10,9 +10,12 @@ import { formatCurrency } from '../services/currencyService';
 import InviteGroupStore from '../services/groupInviteService';
 import GlowButton from '../components/ui/GlowButton';
 import { useInvitationStore } from '../store/groupInvitationStore';
+import groupService from '../services/groupService';
+import useCurrencyStore from '../store/useCurrencyStore';
 
 const GroupsPage = () => {
   const navigate = useNavigate();
+  const { currency, locale } = useCurrencyStore();
 
   const { groups, isLoading, fetchGroups } = useGroupStore();
 
@@ -28,6 +31,15 @@ const GroupsPage = () => {
 
     init();
   }, []);
+    const handleDeleteGroup = async (groupId) => {
+    try {
+      await groupService.deleteGroup(groupId);
+
+      await fetchGroups();
+    } catch (err) {
+      toast.error('Failed to delete group');
+    }
+  };
 
   const totalGroups = groups?.length || 0;
 
@@ -123,7 +135,7 @@ const GroupsPage = () => {
             <Utensils className="text-error" size={24} />
           </div>
           <div className="text-[32px] font-bold text-on-surface mb-1">
-            {isLoading ? '--' : formatCurrency(totalSpending, 'INR')}
+            {isLoading ? '--' : formatCurrency(totalSpending, currency, locale)}
           </div>
         </GlassPanel>
       </div>
@@ -143,16 +155,16 @@ const GroupsPage = () => {
             <p className="text-on-surface-variant text-sm mb-6 max-w-sm mx-auto">
               Create your first expense group to start tracking shared expenses with friends, family, or roommates.
             </p>
-            <button
+            {/* <button
               onClick={() => navigate(ROUTES.CREATE_GROUP)}
               className="bg-primary text-white px-6 py-2.5 rounded-lg font-medium"
             >
               Create Group
-            </button>
+            </button> */}
           </GlassPanel>
         ) : (
           groups.map((group) => (
-            <GroupCard key={group.id} group={group} />
+            <GroupCard key={group.id} group={group} onDelete={handleDeleteGroup}/>
           ))
         )}
       </div>

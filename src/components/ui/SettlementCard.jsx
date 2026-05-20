@@ -2,8 +2,10 @@ import React from 'react';
 import { GlassPanel } from './GlassCard';
 import { CheckCircle2, Circle } from 'lucide-react';
 import { formatCurrency } from '../../services/currencyService';
+import useCurrencyStore from '../../store/useCurrencyStore';
 
 const SettlementCard = ({ settlement }) => {
+  const { currency, locale } = useCurrencyStore();
   const isCompleted = settlement.status === 'completed' || settlement.isCompleted;
 
   return (
@@ -24,7 +26,7 @@ const SettlementCard = ({ settlement }) => {
         </div>
       </div>
       <div className={`font-bold ${isCompleted ? 'text-neon-lime' : 'text-on-surface'}`}>
-        {formatCurrency(Number(settlement.amount || 0), settlement.currency || 'USD')}
+        {formatCurrency(Number(settlement.amount || 0), settlement.currency || currency, locale)}
       </div>
     </GlassPanel>
   );
