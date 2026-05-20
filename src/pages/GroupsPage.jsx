@@ -87,15 +87,6 @@ const GroupsPage = () => {
           >
             Add Friends
           </GlowButton>
-          <GlowButton
-            className='min-w-[160px] h-[82px] snap-start   shrink-0 border border-[#4F46FF]'
-            icon={Plus}
-            onClick={() =>
-              navigate( ROUTES.INVITE_MODAL.replace(':id', 'bell'))
-            }
-          >
-            Add Friends
-          </GlowButton>
           <button
             onClick={() =>
               navigate(
