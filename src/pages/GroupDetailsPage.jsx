@@ -204,7 +204,7 @@ const GroupDetailsPage = () => {
               className='min-w-[140px] h-[82px] border border-[#4F46FF]'
               icon={Plus}
               onClick={() =>
-                navigate(ROUTES.INVITE_MODAL.replace(
+                navigate(ROUTES.ADD_EXPENSE.replace(
                   ':id',
                   groupId))
               }

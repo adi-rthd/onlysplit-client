@@ -18,6 +18,7 @@ import { useGroupStore } from '../store/groupStore';
 import { useDashboardStore } from '../store/DashboardStore';
 import { formatCurrency } from '../services/currencyService'
 import { ROUTES } from '../constants/routes';
+import NotificationBell from '../components/Dashboard/NotificationBell';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -165,6 +166,7 @@ const Dashboard = () => {
             this month.
           </p>
         </div>
+        <NotificationBell/>
       </header>
 
       {/* SUMMARY */}

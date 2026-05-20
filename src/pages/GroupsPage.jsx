@@ -9,55 +9,45 @@ import { ROUTES } from '../constants/routes';
 import { formatCurrency } from '../services/currencyService';
 import InviteGroupStore from '../services/groupInviteService';
 import GlowButton from '../components/ui/GlowButton';
+import { useInvitationStore } from '../store/groupInvitationStore';
 
 const GroupsPage = () => {
   const navigate = useNavigate();
-  const [groupInvites, setGroupInvites] = useState([]);
 
   const { groups, isLoading, fetchGroups } = useGroupStore();
 
-  const loadData = async () => {
-    setLoading(true);
+  const { invitations, fetchMyInvitations } = useInvitationStore();
 
-    try {
-      const invitesData = await InviteGroupStore.getGroupInvites(groupId)
-      setGroupInvites(
-        invitesData || []
-      );
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
   useEffect(() => {
-    fetchGroups();
-  }, [fetchGroups]);
+    const init = async () => {
+      await Promise.all([
+        fetchGroups(),
+        fetchNotifications(),
+      ]);
+    };
+
+    init();
+  }, []);
 
   const totalGroups = groups?.length || 0;
 
-  const totalSpending = useMemo(() => {
-    if (!groups || groups.length === 0) return 0;
+  const totalSpending =
+    useMemo(() => {
+      if (!groups?.length)
+        return 0;
 
-    return groups.reduce((acc, group) => {
-      return acc + Number(group.totalExpenses || group.totalSpending || 0);
-    }, 0);
-  }, [groups]);
+      return groups.reduce(
+        (acc, group) =>
+          acc +
+          Number(
+            group.totalExpenses ||
+            group.totalSpending ||
+            0
+          ),
 
-  // const renderSpendingTotals = () => {
-  //   const entries = Object.entries(currencyTotals);
-  //   if (isLoading || entries.length === 0) return <div className="text-[32px] font-bold text-on-surface mb-1">--</div>;
-  //   return (
-  //     <div className="space-y-1 mb-2">
-  //       {entries.map(([currency, total]) => (
-  //         <div key={currency} className="text-[28px] md:text-[32px] font-bold text-on-surface leading-none">
-  //           {formatCurrency(total, currency)}
-  //         </div>
-  //       ))}
-  //     </div>
-  //   );
-  // };
-
+        0
+      );
+    }, [groups]);
   return (
     <>
       <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
@@ -86,31 +76,30 @@ const GroupsPage = () => {
             Add Friends
           </GlowButton>
           <button
-
             onClick={() =>
-              navigate(ROUTES.INVITE_MODAL.replace(':id', 'bell'))
+              navigate(
+                ROUTES.INVITE_MODAL.replace(':id', 'bell')
+              )
             }
-            className="relative flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-surface-container-low border border-glass-stroke text-on-surface hover:bg-white/5 transition-all font-medium"
+            className="relative flex items-center gap-2 px-4 py-3 rounded-2xl bg-surface-container-low border border-glass-stroke hover:bg-white/5 transition-all"
           >
-            <Bell size={18} />
 
-            <span className="hidden sm:block">
+            <span className="hidden sm:block font-medium">
               Invites
             </span>
 
-            {groupInvites.length > 0 && (
-              <>
-                {/* Pulse */}
-                <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-yellow-400 animate-ping" />
+            {invitations?.length > 0 && (
+              <div className="absolute -top-1.5 -right-1.5">
+                {/* pulse */}
+                <span className="absolute inset-0 rounded-full bg-primary/40 animate-ping" />
 
-                {/* Dot */}
-                <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-yellow-400" />
-
-                {/* Count */}
-                <span className="absolute -top-2 -right-2 min-w-[20px] h-5 px-1 rounded-full bg-primary text-white text-[11px] flex items-center justify-center font-semibold">
-                  {groupInvites.length}
+                {/* badge */}
+                <span
+                  className="relative flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full bg-primary text-white text-[11px] font-semibold"
+                >
+                  {invitations.length}
                 </span>
-              </>
+              </div>
             )}
           </button>
         </div>
