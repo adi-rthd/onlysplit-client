@@ -42,6 +42,7 @@ const Dashboard = () => {
   const fetchSummary = useDashboardStore(
     (state) => state.fetchSummary
   );
+  
   const handleDeleteGroup = async (groupId) => {
     try {
       await groupService.deleteGroup(groupId);

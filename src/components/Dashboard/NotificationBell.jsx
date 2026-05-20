@@ -1,12 +1,12 @@
 import { Bell } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import {useInvitationStore} from '../../store/groupInvitationStore';
 
 export default function NotificationBell() {
   const [open, setOpen] = useState(false);
-
+  const notificationRef = useRef(null);
   const {
     notifications,
     fetchNotifications,
@@ -15,22 +15,40 @@ export default function NotificationBell() {
   useEffect(() => {
     fetchNotifications();
   }, []);
-
+useEffect(() => {
+      const handleClickOutside = (
+        event
+      ) => {
+        if (
+          notificationRef.current &&
+          !notificationRef.current.contains(
+            event.target
+          )
+        ) {
+          setOpen(false);
+        }
+      };
+  
+      document.addEventListener(
+        'mousedown',
+        handleClickOutside
+      );
+  
+      return () => {
+        document.removeEventListener(
+          'mousedown',
+          handleClickOutside
+        );
+      };
+    }, []);
   const count = notifications?.length || 0;
 
   return (
-    <div className="relative">
+    <div className="relative" useRef={notificationRef}>
       {/* Bell */}
       <button
         onClick={() => setOpen(!open)}
-        className="
-          relative flex items-center justify-center
-          w-11 h-11 rounded-2xl
-          bg-surface-container-low
-          border border-glass-stroke
-          hover:bg-white/5
-          transition-all
-        "
+        className=" relative flex items-center justify-center w-11 h-11 rounded-2xl bg-surface-container-low border border-glass-stroke hover:bg-white/5 transition-all "
       >
         <motion.div
           animate={
