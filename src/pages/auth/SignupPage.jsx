@@ -26,7 +26,7 @@ const SignupPage = () => {
 
   const [lastName, setLastName] = useState('');
 
-  const [email, setEmail] = ('');
+  const [email, setEmail] = useState('');
 
   const [password, setPassword] = useState('');
 
