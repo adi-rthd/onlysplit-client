@@ -3,76 +3,96 @@
 @plugin "@tailwindcss/container-queries";
 
 @theme {
-  /* Custom Colors */
-  --color-on-error: #690005;
-  --color-outline: #918fa0;
-  --color-on-tertiary: #510074;
-  --color-on-surface-variant: #c7c4d7;
-  --color-on-secondary-fixed: #001b3e;
-  --color-on-tertiary-container: #feeeff;
-  --color-tertiary-fixed: #f6d9ff;
-  --color-surface-container-low: #1b1c1d;
-  --color-on-surface: #e3e2e3;
-  --color-surface-container-highest: #343536;
-  --color-on-tertiary-fixed-variant: #7200a3;
-  --color-error: #ffb4ab;
-  --color-on-secondary: #003064;
-  --color-on-primary-fixed: #0c006b;
-  --color-surface-dim: #121315;
-  --color-secondary-fixed-dim: #aac7ff;
-  --color-secondary: #aac7ff;
-  --color-surface: #121315;
-  --color-on-error-container: #ffdad6;
-  --color-surface-container-high: #292a2b;
-  --color-neon-lime: #E4F222;
-  --color-inverse-surface: #e3e2e3;
-  --color-tertiary-fixed-dim: #e9b3ff;
-  --color-surface-container: #1f2021;
-  --color-primary: #c2c1ff;
-  --color-on-background: #e3e2e3;
-  --color-primary-container: #5e5ce6;
-  --color-glass-stroke: rgba(255, 255, 255, 0.08);
-  --color-on-primary-container: #f4f1ff;
-  --color-surface-charcoal: #0d0e10;
-  --color-tertiary-container: #a23cd5;
-  --color-on-secondary-container: #002957;
-  --color-tertiary: #e9b3ff;
-  --color-secondary-container: #3e90ff;
-  --color-on-secondary-fixed-variant: #00468d;
-  --color-background: #121315;
-  --color-glow-purple: rgba(94, 92, 230, 0.15);
-  --color-surface-container-lowest: #0d0e0f;
-  --color-on-primary: #1800a7;
-  --color-primary-fixed-dim: #c2c1ff;
-  --color-secondary-fixed: #d6e3ff;
-  --color-surface-tint: #c2c1ff;
-  --color-on-primary-fixed-variant: #332dbc;
-  --color-inverse-primary: #4d4ad5;
-  --color-inverse-on-surface: #303032;
-  --color-surface-variant: #343536;
-  --color-surface-bright: #38393a;
-  --color-error-container: #93000a;
-  --color-outline-variant: #464554;
-  --color-primary-fixed: #e2dfff;
-  --color-on-tertiary-fixed: #310048;
+  /* =========================
+     COLORS
+  ========================= */
 
-  /* Custom Spacing */
+  --color-primary: #7c6cff;
+  --color-primary-container: #5b4dff;
+  --color-secondary-container: #4f8cff;
+
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #f5f3ff;
+
+  --color-secondary: #aac7ff;
+
+  --color-surface-charcoal: #090909;
+  --color-surface: #111111;
+  --color-surface-dim: #141414;
+
+  --color-surface-container-lowest: #121212;
+  --color-surface-container-low: #171717;
+  --color-surface-container: #1d1d1d;
+  --color-surface-container-high: #232323;
+  --color-surface-container-highest: #2b2b2b;
+
+  --color-surface-bright: #313131;
+
+  --color-on-surface: #f5f5f5;
+  --color-on-surface-variant: #9e9ea7;
+
+  --color-outline: #5f5f68;
+  --color-outline-variant: #34343b;
+
+  --color-error: #ff6b6b;
+  --color-error-container: #3a1111;
+
+  --color-neon-lime: #e4f222;
+
+  --color-glass-stroke: rgba(255,
+      255,
+      255,
+      0.08);
+
+  --color-glow-purple: rgba(91,
+      77,
+      255,
+      0.16);
+
+  --color-inverse-surface: #f5f5f5;
+  --color-inverse-on-surface: #121212;
+
+  /* =========================
+     SPACING
+  ========================= */
+
   --spacing-section-gap: 80px;
   --spacing-container-padding-mobile: 16px;
-  --spacing-unit: 4px;
   --spacing-container-padding-desktop: 32px;
   --spacing-gutter: 24px;
+  --spacing-unit: 4px;
 
-  /* Custom Font Families */
-  --font-body-lg: "Inter", sans-serif;
-  --font-display-lg: "Geist", sans-serif;
-  --font-body-md: "Inter", sans-serif;
-  --font-headline-lg-mobile: "Geist", sans-serif;
-  --font-label-caps: "JetBrains Mono", monospace;
-  --font-headline-lg: "Geist", sans-serif;
-  --font-data-mono: "JetBrains Mono", monospace;
+  /* =========================
+     TYPOGRAPHY
+  ========================= */
 
-  /* Custom Border Radius */
+  --font-display-lg: "Geist",
+    sans-serif;
+
+  --font-headline-lg: "Geist",
+    sans-serif;
+
+  --font-headline-lg-mobile:
+    "Geist", sans-serif;
+
+  --font-body-lg: "Inter",
+    sans-serif;
+
+  --font-body-md: "Inter",
+    sans-serif;
+
+  --font-label-caps:
+    "JetBrains Mono",
+    monospace;
+
+  --font-data-mono:
+    "JetBrains Mono",
+    monospace;
+
+  /* =========================
+     RADIUS
+  ========================= */
+
   --radius-lg: 0.5rem;
   --radius-xl: 0.75rem;
   --radius-2xl: 1.25rem;
@@ -88,51 +108,61 @@
   }
 
   body {
-    background-color: var(--color-surface-charcoal);
+    background-color:
+      var(--color-surface-charcoal);
+
     color: var(--color-on-surface);
-    font-family: var(--font-body-md);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
+
+    font-family:
+      var(--font-body-md);
+
+    -webkit-font-smoothing:
+      antialiased;
+
+    -moz-osx-font-smoothing:
+      grayscale;
+
+    text-rendering:
+      optimizeLegibility;
+
     overflow-x: hidden;
   }
 
-  /* Remove ugly browser borders/outlines */
   input,
   textarea,
   select,
   button {
-    outline: none !important;
-    border: none !important;
-    box-shadow: none !important;
+    outline: none;
+    box-shadow: none;
   }
 
   input:focus,
   textarea:focus,
   select:focus,
   button:focus {
-    outline: none !important;
-    border: none !important;
-    box-shadow: none !important;
+    outline: none;
+    box-shadow: none;
   }
 
-  /* Chrome autofill fix */
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus,
   input:-webkit-autofill:active {
     -webkit-box-shadow:
       0 0 0 1000px transparent inset !important;
+
     -webkit-text-fill-color: white !important;
+
     transition:
       background-color 9999s ease-in-out 0s;
+
     caret-color: white;
   }
 
-  /* Remove number input arrows */
   input::-webkit-outer-spin-button,
   input::-webkit-inner-spin-button {
     -webkit-appearance: none;
+
     margin: 0;
   }
 
@@ -141,7 +171,11 @@
   }
 
   ::selection {
-    background: rgba(94, 92, 230, 0.3);
+    background: rgba(91,
+        77,
+        255,
+        0.28);
+
     color: white;
   }
 }
@@ -151,43 +185,100 @@
 ========================= */
 
 @utility glass-card {
-  background: rgba(13, 14, 16, 0.72);
+  background: rgba(17,
+      17,
+      17,
+      0.72);
+
   backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+
+  -webkit-backdrop-filter:
+    blur(24px);
+
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 @utility glass-panel {
-  background: rgba(13, 14, 16, 0.72);
+  background: rgba(17,
+      17,
+      17,
+      0.72);
+
   backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+
+  -webkit-backdrop-filter:
+    blur(24px);
+
   border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@utility glass-button {
+  background: rgba(255,
+      255,
+      255,
+      0.04);
+
+  backdrop-filter: blur(16px);
+
+  -webkit-backdrop-filter:
+    blur(16px);
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+
+  &:hover {
+    background: rgba(255,
+        255,
+        255,
+        0.06);
+
+    border-color: rgba(91,
+        77,
+        255,
+        0.3);
+
+    transform: translateY(-1px);
+
+    box-shadow:
+      0 8px 30px rgba(91, 77, 255, 0.12);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 }
 
 @utility neon-glow {
   box-shadow:
-    0 0 50px rgba(94, 92, 230, 0.18),
-    0 0 120px rgba(94, 92, 230, 0.08);
+    0 0 50px rgba(91, 77, 255, 0.18),
+    0 0 120px rgba(91, 77, 255, 0.08);
 }
 
 @utility text-gradient {
-  background: linear-gradient(
-    to right,
-    #c2c1ff,
-    #aac7ff
-  );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  background: linear-gradient(to right,
+      #7c6cff,
+      #4f8cff);
+
+  -webkit-background-clip:
+    text;
+
+  -webkit-text-fill-color:
+    transparent;
 }
 
 @utility btn-inner-glow {
   box-shadow:
-    inset 0 1px 0
-      rgba(255, 255, 255, 0.2);
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
 @utility hide-scrollbar {
   -ms-overflow-style: none;
+
   scrollbar-width: none;
 
   &::-webkit-scrollbar {
@@ -200,50 +291,66 @@
 ========================= */
 
 @utility auth-input {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid
-    rgba(255, 255, 255, 0.06);
+  background: rgba(255,
+      255,
+      255,
+      0.03);
+
+  border: 1px solid rgba(255, 255, 255, 0.06);
+
   border-radius: 18px;
+
   transition:
     border-color 0.2s ease,
     background 0.2s ease,
     box-shadow 0.2s ease;
 
   &:focus-within {
-    background: rgba(255, 255, 255, 0.045);
-    border-color: rgba(94, 92, 230, 0.45);
+    background: rgba(255,
+        255,
+        255,
+        0.045);
+
+    border-color: rgba(91,
+        77,
+        255,
+        0.45);
 
     box-shadow:
-      0 0 0 4px
-        rgba(94, 92, 230, 0.08),
-      0 8px 30px
-        rgba(94, 92, 230, 0.08);
+      0 0 0 4px rgba(91,
+        77,
+        255,
+        0.08),
+      0 8px 30px rgba(91,
+        77,
+        255,
+        0.08);
   }
 }
 
 @utility auth-card {
-  background: rgba(18, 19, 22, 0.65);
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
+  background: rgba(17,
+      17,
+      17,
+      0.7);
 
-  border: 1px solid
-    rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(40px);
+
+  -webkit-backdrop-filter:
+    blur(40px);
+
+  border: 1px solid rgba(255, 255, 255, 0.05);
 
   box-shadow:
-    0 0 0 1px
-      rgba(255, 255, 255, 0.02),
-    0 12px 50px
-      rgba(0, 0, 0, 0.45),
-    0 0 100px
-      rgba(94, 92, 230, 0.08);
+    0 0 0 1px rgba(255, 255, 255, 0.02),
+    0 12px 50px rgba(0, 0, 0, 0.45),
+    0 0 100px rgba(91, 77, 255, 0.08);
 }
 
 @utility auth-cta {
   box-shadow:
-    inset 0 1px 0
-      rgba(255, 255, 255, 0.15),
-    0 8px 30px
-      rgba(94, 92, 230, 0.3);
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 8px 30px rgba(91, 77, 255, 0.3);
 
   transition:
     transform 0.2s ease,
@@ -254,10 +361,14 @@
     transform: translateY(-1px);
 
     box-shadow:
-      inset 0 1px 0
-        rgba(255, 255, 255, 0.2),
-      0 12px 40px
-        rgba(94, 92, 230, 0.4);
+      inset 0 1px 0 rgba(255,
+        255,
+        255,
+        0.2),
+      0 12px 40px rgba(91,
+        77,
+        255,
+        0.4);
   }
 
   &:active {

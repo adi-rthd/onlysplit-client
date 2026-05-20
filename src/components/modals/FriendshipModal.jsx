@@ -1,12 +1,8 @@
-import React, {
-  useEffect,
-  useMemo,
-  useState
-} from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 import {
   X,
@@ -14,59 +10,62 @@ import {
   Loader2,
   Check,
   UserPlus,
+  Clock3,
   Trash2,
 } from 'lucide-react';
 
 import FriendshipStore from '../../services/friendshipService';
 
-const tabs = [
-  'friends',
-  'requests',
-  'pending',
-];
+const tabs = ['friends', 'requests', 'pending'];
 
 const FriendshipModal = () => {
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState('friends');
+
   const [friends, setFriends] = useState([]);
+
   const [requests, setRequests] = useState([]);
+
   const [pending, setPending] = useState([]);
+
   const [search, setSearch] = useState('');
+
   const [searchResults, setSearchResults] = useState([]);
+
   const [loading, setLoading] = useState(false);
+
+  const [sendingIds, setSendingIds] = useState([]);
+
+  const [removingIds, setRemovingIds] = useState([]);
 
   const loadData = async () => {
     setLoading(true);
 
     try {
-      const [
-        friendsData,
-        requestsData,
-      ] = await Promise.all([
-        FriendshipStore.getFriends(),
-        FriendshipStore.getRequests(),
-      ]);
+      const [friendsData, requestsData] =
+        await Promise.all([
+          FriendshipStore.getFriends(),
+          FriendshipStore.getRequests(),
+        ]);
 
       setFriends(friendsData || []);
 
-      const sent =
-        requestsData.filter(
-          (r) =>
-            r.status ===
-              'Pending' &&
-            r.isSender
-        );
+      const sent = requestsData.filter(
+        (r) =>
+          r.status === 'Pending' &&
+          r.isSender
+      );
 
       const received =
         requestsData.filter(
           (r) =>
-            r.status ===
-              'Pending' &&
+            r.status === 'Pending' &&
             !r.isSender
         );
 
       setRequests(sent);
+
       setPending(received);
     } finally {
       setLoading(false);
@@ -78,167 +77,210 @@ const FriendshipModal = () => {
   }, []);
 
   useEffect(() => {
-    if (
-      activeTab !==
-      'friends'
-    ) {
+    if (activeTab !== 'friends') {
       return;
     }
 
-    const delay =
-      setTimeout(async () => {
-        if (
-          !search.trim()
-        ) {
-          setSearchResults(
-            []
-          );
-
-          return;
-        }
-
-        const users =
-          await FriendshipStore.searchUsers(
-            search
-          );
-
-        setSearchResults(
-          users || []
-        );
-      }, 400);
-
-    return () =>
-      clearTimeout(delay);
-  }, [search, activeTab]);
-
-  const filteredFriends =
-    useMemo(() => {
+    const delay = setTimeout(async () => {
       if (!search.trim()) {
-        return friends;
+        setSearchResults([]);
+
+        return;
       }
 
-      return friends.filter(
-        (friend) =>
-          friend.firstName
-            ?.toLowerCase()
-            .includes(
-              search.toLowerCase()
-            ) ||
-          friend.lastName
-            ?.toLowerCase()
-            .includes(
-              search.toLowerCase()
-            ) ||
-          friend.email
-            ?.toLowerCase()
-            .includes(
-              search.toLowerCase()
-            )
+      const users =
+        await FriendshipStore.searchUsers(
+          search
+        );
+
+      setSearchResults(users || []);
+    }, 400);
+
+    return () => clearTimeout(delay);
+  }, [search, activeTab]);
+
+  const filteredFriends = useMemo(() => {
+    if (!search.trim()) {
+      return friends;
+    }
+
+    return friends.filter(
+      (friend) =>
+        friend.firstName
+          ?.toLowerCase()
+          .includes(
+            search.toLowerCase()
+          ) ||
+        friend.lastName
+          ?.toLowerCase()
+          .includes(
+            search.toLowerCase()
+          ) ||
+        friend.email
+          ?.toLowerCase()
+          .includes(
+            search.toLowerCase()
+          )
+    );
+  }, [friends, search]);
+
+  const handleSendRequest = async (id) => {
+    try {
+      setSendingIds((prev) => [
+        ...prev,
+        id,
+      ]);
+
+      await FriendshipStore.sendRequest(id);
+
+      await loadData();
+    } finally {
+      setSendingIds((prev) =>
+        prev.filter((x) => x !== id)
       );
-    }, [friends, search]);
+    }
+  };
 
-  const handleSendRequest =
-    async (id) => {
-      await FriendshipStore.sendRequest(
-        id
-      );
+  const handleAccept = async (id) => {
+    await FriendshipStore.acceptRequest(id);
 
-      loadData();
-    };
+    loadData();
+  };
 
-  const handleAccept =
-    async (id) => {
-      await FriendshipStore.acceptRequest(
-        id
-      );
+  const handleReject = async (id) => {
+    await FriendshipStore.rejectRequest(id);
 
-      loadData();
-    };
+    loadData();
+  };
 
-  const handleReject =
-    async (id) => {
-      await FriendshipStore.rejectRequest(
-        id
-      );
+  const handleRemoveFriend = async (
+    id
+  ) => {
+    try {
+      setRemovingIds((prev) => [
+        ...prev,
+        id,
+      ]);
 
-      loadData();
-    };
-
-  const handleRemove =
-    async (id) => {
       await FriendshipStore.removeFriend(
         id
       );
 
-      loadData();
-    };
+      setFriends((prev) =>
+        prev.filter(
+          (friend) =>
+            friend.id !== id
+        )
+      );
+    } finally {
+      setRemovingIds((prev) =>
+        prev.filter((x) => x !== id)
+      );
+    }
+  };
 
   const renderUserCard = (
     user,
-    actions
-  ) => (
-    <div
-      key={user.id}
-      className="
-        flex
-        items-center
-        justify-between
-        gap-3
-        rounded-2xl
-        border
-        border-glass-stroke
-        bg-surface-container-low
-        px-4
-        py-4
-      "
-    >
-      <div className="flex items-center gap-3 min-w-0 flex-1">
-        <div
-          className="
-            w-12
-            h-12
-            md:w-14
-            md:h-14
-            rounded-full
-            bg-gradient-to-br
-            from-primary-container
-            to-secondary-container
-            flex
-            items-center
-            justify-center
-            text-white
-            text-lg
-            md:text-xl
-            font-bold
-            shrink-0
-          "
+    actions,
+    swipeable = false
+  ) => {
+    if (!swipeable) {
+      return (
+        <div className="flex items-center justify-between gap-4 rounded-2xl border border-white/5 bg-white/[0.03] px-5 py-4 transition-all hover:bg-white/[0.05]">
+          <div className="flex items-center gap-4 min-w-0 flex-1">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center text-white text-lg font-semibold shrink-0">
+              {user?.firstName?.[0] ||
+                user?.requesterName?.[0] ||
+                'U'}
+            </div>
+
+            <div className="min-w-0">
+              <p className="text-white font-semibold text-lg truncate">
+                {user?.requesterName ||
+                  `${user.firstName || ''} ${
+                    user.lastName || ''
+                  }`}
+              </p>
+
+              <p className="text-sm text-zinc-500 truncate">
+                {user.email}
+              </p>
+            </div>
+          </div>
+
+          <div className="shrink-0">
+            {actions}
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="relative overflow-hidden rounded-2xl">
+        {/* DELETE BG */}
+        <div className="absolute inset-0 flex items-center justify-end px-6">
+          <div className="flex items-center gap-2 text-white font-medium">
+            <Trash2 size={18} />
+            Remove
+          </div>
+        </div>
+
+        {/* SWIPE CARD */}
+        <motion.div
+          drag="x"
+          dragConstraints={{
+            left: -120,
+            right: 0,
+          }}
+          dragElastic={0.08}
+          onDragEnd={(_, info) => {
+            if (
+              info.offset.x < -100
+            ) {
+              handleRemoveFriend(
+                user.id
+              );
+            }
+          }}
+          whileTap={{
+            scale: 0.99,
+          }}
+          className="relative z-10 flex items-center justify-between gap-4 rounded-2xl border border-white/5 bg-[#0b0b0b] px-5 py-4 cursor-grab active:cursor-grabbing"
         >
-          {user?.firstName?.[0] || user?.requesterName?.[0] }
-        </div>
+          <div className="flex items-center gap-4 min-w-0 flex-1">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center text-white text-lg font-semibold shrink-0">
+              {user?.firstName?.[0] ||
+                'U'}
+            </div>
 
-        <div className="min-w-0">
-          <p className="font-semibold text-base md:text-lg truncate">
-            {user?.requesterName || user.firstName + ' '  + user.lastName  }
-          </p>
+            <div className="min-w-0">
+              <p className="text-white font-semibold text-lg truncate">
+                {`${user.firstName || ''} ${
+                  user.lastName || ''
+                }`}
+              </p>
 
-          <p className="text-xs md:text-sm text-on-surface-variant truncate">
-            {user.email}
-          </p>
-        </div>
+              <p className="text-sm text-zinc-500 truncate">
+                {user.email}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 text-green-400 text-sm font-medium border border-green-500/20">
+            <Check size={16} />
+            Friend
+          </div>
+        </motion.div>
       </div>
-
-      <div className="shrink-0">
-        {actions}
-      </div>
-    </div>
-  );
+    );
+  };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md p-0 md:p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
       <motion.div
         initial={{
           opacity: 0,
-          scale: 0.96,
+          scale: 0.95,
           y: 20,
         }}
         animate={{
@@ -248,147 +290,73 @@ const FriendshipModal = () => {
         }}
         exit={{
           opacity: 0,
-          scale: 0.96,
+          scale: 0.95,
           y: 20,
         }}
-        className="
-          w-full
-          h-full
-          md:h-auto
-          md:max-h-[92vh]
-          md:max-w-5xl
-          bg-surface-charcoal/95
-          backdrop-blur-2xl
-          border
-          border-glass-stroke
-          md:rounded-3xl
-          shadow-2xl
-          overflow-hidden
-          flex
-          flex-col
-        "
+        className="w-full max-w-2xl h-[82vh] bg-[#050505] shadow-[0_8px_30px_rgba(0,0,0,0.25)] rounded-[32px] shadow-2xl overflow-hidden flex flex-col"
       >
         {/* HEADER */}
-        <header
-          className="
-            flex
-            items-start
-            justify-between
-            px-5
-            md:px-8
-            py-5
-            md:py-6
-            border-b
-            border-glass-stroke
-            shrink-0
-          "
-        >
+        <header className="flex items-start justify-between px-8 py-7 border-b border-white/[0.06] shrink-0">
           <div>
-            <h2 className="text-3xl md:text-5xl font-bold text-on-surface">
+            <h2 className="text-5xl font-bold tracking-tight text-white">
               Friends
             </h2>
 
-            <p className="text-sm md:text-base text-on-surface-variant mt-1">
+            <p className="text-zinc-500 mt-2 text-lg">
               Manage friends and requests
             </p>
           </div>
 
           <button
-            onClick={() =>
-              navigate(-1)
-            }
-            className="
-              p-2
-              rounded-full
-              hover:bg-white/10
-              transition-colors
-            "
+            onClick={() => navigate(-1)}
+            className="p-2 rounded-full hover:bg-white/5 transition-all text-zinc-400"
           >
             <X size={22} />
           </button>
         </header>
 
-        {/* TABS */}
-        <div className="px-5 md:px-8 pt-5 shrink-0">
-          <div className="flex gap-2 md:gap-3 overflow-x-auto hide-scrollbar">
+        {/* BODY */}
+        <div className="flex-1 overflow-y-auto hide-scrollbar px-8 py-6 space-y-6">
+          {/* TABS */}
+          <div className="flex items-center gap-8 border-b border-white/[0.06] overflow-x-auto hide-scrollbar">
             {tabs.map((tab) => (
               <button
                 key={tab}
                 onClick={() => {
-                  setActiveTab(
-                    tab
-                  );
+                  setActiveTab(tab);
 
                   setSearch('');
-                  setSearchResults(
-                    []
-                  );
+
+                  setSearchResults([]);
                 }}
-                className={`
-                  px-4
-                  md:px-5
-                  py-2.5
-                  md:py-3
-                  rounded-2xl
-                  text-sm
-                  md:text-lg
-                  font-semibold
-                  capitalize
-                  whitespace-nowrap
-                  transition-all
-                  ${
-                    activeTab ===
-                    tab
-                      ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                      : 'bg-surface-container-low text-on-surface-variant hover:bg-white/5'
-                  }
-                `}
+                className={`relative pb-4 text-lg font-semibold capitalize whitespace-nowrap transition-all ${
+                  activeTab === tab
+                    ? 'text-white'
+                    : 'text-zinc-500 hover:text-white'
+                }`}
               >
                 {tab}
+
+                {activeTab === tab && (
+                  <span className="absolute left-0 bottom-0 w-full h-[2px] bg-indigo-300 rounded-full" />
+                )}
               </button>
             ))}
           </div>
-        </div>
 
-        {/* CONTENT */}
-        <div
-          className="
-            flex-1
-            overflow-y-auto
-            px-5
-            md:px-8
-            py-5
-            space-y-6
-          "
-        >
           {loading ? (
-            <div className="py-20 flex justify-center">
-              <Loader2 className="animate-spin" />
+            <div className="py-24 flex justify-center">
+              <Loader2 className="animate-spin text-white" />
             </div>
           ) : (
             <>
-              {/* FRIENDS TAB */}
-              {activeTab ===
-                'friends' && (
+              {/* FRIENDS */}
+              {activeTab === 'friends' && (
                 <>
-                  {/* SEARCH */}
-                  <div
-                    className="
-                      flex
-                      items-center
-                      gap-3
-                      rounded-3xl
-                      border
-                      border-glass-stroke
-                      bg-surface-container-low
-                      px-5
-                      py-4
-                      md:py-5
-                    "
-                  >
+                  <div className="flex items-center gap-4 rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.25)] bg-white/[0.03] px-6 py-5">
                     <Search
-                      size={20}
-                      className="text-outline shrink-0"
+                      size={22}
+                      className="text-zinc-600 shrink-0"
                     />
 
                     <input
@@ -396,75 +364,68 @@ const FriendshipModal = () => {
                       placeholder="Search users or friends..."
                       value={search}
                       onChange={(e) =>
-                        setSearch(
-                          e.target.value
-                        )
+                        setSearch(e.target.value)
                       }
-                      className="
-                        w-full
-                        bg-transparent
-                        outline-none
-                        text-base
-                        md:text-lg
-                        placeholder:text-outline
-                      "
+                      className="w-full bg-transparent outline-none text-lg text-white placeholder:text-zinc-600"
                     />
                   </div>
 
                   {/* SEARCH RESULTS */}
-                  {searchResults.length >
-                    0 && (
+                  {searchResults.length > 0 && (
                     <div className="space-y-4">
-                      <p className="text-xs md:text-sm uppercase tracking-wider text-on-surface-variant">
-                        Search Results
-                      </p>
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-xl font-semibold text-white">
+                          Search Results
+                        </h3>
 
-                      {searchResults.map(
-                        (user) =>
-                          renderUserCard(
-                            user,
-                            <button
-                              onClick={() =>
-                                handleSendRequest(
-                                  user.id
-                                )
-                              }
-                              className="
-                                bg-primary
-                                text-white
-                                px-4
-                                md:px-5
-                                py-2.5
-                                md:py-3
-                                rounded-2xl
-                                flex
-                                items-center
-                                gap-2
-                                font-medium
-                                text-sm
-                                md:text-base
-                                hover:opacity-90
-                              "
-                            >
-                              <UserPlus
+                        <span className="text-sm text-zinc-500">
+                          {
+                            searchResults.length
+                          }{' '}
+                          found
+                        </span>
+                      </div>
+
+                      {searchResults.map((user) =>
+                        renderUserCard(
+                          user,
+                          <button
+                            onClick={() =>
+                              handleSendRequest(
+                                user.id
+                              )
+                            }
+                            disabled={sendingIds.includes(
+                              user.id
+                            )}
+                            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-indigo-400/15 text-indigo-300 text-sm font-medium border border-indigo-400/20 hover:bg-indigo-400/20 transition-all"
+                          >
+                            {sendingIds.includes(
+                              user.id
+                            ) ? (
+                              <Loader2
                                 size={16}
+                                className="animate-spin"
                               />
+                            ) : (
+                              <UserPlus size={16} />
+                            )}
 
-                              Add
-                            </button>
-                          )
+                            Add Friend
+                          </button>
+                        )
                       )}
                     </div>
                   )}
 
                   {/* FRIENDS LIST */}
-                  <div className="space-y-4 pt-2">
+                  <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-lg md:text-xl font-semibold">
+                      <h3 className="text-xl font-semibold text-white">
                         Your Friends
                       </h3>
 
-                      <span className="text-sm text-on-surface-variant">
+                      <span className="text-sm text-zinc-500">
                         {
                           filteredFriends.length
                         }{' '}
@@ -474,125 +435,101 @@ const FriendshipModal = () => {
 
                     {filteredFriends.length ===
                     0 ? (
-                      <div className="py-20 text-center text-on-surface-variant">
+                      <div className="py-20 text-center text-zinc-500">
                         No friends found.
                       </div>
                     ) : (
-                      filteredFriends.map(
-                        (friend) =>
-                          renderUserCard(
-                            friend,
-                            <button
-                              onClick={() =>
-                                handleRemove(
-                                  friend.id
-                                )
-                              }
-                              className="
-                                p-3
-                                rounded-2xl
-                                bg-red-500/10
-                                text-red-400
-                                hover:bg-red-500/20
-                              "
+                      <AnimatePresence>
+                        {filteredFriends.map(
+                          (friend) => (
+                            <motion.div
+                              key={friend.id}
+                              layout
+                              initial={{
+                                opacity: 0,
+                                y: 10,
+                              }}
+                              animate={{
+                                opacity: 1,
+                                y: 0,
+                              }}
+                              exit={{
+                                opacity: 0,
+                                x: -100,
+                              }}
                             >
-                              <Trash2
-                                size={18}
-                              />
-                            </button>
+                              {renderUserCard(
+                                friend,
+                                null,
+                                true
+                              )}
+                            </motion.div>
                           )
-                      )
+                        )}
+                      </AnimatePresence>
                     )}
                   </div>
                 </>
               )}
 
-              {/* REQUESTS TAB */}
-              {activeTab ===
-                'requests' && (
+              {/* REQUESTS */}
+              {activeTab === 'requests' && (
                 <div className="space-y-4">
-                  {requests.length ===
-                  0 ? (
-                    <div className="py-20 text-center text-on-surface-variant">
+                  {requests.length === 0 ? (
+                    <div className="py-20 text-center text-zinc-500">
                       No sent requests.
                     </div>
                   ) : (
-                    requests.map(
-                      (user) =>
-                        renderUserCard(user,
-                          <span
-                            className="
-                              px-4
-                              py-2
-                              rounded-2xl
-                              bg-yellow-500/10
-                              text-yellow-400
-                              text-sm
-                              font-medium
-                            "
-                          >
-                            Pending
-                          </span>
-                        )
+                    requests.map((user) =>
+                      renderUserCard(
+                        user,
+                        <div className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-yellow-500/10 text-yellow-400 text-sm font-medium border border-yellow-500/20">
+                          <Clock3 size={16} />
+                          Pending
+                        </div>
+                      )
                     )
                   )}
                 </div>
               )}
 
-              {/* PENDING TAB */}
-              {activeTab ===
-                'pending' && (
+              {/* PENDING */}
+              {activeTab === 'pending' && (
                 <div className="space-y-4">
-                  {pending.length ===
-                  0 ? (
-                    <div className="py-20 text-center text-on-surface-variant">
+                  {pending.length === 0 ? (
+                    <div className="py-20 text-center text-zinc-500">
                       No pending requests.
                     </div>
                   ) : (
-                    pending.map(
-                      (user) =>
-                        renderUserCard(
-                          user,
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() =>
-                                handleAccept(
-                                  user.id
-                                )
-                              }
-                              className="
-                                p-3
-                                rounded-2xl
-                                bg-green-500/10
-                                text-green-400
-                                hover:bg-green-500/20
-                              "
-                            >
-                              <Check
-                                size={18}
-                              />
-                            </button>
+                    pending.map((user) =>
+                      renderUserCard(
+                        user,
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() =>
+                              handleAccept(
+                                user.id
+                              )
+                            }
+                            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-green-500/10 text-green-400 text-sm font-medium border border-green-500/20 hover:bg-green-500/20 transition-all"
+                          >
+                            <Check size={16} />
+                            Accept
+                          </button>
 
-                            <button
-                              onClick={() =>
-                                handleReject(
-                                  user.id
-                                )
-                              }
-                              className="
-                                p-3
-                                rounded-2xl
-                                bg-red-500/10
-                                text-red-400
-                                hover:bg-red-500/20
-                              "
-                            >
-                              <X
-                                size={18}
-                              />
-                            </button>
-                          </div>
-                        )
+                          <button
+                            onClick={() =>
+                              handleReject(
+                                user.id
+                              )
+                            }
+                            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-red-500/10 text-red-400 text-sm font-medium border border-red-500/20 hover:bg-red-500/20 transition-all"
+                          >
+                            <X size={16} />
+                            Reject
+                          </button>
+                        </div>
+                      )
                     )
                   )}
                 </div>

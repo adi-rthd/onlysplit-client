@@ -50,7 +50,7 @@ const GroupCard = ({ group }) => {
               className="
                 w-16
                 h-16
-                rounded-2xl
+                rounded-3xl
                 bg-gradient-to-br
                 from-primary-container
                 to-inverse-primary

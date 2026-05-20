@@ -19,12 +19,17 @@ import { GradientButton } from '../components/ui/GradientButton';
 import { ROUTES } from '../constants/routes';
 
 import analyticsService from '../services/analyticsService';
+import { useAuthStore } from '../store/authStore';
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuthStore();
 
-  const [mobileMenuOpen, setMobileMenuOpen] =
-    useState(false);
+  if (isAuthenticated) {
+    navigate(ROUTES.DASHBOARD)
+  }
+
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const [stats, setStats] = useState({
     totalUsers: 0,
@@ -149,7 +154,7 @@ const LandingPage = () => {
                 !mobileMenuOpen
               )
             }
-            className="md:hidden w-11 h-11 rounded-2xl border border-white/[0.06] bg-white/[0.03] flex items-center justify-center text-white"
+            className="md:hidden w-11 h-11 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.25)] bg-white/[0.03] flex items-center justify-center text-white"
           >
             {mobileMenuOpen ? (
               <X size={22} />
@@ -447,7 +452,7 @@ const LandingPage = () => {
                   ].map((item) => (
                     <div
                       key={item[0]}
-                      className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-5"
+                      className="rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.25)] bg-white/[0.03] p-5"
                     >
                       <p className="text-white text-lg font-semibold">
                         {item[0]}
@@ -634,7 +639,7 @@ const LandingPage = () => {
                 ].map((item, index) => (
                   <div
                     key={item[0]}
-                    className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-5"
+                    className="rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.25)] bg-white/[0.03] p-5"
                   >
                     <div className="flex justify-between">
                       <span className="text-white/55">

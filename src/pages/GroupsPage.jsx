@@ -8,6 +8,7 @@ import GroupCard from '../components/ui/GroupCard';
 import { ROUTES } from '../constants/routes';
 import { formatCurrency } from '../services/currencyService';
 import InviteGroupStore from '../services/groupInviteService';
+import GlowButton from '../components/ui/GlowButton';
 
 const GroupsPage = () => {
   const navigate = useNavigate();
@@ -66,21 +67,26 @@ const GroupsPage = () => {
         </div>
 
         <div className="flex gap-3 w-full md:w-auto">
-          <button
-            onClick={() => navigate(ROUTES.CREATE_GROUP)}
-            className="w-full md:w-auto bg-gradient-to-r from-primary-container to-secondary-container text-white px-6 py-2.5 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity font-medium"
+          <GlowButton
+            className='min-w-[140px] h-[82px] border border-[#4F46FF]'
+            icon={Plus}
+            onClick={() =>
+              navigate(ROUTES.CREATE_GROUP)
+            }
           >
-            <Plus size={18} />
-            <span>Create Group</span>
-          </button>
-          <button
-            onClick={() => navigate(ROUTES.FRIEND_MODAL)}
-            className="w-full md:w-auto bg-gradient-to-r from-primary-container to-secondary-container text-white px-6 py-2.5 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity font-medium"
+            Create Group
+          </GlowButton>
+          <GlowButton
+            className='min-w-[140px] h-[82px] border border-[#4F46FF]'
+            icon={Plus}
+            onClick={() =>
+              navigate(ROUTES.FRIEND_MODAL)
+            }
           >
-            <Plus size={18} />
-            <span>Friends</span>
-          </button>
+            Add Friends
+          </GlowButton>
           <button
+
             onClick={() =>
               navigate(ROUTES.INVITE_MODAL.replace(':id', 'bell'))
             }

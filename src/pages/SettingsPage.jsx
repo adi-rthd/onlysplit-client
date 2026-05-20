@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { User, Shield, Camera, Mail, Globe, Bell, CreditCard, Lock, Check, IndianRupee, Smartphone, Moon, Trash2, ChevronRight, BadgeCheck, KeyRound, UploadCloud, AlertTriangle} from 'lucide-react';
+import { User, Shield, Camera, Mail, Globe, Bell, CreditCard, Lock, Check, IndianRupee, Smartphone, Moon, Trash2, ChevronRight, BadgeCheck, KeyRound, UploadCloud, AlertTriangle } from 'lucide-react';
 import { GlassPanel } from '../components/ui/GlassCard';
 import { getProfile, updateProfile } from '../services/settingsService';
+import { useAuthStore } from '../store/authStore';
 
 const SettingsPage = () => {
-  
-  const fileInputRef = useRef(null);
 
+  const fileInputRef = useRef(null);
+  const { logout } = useAuthStore();
   const [loading, setLoading] = useState(true);
 
   const [saving, setSaving] = useState(false);
@@ -457,10 +458,9 @@ const SettingsPage = () => {
                   w-14 h-7
                   rounded-full
                   transition-colors
-                  ${
-                    profile.twoFactor
-                      ? 'bg-primary-container'
-                      : 'bg-surface-container-high'
+                  ${profile.twoFactor
+                    ? 'bg-primary-container'
+                    : 'bg-surface-container-high'
                   }
                 `}
               >
@@ -470,10 +470,9 @@ const SettingsPage = () => {
                     w-5 h-5
                     rounded-full bg-white
                     transition-all
-                    ${
-                      profile.twoFactor
-                        ? 'left-8'
-                        : 'left-1'
+                    ${profile.twoFactor
+                      ? 'left-8'
+                      : 'left-1'
                     }
                   `}
                 />
@@ -578,10 +577,9 @@ const SettingsPage = () => {
                   w-14 h-7
                   rounded-full
                   transition-colors
-                  ${
-                    profile.darkMode
-                      ? 'bg-primary-container'
-                      : 'bg-surface-container-high'
+                  ${profile.darkMode
+                    ? 'bg-primary-container'
+                    : 'bg-surface-container-high'
                   }
                 `}
               >
@@ -591,10 +589,9 @@ const SettingsPage = () => {
                     w-5 h-5
                     rounded-full bg-white
                     transition-all
-                    ${
-                      profile.darkMode
-                        ? 'left-8'
-                        : 'left-1'
+                    ${profile.darkMode
+                      ? 'left-8'
+                      : 'left-1'
                     }
                   `}
                 />
@@ -626,10 +623,9 @@ const SettingsPage = () => {
                   w-14 h-7
                   rounded-full
                   transition-colors
-                  ${
-                    profile.notifications
-                      ? 'bg-primary-container'
-                      : 'bg-surface-container-high'
+                  ${profile.notifications
+                    ? 'bg-primary-container'
+                    : 'bg-surface-container-high'
                   }
                 `}
               >
@@ -639,10 +635,9 @@ const SettingsPage = () => {
                     w-5 h-5
                     rounded-full bg-white
                     transition-all
-                    ${
-                      profile.notifications
-                        ? 'left-8'
-                        : 'left-1'
+                    ${profile.notifications
+                      ? 'left-8'
+                      : 'left-1'
                     }
                   `}
                 />
@@ -650,9 +645,47 @@ const SettingsPage = () => {
             </div>
           </div>
         </GlassPanel>
+        <GlassPanel className="p-8 rounded-[32px] border border-error/20">
+          <h2 className="text-2xl font-bold mb-8 flex items-center gap-3 text-error">
+            <Lock size={26} />
+            Session
+          </h2>
 
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div>
+              <h3 className="font-semibold text-lg">
+                Logout
+              </h3>
+
+              <p className="text-sm text-on-surface-variant mt-1">
+                End your current session securely on this device.
+              </p>
+            </div>
+            {/* LOGOUT */}
+
+            <button
+              onClick={logout}
+              className="
+        px-6 py-3
+        rounded-2xl
+        bg-error/10
+        border border-error/30
+        text-error
+        hover:bg-error/20
+        transition-all duration-300
+        hover:shadow-[0_0_25px_rgba(255,80,80,0.2)]
+        font-semibold
+        flex items-center gap-3
+      "
+            >
+              <Lock size={18} />
+
+              Logout
+            </button>
+          </div>
+        </GlassPanel>
         {/* PAYMENTS */}
-        <GlassPanel className="p-8 rounded-[32px]">
+        {/* <GlassPanel className="p-8 rounded-[32px]">
           <h2 className="text-2xl font-bold mb-8 flex items-center gap-3">
             <CreditCard
               className="text-primary"
@@ -692,10 +725,10 @@ const SettingsPage = () => {
               </button>
             </div>
           </div>
-        </GlassPanel>
+        </GlassPanel> */}
 
         {/* DANGER */}
-        <GlassPanel className="p-8 rounded-[32px] border border-error/20">
+        {/* <GlassPanel className="p-8 rounded-[32px] border border-error/20">
           <h2 className="text-2xl font-bold mb-8 flex items-center gap-3 text-error">
             <Trash2 size={26} />
             Danger Zone
@@ -729,7 +762,7 @@ const SettingsPage = () => {
               Delete
             </button>
           </div>
-        </GlassPanel>
+        </GlassPanel> */}
       </div>
     </div>
   );

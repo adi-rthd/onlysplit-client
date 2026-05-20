@@ -95,7 +95,7 @@ const LoginPage = () => {
               Email
             </label>
 
-            <div className="group flex items-center h-[58px] rounded-2xl border border-white/[0.06] bg-white/[0.03] px-4 transition-all duration-200 focus-within:border-[#5e5ce6]/50 focus-within:bg-white/[0.04] focus-within:shadow-[0_0_0_4px_rgba(94,92,230,0.08)]">
+            <div className="group flex items-center h-[58px] rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.25)] bg-white/[0.03] px-4 transition-all duration-200 focus-within:border-[#5e5ce6]/50 focus-within:bg-white/[0.04] focus-within:shadow-[0_0_0_4px_rgba(94,92,230,0.08)]">
               <Mail
                 size={18}
                 className="text-white/35 mr-3"
@@ -120,7 +120,7 @@ const LoginPage = () => {
               Password
             </label>
 
-            <div className="group flex items-center h-[58px] rounded-2xl border border-white/[0.06] bg-white/[0.03] px-4 transition-all duration-200 focus-within:border-[#5e5ce6]/50 focus-within:bg-white/[0.04] focus-within:shadow-[0_0_0_4px_rgba(94,92,230,0.08)]">
+            <div className="group flex items-center h-[58px] rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.25)] bg-white/[0.03] px-4 transition-all duration-200 focus-within:border-[#5e5ce6]/50 focus-within:bg-white/[0.04] focus-within:shadow-[0_0_0_4px_rgba(94,92,230,0.08)]">
               {/* Lock Icon */}
               <Lock
                 size={18}

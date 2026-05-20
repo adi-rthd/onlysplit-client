@@ -102,7 +102,7 @@ const SignupPage = () => {
                 First Name
               </label>
 
-              <div className="flex items-center h-[58px] rounded-2xl border border-white/[0.06] bg-white/[0.03] px-4 focus-within:border-[#5e5ce6]/50">
+              <div className="flex items-center h-[58px] rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.25)] bg-white/[0.03] px-4 focus-within:border-[#5e5ce6]/50">
                 <User
                   size={18}
                   className="text-white/35 mr-3"
@@ -128,7 +128,7 @@ const SignupPage = () => {
                 Last Name
               </label>
 
-              <div className="flex items-center h-[58px] rounded-2xl border border-white/[0.06] bg-white/[0.03] px-4 focus-within:border-[#5e5ce6]/50">
+              <div className="flex items-center h-[58px] rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.25)] bg-white/[0.03] px-4 focus-within:border-[#5e5ce6]/50">
                 <input
                   type="text"
                   required
@@ -151,7 +151,7 @@ const SignupPage = () => {
               Email
             </label>
 
-            <div className="flex items-center h-[58px] rounded-2xl border border-white/[0.06] bg-white/[0.03] px-4 focus-within:border-[#5e5ce6]/50">
+            <div className="flex items-center h-[58px] rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.25)] bg-white/[0.03] px-4 focus-within:border-[#5e5ce6]/50">
               <Mail
                 size={18}
                 className="text-white/35 mr-3"
@@ -176,7 +176,7 @@ const SignupPage = () => {
               Password
             </label>
 
-            <div className="flex items-center h-[58px] rounded-2xl border border-white/[0.06] bg-white/[0.03] px-4 focus-within:border-[#5e5ce6]/50">
+            <div className="flex items-center h-[58px] rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.25)] bg-white/[0.03] px-4 focus-within:border-[#5e5ce6]/50">
               <Lock
                 size={18}
                 className="text-white/35 mr-3"

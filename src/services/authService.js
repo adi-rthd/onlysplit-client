@@ -219,63 +219,55 @@ const authService = {
   /**
    * Refresh access token
    */
-  refreshToken: async () => {
-    try {
-      const refreshToken =
-        localStorage.getItem('refreshToken');
+refreshToken: async () => {
+  try {
+    const storedRefreshToken = localStorage.getItem('refreshToken');
 
-      if (!refreshToken) {
-        throw new Error('No refresh token found');
-      }
-
-      let { data } = await client.post(
-        '/auth/refresh',
-        {
-          refreshToken,
-        }
-      );
-
-      data = data?.data || data;
-
-      const token =
-        data.token ||
-        data.accessToken ||
-        data.jwt;
-
-      const newRefreshToken =
-        data.refreshToken || refreshToken;
-
-      const user =
-        data.user || null;
-
-      if (!token) {
-        throw new Error(
-          'No access token returned'
-        );
-      }
-
-      // Persist new tokens
-      localStorage.setItem('token', token);
-      localStorage.setItem(
-        'refreshToken',
-        newRefreshToken
-      );
-
-      // Update auth store
-      useAuthStore.getState().setAuth({
-        user,
-        token,
-      });
-
-      return token;
-    } catch (error) {
-      console.error('Refresh token failed:', error);
-
-      authService.logout();
-
-      return null;
+    if (!storedRefreshToken) {
+      throw new Error('No refresh token found');
     }
-  },
+
+    const { data } = await client.post(
+      '/auth/refresh',
+      {
+        RefreshToken: storedRefreshToken,
+      }
+    );
+
+    const response = data?.data || data;
+
+    const token =
+      response.token ||
+      response.accessToken ||
+      response.jwt;
+
+    const newRefreshToken =
+      response.refreshToken || storedRefreshToken;
+
+    if (!token) {
+      throw new Error('No token returned');
+    }
+
+    localStorage.setItem('token', token);
+    localStorage.setItem(
+      'refreshToken',
+      newRefreshToken
+    );
+
+    useAuthStore.getState().setAuth({
+      user: response.user,
+      token,
+    });
+
+    return token;
+  } catch (error) {
+    console.error(error);
+
+    authService.logout();
+
+    return null;
+  }
+},
 };
 
 export default authService;

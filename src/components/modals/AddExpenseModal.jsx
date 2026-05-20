@@ -452,10 +452,6 @@
               generateSplits(),
           });
 
-          toast.success(
-            'Expense added successfully'
-          );
-
           navigate(-1);
         } catch (error) {
           console.error(

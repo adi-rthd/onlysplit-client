@@ -1,7 +1,7 @@
 // src/routes/AppRoutes.jsx
 
 import React, { lazy, Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 
 import { ROUTES } from '../constants/routes';
 
@@ -56,8 +56,20 @@ const AppRoutes = () => {
         {/* PUBLIC ROUTES */}
         {/* ───────────────────────────────────────────── */}
 
-        <Route path={ROUTES.LANDING} element={<LandingPage />} />
-
+        <Route
+          path={ROUTES.LANDING}
+          element={
+            localStorage.getItem('token')
+              ? (
+                <Navigate
+                  to={ROUTES.DASHBOARD}
+                  replace
+                />
+              ) : (
+                <LandingPage />
+              )
+          }
+        />
         {/* ───────────────────────────────────────────── */}
         {/* AUTH ROUTES */}
         {/* ───────────────────────────────────────────── */}
@@ -149,7 +161,7 @@ const AppRoutes = () => {
           <Route
             path={ROUTES.ADD_EXPENSE}
             element={
-                <AddExpenseModal />
+              <AddExpenseModal />
             }
           />
 
@@ -175,7 +187,7 @@ const AppRoutes = () => {
           />
           <Route
             path={ROUTES.INVITE_MODAL}
-                element={
+            element={
               <>
                 <GroupsPage />
                 <InviteGroupModal />

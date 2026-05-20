@@ -17,6 +17,7 @@ import { motion } from 'framer-motion';
 import { useGroupStore } from '../store/groupStore';
 import { useDashboardStore } from '../store/DashboardStore';
 import { formatCurrency } from '../services/currencyService'
+import { ROUTES } from '../constants/routes';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -392,7 +393,7 @@ const Dashboard = () => {
       <motion.button
         whileTap={{ scale: 0.9 }}
         onClick={() =>
-          navigate('/add-expense')
+          navigate(ROUTES.ADD_EXPENSE.replace(':id', 'all'))
         }
         className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-gradient-to-br from-primary-container to-inverse-primary rounded-full flex items-center justify-center shadow-lg neon-glow z-50"
       >
