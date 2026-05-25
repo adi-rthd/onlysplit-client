@@ -13,6 +13,7 @@ import MainLayout from '../layouts/MainLayout';
 import PageLoader from '../components/ui/PageLoader';
 import FriendshipModal from '../components/modals/FriendshipModal';
 import InviteGroupModal from '../components/modals/InviteGroupModal';
+import { useAuthStore } from '../store/authStore';
 
 // ─────────────────────────────────────────────────────────────
 // Lazy Loaded Pages
@@ -49,6 +50,8 @@ const CreateGroupModal = lazy(() =>
 );
 
 const AppRoutes = () => {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
@@ -59,7 +62,7 @@ const AppRoutes = () => {
         <Route
           path={ROUTES.LANDING}
           element={
-            localStorage.getItem('token')
+            isAuthenticated
               ? (
                 <Navigate
                   to={ROUTES.DASHBOARD}

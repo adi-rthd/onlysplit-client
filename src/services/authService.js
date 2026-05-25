@@ -5,24 +5,13 @@ import { useAuthStore } from '../store/authStore';
 import { handleApiError } from '../utils/apiErrorHandler';
 import toast from 'react-hot-toast';
 
-/**
- * Auth service — all authentication-related API calls.
- * Handles:
- * - login/signup/logout
- * - token persistence
- * - silent refresh
- * - current user fetching
- */
+
 const authService = {
-  /**
-   * Login user
-   * @param {{ email: string, password: string }} credentials
-   */
   login: async (credentials) => {
     try {
       useAuthStore.getState().setAuthenticating(true);
 
-      let { data } = await client.post('/auth/login', credentials);
+      let { data } = await client.post('/auth/login',credentials);
 
       data = data?.data || data;
 
@@ -32,9 +21,6 @@ const authService = {
         data.jwt ||
         null;
 
-      const refreshToken =
-        data.refreshToken || null;
-
       const user =
         data.user || {
           email: credentials.email,
@@ -42,24 +28,19 @@ const authService = {
         };
 
       if (!token) {
-        throw new Error('No token received from backend');
+        throw new Error(
+          'No access token received from backend'
+        );
       }
 
-      // Persist tokens
-      localStorage.setItem('token', token);
-
-      if (refreshToken) {
-        localStorage.setItem('refreshToken', refreshToken);
-      }
-
-      // Update store
       useAuthStore.getState().setAuth({
         user,
         token,
       });
 
       toast.success(
-        `Welcome back, ${user?.firstName || 'there'}!`
+        `Welcome back, ${user?.firstName || 'there'
+        }!`
       );
 
       return data;
@@ -77,21 +58,12 @@ const authService = {
 
   /**
    * Signup user
-   * @param {{
-   * firstName: string,
-   * lastName: string,
-   * email: string,
-   * password: string
-   * }} userData
    */
   signup: async (userData) => {
     try {
       useAuthStore.getState().setAuthenticating(true);
 
-      let { data } = await client.post(
-        '/auth/signup',
-        userData
-      );
+      let { data } = await client.post('/auth/signup',userData);
 
       data = data?.data || data;
 
@@ -101,9 +73,6 @@ const authService = {
         data.jwt ||
         null;
 
-      const refreshToken =
-        data.refreshToken || null;
-
       const user =
         data.user || {
           ...userData,
@@ -111,24 +80,11 @@ const authService = {
 
       // Some APIs require login after signup
       if (!token) {
-        toast.success(
-          'Account created! Please log in.'
-        );
+        toast.success('Account created! Please log in.');
 
         return data;
       }
 
-      // Persist tokens
-      localStorage.setItem('token', token);
-
-      if (refreshToken) {
-        localStorage.setItem(
-          'refreshToken',
-          refreshToken
-        );
-      }
-
-      // Update store
       useAuthStore.getState().setAuth({
         user,
         token,
@@ -154,15 +110,18 @@ const authService = {
   /**
    * Logout user
    */
-  logout: () => {
-    // Clear persisted auth
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
+  logout: async () => {
+    try {
+      await client.post('/auth/logout');
+    } catch (error) {
+      console.error(error);
+    } finally {
+      useAuthStore.getState().logout();
 
-    // Clear store
-    useAuthStore.getState().logout();
-
-    toast.success('Logged out successfully.');
+      toast.success(
+        'Logged out successfully.'
+      );
+    }
   },
 
   /**
@@ -178,30 +137,37 @@ const authService = {
 
       return user;
     } catch (error) {
-      handleApiError(
-        error,
-        'Failed to load profile.'
-      );
+      console.error(error);
 
       return null;
     }
   },
 
   /**
-   * Restore session from localStorage
+   * Restore session on app startup
+   *
+   * Flow:
+   * 1. Try refresh endpoint
+   * 2. Backend validates cookie session
+   * 3. Receive fresh access token
+   * 4. Load current user
    */
   restoreSession: async () => {
     try {
-      const token = localStorage.getItem('token');
-
+      const token = await authService.refreshToken();
+      debugger
       if (!token) {
+        useAuthStore.getState().setLoaded();
+
         return false;
       }
 
-      // Fetch latest user data
-      const user = await authService.getCurrentUser();
+      const user =
+        await authService.getCurrentUser();
 
       if (!user) {
+        useAuthStore.getState().logout();
+
         return false;
       }
 
@@ -211,63 +177,52 @@ const authService = {
       });
 
       return true;
-    } catch {
+    } catch (error) {
+      console.error(error);
+
+      useAuthStore.getState().logout();
+
       return false;
+    } finally {
+      useAuthStore.getState().setLoaded();
     }
   },
 
   /**
-   * Refresh access token
+   * Silent refresh
+   *
+   * Refresh token automatically sent via httpOnly cookie
    */
-refreshToken: async () => {
-  try {
-    const storedRefreshToken = localStorage.getItem('refreshToken');
+  refreshToken: async () => {
+    try {
+      const { data } = await client.post('/auth/refresh');
+      
+      const response = data?.data || data;
 
-    if (!storedRefreshToken) {
-      throw new Error('No refresh token found');
-    }
+      const token =
+        response.token ||
+        response.accessToken ||
+        response.jwt;
 
-    const { data } = await client.post(
-      '/auth/refresh',
-      {
-        RefreshToken: storedRefreshToken,
+      if (!token) {
+        throw new Error('No token returned');
       }
-    );
 
-    const response = data?.data || data;
+      useAuthStore.getState().setToken(token);
 
-    const token =
-      response.token ||
-      response.accessToken ||
-      response.jwt;
+      if (response.user) {
+        useAuthStore.getState().setUser(response.user);
+      }
 
-    const newRefreshToken =
-      response.refreshToken || storedRefreshToken;
+      return token;
+    } catch (error) {
+      console.error(error);
 
-    if (!token) {
-      throw new Error('No token returned');
+      useAuthStore.getState().logout();
+
+      return null;
     }
-
-    localStorage.setItem('token', token);
-    localStorage.setItem(
-      'refreshToken',
-      newRefreshToken
-    );
-
-    useAuthStore.getState().setAuth({
-      user: response.user,
-      token,
-    });
-
-    return token;
-  } catch (error) {
-    console.error(error);
-
-    authService.logout();
-
-    return null;
-  }
-},
+  },
 };
 
 export default authService;

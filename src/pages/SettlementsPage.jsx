@@ -134,21 +134,18 @@ const SettlementsPage = () => {
 
       setSettlements(
         updatedSettlements || []
-      );  
+      );
     } catch (error) {
       setIsRefreshing(false);
       console.error(error);
-    } 
+    }
   };
 
   const handlePayment = async settlement => {
     try {
       setPayingId(settlement.id);
 
-      const order =
-        await paymentService.createOrder(
-          settlement.id
-        );
+      const order = await paymentService.createOrder(settlement.id);
 
       if (!order) {
         setPayingId(null);
@@ -159,16 +156,16 @@ const SettlementsPage = () => {
         order,
 
         onSuccess: async response => {
-          const verified =
-            await paymentService.verifyPayment({
-              paymentId: order.paymentId,
+          let payment = {
+            paymentId: order.paymentId,
 
-              razorpayOrderId: response.razorpay_order_id,
+            razorpayOrderId: order.razorpayOrderId,
 
-              razorpayPaymentId: response.razorpay_payment_id,
+            razorpayPaymentId: order.paymentId,
 
-              razorpaySignature: response.razorpay_signature,
-            });
+            razorpaySignature: response.razorpay_signature,
+          }
+          const verified = await paymentService.verifyPayment(payment);
 
           if (!verified) return;
 
