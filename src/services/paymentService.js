@@ -43,7 +43,7 @@ const paymentService = {
   openCheckout: ({ order, onSuccess, onFailure }) => {
     const options = {
       key: order.keyId,
-      amount: order.amount,
+      amount: Number(order.amount) * 100,
       currency: order.currency,
       order_id: order.orderId,
 
@@ -55,6 +55,8 @@ const paymentService = {
       },
 
       handler: response => {
+        console.log('RAZORPAY RESPONSE', response);
+
         onSuccess?.(response);
       },
 
@@ -65,10 +67,12 @@ const paymentService = {
       },
     };
 
+    console.log('ORDER OBJECT', order);
+    console.log('RAZORPAY OPTIONS', options);
     const razorpay = new window.Razorpay(options);
 
     razorpay.open();
-  },
+  }
 };
 
 export default paymentService;

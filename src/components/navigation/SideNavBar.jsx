@@ -68,12 +68,12 @@ const SideNavBar = () => {
   };
 
   return (
-    <aside className="hidden md:flex fixed left-0 top-0 h-screen w-64 border-r border-glass-stroke bg-surface-charcoal/90 backdrop-blur-2xl z-40 flex-col py-6">
+    <aside className="hidden md:flex fixed left-0 top-0 h-screen w-50 border-r border-glass-stroke bg-surface-charcoal/90 backdrop-blur-2xl z-40 flex-col py-6">
       {/* TOP PROFILE */}
       <div className="px-6 mb-8">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col items-center">
           {/* AVATAR */}
-          <div className="w-12 h-12 rounded-full overflow-hidden border border-primary/30 shrink-0">
+          <div className="w-12 h-12  rounded-full overflow-hidden border border-primary/30 shrink-0">
             <img
               src={profile.avatarUrl}
               alt="Profile"
@@ -82,21 +82,21 @@ const SideNavBar = () => {
           </div>
 
           {/* INFO */}
-          <div className="min-w-0">
-            <h2 className="font-display-lg text-[18px] font-bold text-primary leading-tight truncate">
+          <div className="min">
+            <h2 className="font-display-lg text-[18px] items-center justify-center font-bold text-primary  truncate">
               {profile.firstName}{' '}
               {profile.lastName}
             </h2>
-
-            <p className="text-on-surface-variant font-body-md text-[12px]">
+            <p className="text-on-surface-variant text-center text-[12px]">
               🇮🇳 India • ₹ INR
             </p>
+
           </div>
         </div>
       </div>
 
       {/* ACTION BUTTONS */}
-      <div className="px-4 mb-6 space-y-3">
+      {/* <div className="px-4 mb-6 space-y-3">
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={() =>
@@ -118,7 +118,7 @@ const SideNavBar = () => {
           <Plus size={18} />
           Add Expense
         </motion.button>
-      </div>
+      </div> */}
 
       {/* NAVIGATION */}
       <nav className="flex-1 px-2 space-y-1">
