@@ -155,7 +155,6 @@ const authService = {
   restoreSession: async () => {
     try {
       const token = await authService.refreshToken();
-      debugger
       if (!token) {
         useAuthStore.getState().setLoaded();
 
