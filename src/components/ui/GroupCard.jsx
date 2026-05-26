@@ -19,8 +19,7 @@ const GroupCard = ({
 
   const controls = useAnimation();
 
-  const [isDeleting, setIsDeleting] =
-    React.useState(false);
+  const [isDeleting, setIsDeleting] = React.useState(false);
 
   const handleOpenGroup = () => {
     if (isDeleting) return;
