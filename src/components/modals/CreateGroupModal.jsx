@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { X, Users, Type, Loader2, ChevronDown, Check } from 'lucide-react';
+import { X, Users, Loader2, ChevronDown, Check } from 'lucide-react';
 import { Listbox } from '@headlessui/react';
 import { useGroupStore } from '../../store/groupStore';
 import toast from 'react-hot-toast';
@@ -10,13 +10,29 @@ import useCurrencyStore from '../../store/useCurrencyStore';
 
 const CreateGroupModal = () => {
   const navigate = useNavigate();
+  const backdropRef = useRef(null);
+  const nameRef = useRef(null);
+
   const [name, setName] = useState('');
   const { currency: defaultCurrency } = useCurrencyStore();
-
   const { createGroup, isLoading } = useGroupStore();
   const [currencies, setCurrencies] = useState([]);
   const [description, setDescription] = useState('');
   const [currency, setCurrency] = useState(defaultCurrency || 'INR');
+
+  // Escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') navigate(-1);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [navigate]);
+
+  // Auto-focus name input
+  useEffect(() => {
+    setTimeout(() => nameRef.current?.focus(), 100);
+  }, []);
 
   useEffect(() => {
     const fetchCurrencies = async () => {
@@ -25,35 +41,26 @@ const CreateGroupModal = () => {
         setCurrencies(data);
       } catch (error) {
         console.error(error);
-        toast.error(
-          'Failed to load currencies'
-        );
+        toast.error('Failed to load currencies');
       }
     };
-
     fetchCurrencies();
   }, []);
 
-  const selectedCurrency =
-    currencies.find(
-      (c) => c.iso_code === currency
-    ) || currencies[0];
+  const selectedCurrency = currencies.find((c) => c.iso_code === currency) || currencies[0];
 
   const handleSubmit = async () => {
     if (!name.trim()) {
       toast.error('Group name is required');
       return;
     }
-
     try {
-      const newGroup =
-        await createGroup({
-          name,
-          description,
-          currency,
-          memberEmails: []
-        });
-
+      const newGroup = await createGroup({
+        name,
+        description,
+        currency,
+        memberEmails: [],
+      });
       if (newGroup) {
         navigate(`/groups/${newGroup.id || newGroup.groupId || ''}`);
       } else {
@@ -61,227 +68,100 @@ const CreateGroupModal = () => {
       }
     } catch (error) {
       console.error(error);
-
-      toast.error(
-        'Failed to create group'
-      );
+      toast.error('Failed to create group');
     }
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md p-4" onKeyDown={(e) => e.key === 'Escape' && navigate(-1)} tabIndex={-1} ref={(el) => el?.focus()}>
+    <div
+      ref={backdropRef}
+      className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-black/70 backdrop-blur-sm"
+      onClick={(e) => e.target === backdropRef.current && navigate(-1)}
+    >
       <motion.div
-        initial={{
-          opacity: 0,
-          scale: 0.95,
-          y: 20
-        }}
-        animate={{
-          opacity: 1,
-          scale: 1,
-          y: 0
-        }}
-        exit={{
-          opacity: 0,
-          scale: 0.95,
-          y: 20
-        }}
-        className=" w-full max-w-lg bg-surface-charcoal/95 backdrop-blur-2xl border border-glass-stroke rounded-3xl shadow-2xl overflow-visible"
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 40 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+        className="w-full max-w-md bg-surface border border-glass-stroke rounded-t-3xl md:rounded-2xl shadow-2xl flex flex-col max-h-[92vh] md:max-h-[85vh] overflow-visible"
       >
         {/* HEADER */}
-        <header className="flex items-center justify-between px-6 py-5 border-b border-glass-stroke bg-white/[0.03]">
-          <h2 className="text-2xl font-bold text-on-surface">
-            Create Group
-          </h2>
-
+        <div className="flex items-center justify-between px-5 py-4 shrink-0">
+          <h2 className="text-lg font-bold text-on-surface">Create Group</h2>
           <button
             onClick={() => navigate(-1)}
-            className="
-              p-2
-              rounded-full
-              hover:bg-white/10
-              transition-colors
-            "
+            className="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center hover:bg-white/10 transition-colors"
           >
-            <X size={20} />
+            <X size={16} className="text-on-surface-variant" />
           </button>
-        </header>
+        </div>
 
         {/* BODY */}
-        <div className="p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto hide-scrollbar px-5 pb-5 space-y-5">
           {/* GROUP NAME */}
-          <div className="space-y-2">
-            <label className="text-[10px] font-label-caps uppercase text-on-surface-variant">
+          <div>
+            <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider block mb-1.5">
               Group Name
             </label>
-
-            <div
-              className="
-                flex
-                items-center
-                bg-surface-container-low
-                border
-                border-glass-stroke
-                rounded-xl
-                px-4
-                py-3
-                focus-within:border-primary
-                transition-colors
-              "
-            >
-              <Users
-                className="text-outline mr-3"
-                size={20}
-              />
-
+            <div className="flex items-center gap-3 bg-surface-container-low border border-glass-stroke rounded-xl px-4 py-3 focus-within:border-primary/40 transition-colors">
+              <Users size={16} className="text-on-surface-variant shrink-0" />
               <input
+                ref={nameRef}
                 type="text"
                 placeholder="e.g., Goa Trip"
                 value={name}
-                onChange={(e) =>
-                  setName(e.target.value)
-                }
-                className="
-                  w-full
-                  bg-transparent
-                  border-none
-                  outline-none
-                  text-on-surface
-                  placeholder:text-outline
-                "
+                onChange={(e) => setName(e.target.value)}
+                className="flex-1 bg-transparent border-none ring-0 focus:ring-0 outline-none text-on-surface text-sm placeholder:text-on-surface-variant/50"
               />
             </div>
           </div>
 
           {/* DESCRIPTION */}
-          <div className="space-y-2">
-            <label className="text-[10px] font-label-caps uppercase text-on-surface-variant">
+          <div>
+            <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider block mb-1.5">
               Description
             </label>
-
-            <div
-              className="
-                flex
-                items-center
-                bg-surface-container-low
-                border
-                border-glass-stroke
-                rounded-xl
-                px-4
-                py-3
-                focus-within:border-primary
-                transition-colors
-              "
-            >
-              <Type
-                className="text-outline mr-3"
-                size={20}
-              />
-
-              <input
-                type="text"
-                placeholder="What's this group for?"
-                value={description}
-                onChange={(e) =>
-                  setDescription(
-                    e.target.value
-                  )
-                }
-                className="
-                  w-full
-                  bg-transparent
-                  border-none
-                  outline-none
-                  text-on-surface
-                  placeholder:text-outline
-                "
-              />
-            </div>
+            <input
+              type="text"
+              placeholder="What's this group for?"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full bg-surface-container-low border border-glass-stroke rounded-xl px-4 py-3 text-on-surface text-sm outline-none ring-0 focus:ring-0 focus:border-primary/40 placeholder:text-on-surface-variant/50 transition-colors"
+            />
           </div>
 
           {/* CURRENCY */}
-          <div className="space-y-2">
-            <label className="text-[10px] font-label-caps uppercase text-on-surface-variant">
+          <div>
+            <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider block mb-1.5">
               Currency
             </label>
 
-            <Listbox
-              value={currency}
-              onChange={setCurrency}
-            >
-              <div className="relative z-50">
-                <Listbox.Button
-                  className="
-                    w-full
-                    rounded-xl
-                    border
-                    border-glass-stroke
-                    bg-surface-container-low
-                    px-4
-                    py-3
-                    text-left
-                    text-on-surface
-                    flex
-                    items-center
-                    justify-between
-                    hover:border-primary/40
-                    transition-all
-                  "
-                >
+            <Listbox value={currency} onChange={setCurrency}>
+              <div className="relative">
+                <Listbox.Button className="w-full bg-surface-container-low border border-glass-stroke rounded-xl px-4 py-3 text-left text-on-surface text-sm flex items-center justify-between hover:border-primary/40 transition-colors">
                   <span className="font-medium truncate">
-                    {
-                      selectedCurrency?.iso_code
-                    }{' '}
-                    (
-                    {
-                      selectedCurrency?.symbol
-                    }
-                    ) —{' '}
-                    {selectedCurrency?.name}
+                    {selectedCurrency?.iso_code} ({selectedCurrency?.symbol}) — {selectedCurrency?.name}
                   </span>
-
-                  <ChevronDown
-                    size={18}
-                    className="text-outline flex-shrink-0"
-                  />
+                  <ChevronDown size={14} className="text-on-surface-variant shrink-0" />
                 </Listbox.Button>
 
-                <Listbox.Options className="absolute bottom-full mb-2 z-[999] max-h-72 w-full overflow-y-auto rounded-2xl border border-glass-stroke bg-[#0F1115] shadow-2xl backdrop-blur-xl focus:outline-none py-2">
+                <Listbox.Options className="absolute bottom-full mb-2 z-[999] max-h-60 w-full overflow-y-auto rounded-xl border border-glass-stroke bg-surface-container shadow-2xl backdrop-blur-xl focus:outline-none py-1 hide-scrollbar">
                   {currencies.map((item) => (
                     <Listbox.Option
                       key={item.iso_code}
                       value={item.iso_code}
-                      className={({
-                        active
-                      }) =>
-                        `
-                          relative
-                          cursor-pointer
-                          select-none
-                          px-4
-                          py-3
-                          transition-colors
-                          ${active
-                          ? 'bg-primary/20 text-white'
-                          : 'text-on-surface'
-                        }
-                        `
+                      className={({ active }) =>
+                        `cursor-pointer select-none px-4 py-2.5 transition-colors text-sm ${
+                          active ? 'bg-primary/10 text-on-surface' : 'text-on-surface-variant'
+                        }`
                       }
                     >
                       {({ selected }) => (
                         <div className="flex items-center justify-between gap-3">
-                          <span className="font-medium truncate">
-                            {item.iso_code}{' '}
-                            ({item.symbol}) —{' '}
-                            {item.name}
+                          <span className={`truncate ${selected ? 'font-semibold text-on-surface' : ''}`}>
+                            {item.iso_code} ({item.symbol}) — {item.name}
                           </span>
-
-                          {selected && (
-                            <Check
-                              size={16}
-                              className="text-primary flex-shrink-0"
-                            />
-                          )}
+                          {selected && <Check size={14} className="text-primary shrink-0" />}
                         </div>
                       )}
                     </Listbox.Option>
@@ -293,54 +173,21 @@ const CreateGroupModal = () => {
         </div>
 
         {/* FOOTER */}
-        <footer className="flex justify-end gap-3 px-6 py-5 border-t border-glass-stroke bg-white/[0.03]">
+        <div className="px-5 py-4 border-t border-glass-stroke flex gap-3 shrink-0">
           <button
             onClick={() => navigate(-1)}
-            className="
-              px-5
-              py-2.5
-              rounded-xl
-              border
-              border-glass-stroke
-              text-on-surface-variant
-              hover:bg-white/5
-              transition-colors
-            "
+            className="flex-1 py-3 rounded-xl border border-glass-stroke text-on-surface-variant text-sm font-medium hover:bg-white/5 transition-colors"
           >
             Cancel
           </button>
-
           <button
             onClick={handleSubmit}
-            disabled={isLoading}
-            className="
-              bg-primary-container
-              flex
-              items-center
-              justify-center
-              gap-2
-              text-white
-              px-6
-              py-2.5
-              rounded-xl
-              font-bold
-              shadow-lg
-              shadow-primary-container/30
-              hover:opacity-90
-              transition-opacity
-              disabled:opacity-50
-            "
+            disabled={isLoading || !name.trim()}
+            className="flex-1 py-3 rounded-xl bg-primary text-white text-sm font-semibold flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {isLoading ? (
-              <Loader2
-                size={18}
-                className="animate-spin"
-              />
-            ) : (
-              'Create Group'
-            )}
+            {isLoading ? <Loader2 size={16} className="animate-spin" /> : 'Create Group'}
           </button>
-        </footer>
+        </div>
       </motion.div>
     </div>
   );

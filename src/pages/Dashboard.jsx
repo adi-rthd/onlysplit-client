@@ -363,15 +363,15 @@ const Dashboard = () => {
                           <ActivityIcon size={16} className="text-on-surface-variant" />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-medium truncate text-on-surface">{activity.title}</p>
-                          <p className="text-[11px] text-on-surface-variant truncate">
+                          <p className="text-[13px] font-medium truncate text-on-surface">{activity.title}</p>
+                          <p className="text-xs text-on-surface-variant truncate">
                             {activity.groupName} · {new Date(activity.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                           </p>
                         </div>
                       </div>
-                      <span className={`text-sm font-semibold ml-2 flex-shrink-0 tabular-nums ${
+                      <span className={`text-[13px] font-bold ml-2 flex-shrink-0 tabular-nums ${
                         (activity.type?.toLowerCase() === 'paymentcompleted' || activity.type?.toLowerCase() === 'settlement')
-                          ? 'text-neon-lime'
+                          ? 'text-green-400'
                           : 'text-error'
                       }`}>
                         {(activity.type?.toLowerCase() === 'paymentcompleted' || activity.type?.toLowerCase() === 'settlement') ? '+' : '-'}
