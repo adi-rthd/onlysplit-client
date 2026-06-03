@@ -24,7 +24,7 @@ const GroupsPage = () => {
     const init = async () => {
       await Promise.all([
         fetchGroups(),
-        fetchNotifications(),
+        fetchMyInvitations(),
       ]);
     };
 
