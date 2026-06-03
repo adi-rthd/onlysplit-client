@@ -19,15 +19,9 @@ import { GradientButton } from '../components/ui/GradientButton';
 import { ROUTES } from '../constants/routes';
 
 import analyticsService from '../services/analyticsService';
-import { useAuthStore } from '../store/authStore';
 
 const LandingPage = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuthStore();
-
-  if (isAuthenticated) {
-    navigate(ROUTES.DASHBOARD)
-  }
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
