@@ -198,7 +198,7 @@ const SettlementsPage = () => {
     <div className="space-y-6 md:space-y-8">
       <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-on-surface">
+          <h1 className="text-3xl md:text-4xl font-bold text-on-surface">
             Settlements
           </h1>
 
@@ -208,7 +208,7 @@ const SettlementsPage = () => {
         </div>
 
         <GlowButton
-          className="min-w-[220px] h-[70px] border border-[#4F46FF]"
+          className="min-w-[220px] h-[76px] border border-[#4F46FF]"
           icon={Sparkles}
           onClick={handleRegenerate}
           isLoading={isRefreshing || !groupId}

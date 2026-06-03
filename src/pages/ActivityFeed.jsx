@@ -75,7 +75,7 @@ const ActivityFeed = () => {
     <div className="mx-auto w-full max-w-[1100px]">
       <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-4xl font-black text-on-surface">
+          <h1 className="text-3xl md:text-4xl font-bold text-on-surface">
             Recent Activity
           </h1>
 

@@ -141,7 +141,7 @@ const AnalyticsPage = () => {
       {/* HEADER */}
       <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-3xl md:text-5xl font-bold text-on-surface">
+          <h1 className="text-3xl md:text-4xl font-bold text-on-surface">
             Spending Insights
           </h1>
 

@@ -80,25 +80,8 @@ const SettingsPage = () => {
         avatarUrl: profile.avatarUrl
       });
 
-      window.dispatchEvent(
-        new CustomEvent('toast', {
-          detail: {
-            type: 'success',
-            message: 'Profile updated successfully'
-          }
-        })
-      );
     } catch (error) {
       console.error(error);
-
-      window.dispatchEvent(
-        new CustomEvent('toast', {
-          detail: {
-            type: 'error',
-            message: 'Failed to update profile'
-          }
-        })
-      );
     } finally {
       setSaving(false);
     }
@@ -135,7 +118,7 @@ const SettingsPage = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto w-full pb-32 relative">
+    <div className="max-w-6xl mx-auto w-full pb-20 md:pb-4 relative">
       {/* COMING SOON */}
       {comingSoonModal && (
         <div
@@ -170,7 +153,7 @@ const SettingsPage = () => {
 
       {/* HEADER */}
       <header className="mb-10">
-        <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-3">
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">
           Settings
         </h1>
 
@@ -346,17 +329,7 @@ const SettingsPage = () => {
                 <button
                   onClick={saveProfile}
                   disabled={saving}
-                  className="
-                    bg-primary-container
-                    text-white
-                    px-7 py-3
-                    rounded-xl
-                    font-medium
-                    hover:opacity-90
-                    transition-opacity
-                    disabled:opacity-50
-                    flex items-center gap-2
-                  "
+                  className="bg-primary-container text-white px-7 py-3 rounded-xl font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2"
                 >
                   {saving ? (
                     <>

@@ -7,7 +7,7 @@ const BottomNav = () => {
   const location = useLocation();
   
   return (
-    <nav className="md:hidden fixed bottom-0 w-full h-[80px] bg-surface-charcoal/90 backdrop-blur-2xl border-t border-glass-stroke z-50 flex justify-around items-center px-2 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+    <nav className="md:hidden fixed bottom-0 w-full h-20 bg-surface-charcoal/90 backdrop-blur-2xl border-t border-glass-stroke z-50 flex justify-around items-center px-2 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
       {BOTTOM_NAV_ITEMS.map((item) => {
         const isActive = location.pathname === item.path;
         const Icon = item.icon;

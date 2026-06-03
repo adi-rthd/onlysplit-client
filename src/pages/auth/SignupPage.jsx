@@ -51,16 +51,16 @@ const SignupPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#05060a] flex items-center justify-center px-5 relative overflow-hidden">
+    <div className="min-h-screen bg-surface-charcoal flex items-center justify-center px-5 relative overflow-hidden">
       {/* Background */}
-      <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,rgba(94,92,230,0.16)_0%,transparent_70%)] pointer-events-none" />
+      <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,rgba(91,77,255,0.16)_0%,transparent_70%)] pointer-events-none" />
 
-      <div className="absolute bottom-[-15%] right-[-8%] w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle,rgba(62,144,255,0.08)_0%,transparent_70%)] pointer-events-none" />
+      <div className="absolute bottom-[-15%] right-[-8%] w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle,rgba(79,140,255,0.08)_0%,transparent_70%)] pointer-events-none" />
 
       {/* Back Button */}
       <button
         onClick={() => navigate(ROUTES.LANDING)}
-        className="absolute top-6 left-6 flex items-center gap-2 text-white/40 hover:text-white/80 transition-colors text-sm z-20"
+        className="absolute top-6 left-6 flex items-center gap-2 text-on-surface-variant hover:text-on-surface transition-colors text-sm z-20"
       >
         <ArrowLeft size={16} />
         <span>Back</span>
@@ -70,18 +70,18 @@ const SignupPage = () => {
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
           <div className="relative mb-5">
-            <div className="absolute inset-0 w-14 h-14 rounded-full bg-[#5e5ce6]/40 blur-2xl scale-150" />
+            <div className="absolute inset-0 w-14 h-14 rounded-full bg-primary-container/40 blur-2xl scale-150" />
 
-            <div className="relative w-14 h-14 rounded-full bg-gradient-to-br from-[#5e5ce6] to-[#4a6cf7] flex items-center justify-center text-white font-bold text-xl">
+            <div className="relative w-14 h-14 rounded-full bg-gradient-to-br from-primary-container to-secondary-container flex items-center justify-center text-white font-bold text-xl">
               OS
             </div>
           </div>
 
-          <h1 className="text-[34px] font-bold text-white tracking-tight">
+          <h1 className="text-[34px] font-bold text-on-surface tracking-tight">
             Create your account
           </h1>
 
-          <p className="text-white/55 text-[15px] mt-2">
+          <p className="text-on-surface-variant text-[15px] mt-2">
             Start splitting expenses with
             OnlySplit
           </p>
@@ -93,19 +93,19 @@ const SignupPage = () => {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
-          className="bg-white/[0.02] border border-white/[0.05] backdrop-blur-2xl rounded-[30px] p-7 shadow-[0_0_50px_rgba(0,0,0,0.45)]"
+          className="auth-card backdrop-blur-2xl rounded-3xl p-7"
         >
           {/* Names */}
           <div className="grid grid-cols-2 gap-4 mb-5">
             <div>
-              <label className="block text-[11px] font-semibold text-white/45 uppercase tracking-[0.18em] mb-2">
+              <label className="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-[0.18em] mb-2">
                 First Name
               </label>
 
-              <div className="flex items-center h-[58px] rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.25)] bg-white/[0.03] px-4 focus-within:border-[#5e5ce6]/50">
+              <div className="auth-input flex items-center h-[58px] px-4">
                 <User
                   size={18}
-                  className="text-white/35 mr-3"
+                  className="text-on-surface-variant mr-3"
                 />
 
                 <input
@@ -118,17 +118,17 @@ const SignupPage = () => {
                     )
                   }
                   placeholder="John"
-                  className="w-full bg-transparent border-none outline-none ring-0 text-white placeholder:text-white/25"
+                  className="w-full bg-transparent border-none outline-none ring-0 text-on-surface placeholder:text-on-surface-variant/50"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-white/45 uppercase tracking-[0.18em] mb-2">
+              <label className="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-[0.18em] mb-2">
                 Last Name
               </label>
 
-              <div className="flex items-center h-[58px] rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.25)] bg-white/[0.03] px-4 focus-within:border-[#5e5ce6]/50">
+              <div className="auth-input flex items-center h-[58px] px-4">
                 <input
                   type="text"
                   required
@@ -139,7 +139,7 @@ const SignupPage = () => {
                     )
                   }
                   placeholder="Doe"
-                  className="w-full bg-transparent border-none outline-none ring-0 text-white placeholder:text-white/25"
+                  className="w-full bg-transparent border-none outline-none ring-0 text-on-surface placeholder:text-on-surface-variant/50"
                 />
               </div>
             </div>
@@ -147,14 +147,14 @@ const SignupPage = () => {
 
           {/* Email */}
           <div className="mb-5">
-            <label className="block text-[11px] font-semibold text-white/45 uppercase tracking-[0.18em] mb-2">
+            <label className="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-[0.18em] mb-2">
               Email
             </label>
 
-            <div className="flex items-center h-[58px] rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.25)] bg-white/[0.03] px-4 focus-within:border-[#5e5ce6]/50">
+            <div className="auth-input flex items-center h-[58px] px-4">
               <Mail
                 size={18}
-                className="text-white/35 mr-3"
+                className="text-on-surface-variant mr-3"
               />
 
               <input
@@ -165,21 +165,21 @@ const SignupPage = () => {
                   setEmail(e.target.value)
                 }
                 placeholder="you@example.com"
-                className="w-full bg-transparent border-none outline-none ring-0 text-white placeholder:text-white/25"
+                className="w-full bg-transparent border-none outline-none ring-0 text-on-surface placeholder:text-on-surface-variant/50"
               />
             </div>
           </div>
 
           {/* Password */}
           <div className="mb-6">
-            <label className="block text-[11px] font-semibold text-white/45 uppercase tracking-[0.18em] mb-2">
+            <label className="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-[0.18em] mb-2">
               Password
             </label>
 
-            <div className="flex items-center h-[58px] rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.25)] bg-white/[0.03] px-4 focus-within:border-[#5e5ce6]/50">
+            <div className="auth-input flex items-center h-[58px] px-4">
               <Lock
                 size={18}
-                className="text-white/35 mr-3"
+                className="text-on-surface-variant mr-3"
               />
 
               <input
@@ -195,7 +195,7 @@ const SignupPage = () => {
                   setPassword(e.target.value)
                 }
                 placeholder="Minimum 8 characters"
-                className="w-full bg-transparent border-none outline-none ring-0 text-white placeholder:text-white/25"
+                className="w-full bg-transparent border-none outline-none ring-0 text-on-surface placeholder:text-on-surface-variant/50"
               />
 
               <button
@@ -205,7 +205,7 @@ const SignupPage = () => {
                     !showPassword
                   )
                 }
-                className="text-white/35 hover:text-white/70 transition-colors"
+                className="text-on-surface-variant hover:text-on-surface transition-colors"
               >
                 {showPassword ? (
                   <EyeOff size={18} />
@@ -220,7 +220,7 @@ const SignupPage = () => {
           <button
             type="submit"
             disabled={isAuthenticating}
-            className="w-full h-[58px] rounded-2xl bg-gradient-to-r from-[#5e5ce6] to-[#4a6cf7] text-white font-semibold text-[15px] flex items-center justify-center gap-2 hover:opacity-95 transition-all shadow-[0_10px_30px_rgba(94,92,230,0.35)]"
+            className="w-full h-[58px] rounded-2xl bg-gradient-to-r from-primary-container to-secondary-container text-white font-semibold text-[15px] flex items-center justify-center gap-2 hover:opacity-95 transition-all auth-cta"
           >
             {isAuthenticating ? (
               <Spinner size={20} />
@@ -234,11 +234,11 @@ const SignupPage = () => {
         </motion.form>
 
         {/* Footer */}
-        <p className="text-center text-white/40 text-[14px] mt-7">
+        <p className="text-center text-on-surface-variant text-[14px] mt-7">
           Already have an account?{' '}
           <Link
             to={ROUTES.LOGIN}
-            className="text-[#7c7cff] hover:text-white transition-colors font-medium"
+            className="text-primary hover:text-on-surface transition-colors font-medium"
           >
             Sign in
           </Link>

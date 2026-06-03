@@ -1,61 +1,30 @@
 import React, { useEffect, useState, useMemo } from 'react';
-
+import { ROUTES } from '../constants/routes';
 import { useParams, useNavigate } from 'react-router-dom';
-
-import {
-  ArrowLeft,
-  Plus,
-  CheckCircle2,
-  Users,
-  Receipt,
-  Sparkles,
-  Wallet,
-} from 'lucide-react';
+import { ArrowLeft, Plus, CheckCircle2, Users, Receipt, Sparkles, Wallet,} from 'lucide-react';
 
 import { GlassPanel } from '../components/ui/GlassCard';
-
 import { useGroupStore } from '../store/groupStore';
 import { useExpenseStore } from '../store/expenseStore';
 import { useSettlementStore } from '../store/settlementStore';
+import { formatCurrency } from '../services/currencyService';
 
 import ExpenseCard from '../components/ui/ExpenseCard';
 import SettlementCard from '../components/ui/SettlementCard';
-
 import MemberBalanceList from '../components/ui/MemberBalanceList';
-
-import { formatCurrency } from '../services/currencyService';
-
-import { ROUTES } from '../constants/routes';
 import GlowButton from '../components/ui/GlowButton';
 import useCurrencyStore from '../store/useCurrencyStore';
+
+
 
 const GroupDetailsPage = () => {
   const { id: groupId } = useParams();
 
   const navigate = useNavigate();
   const { currency: storeCurrency, locale } = useCurrencyStore();
-
-  const {
-    currentGroup,
-    fetchGroupById,
-    isLoading: isGroupLoading,
-  } = useGroupStore();
-
-  const {
-    expenses,
-    fetchExpenses,
-    isLoading: isExpensesLoading,
-  } = useExpenseStore();
-
-  const {
-    balances,
-    settlements,
-    fetchBalances,
-    fetchSettlements,
-    regenerateSettlements,
-    isLoading: isSettlementsLoading,
-  } = useSettlementStore();
-
+  const { currentGroup, fetchGroupById, isLoading: isGroupLoading} = useGroupStore();
+  const { expenses, fetchExpenses, isLoading: isExpensesLoading} = useExpenseStore();
+  const { balances, settlements, fetchBalances, fetchSettlements, regenerateSettlements, isLoading: isSettlementsLoading} = useSettlementStore();
   const [activeTab, setActiveTab] = useState('expenses');
 
 
@@ -80,29 +49,29 @@ const GroupDetailsPage = () => {
     const totalSpent =
       expenses?.reduce(
         (sum, expense) =>
-          sum + Number(expense.amount || 0),
+          sum + Number(expense.netBalance || 0),
         0
       ) || 0;
 
     let youOwe = 0;
     let youAreOwed = 0;
 
-    balances?.forEach(balance => {
-      const amount = Number(
-        balance.amount ||
-        balance.balance ||
-        balance.netAmount ||
-        0
-      );
+    // balances?.forEach(balance => {
+    //   const amount = Number(
+    //     balance.amount ||
+    //     balance.balance ||
+    //     balance.netAmount ||
+    //     0
+    //   );
 
-      if (amount < 0) {
-        youOwe += Math.abs(amount);
-      }
+    //   if (amount < 0) {
+    //     youOwe += Math.abs(amount);
+    //   }
 
-      if (amount > 0) {
-        youAreOwed += amount;
-      }
-    });
+    //   if (amount > 0) {
+    //     youAreOwed += amount;
+    //   }
+    // });
 
     return {
       totalSpent,
@@ -173,7 +142,7 @@ const GroupDetailsPage = () => {
 
         <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div>
-            <h1 className="text-4xl font-black tracking-tight text-on-surface">
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-on-surface">
               {currentGroup.name}
             </h1>
 
@@ -185,7 +154,7 @@ const GroupDetailsPage = () => {
 
           <div className="flex flex-wrap gap-3">
             <GlowButton
-              className="min-w-[140px] h-[82px] border border-[#4F46FF]"
+              className="min-w-[140px] h-[76px] border border-[#4F46FF]"
               icon={Sparkles}
               onClick={handleRecalculate}
               isLoading={isRecalculating}
@@ -193,7 +162,7 @@ const GroupDetailsPage = () => {
               Recalculate
             </GlowButton>
             <GlowButton
-              className='min-w-[140px] h-[82px] border border-[#4F46FF]'
+              className='min-w-[140px] h-[76px] border border-[#4F46FF]'
               icon={Plus}
               onClick={() =>
                 navigate(ROUTES.INVITE_MODAL.replace(
@@ -203,7 +172,7 @@ const GroupDetailsPage = () => {
             >Invite
             </GlowButton>
             <GlowButton
-              className='min-w-[140px] h-[82px] border border-[#4F46FF]'
+              className='min-w-[140px] h-[76px] border border-[#4F46FF]'
               icon={Plus}
               onClick={() =>
                 navigate(ROUTES.ADD_EXPENSE.replace(

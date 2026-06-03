@@ -186,23 +186,23 @@ const FriendshipModal = () => {
   ) => {
     if (!swipeable) {
       return (
-        <div className="flex items-center justify-between gap-4 rounded-2xl border border-white/5 bg-white/[0.03] px-5 py-4 transition-all hover:bg-white/[0.05]">
+        <div className="flex items-center justify-between gap-4 rounded-2xl border border-glass-stroke bg-white/[0.03] px-5 py-4 transition-all hover:bg-white/[0.05]">
           <div className="flex items-center gap-4 min-w-0 flex-1">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center text-white text-lg font-semibold shrink-0">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-container to-secondary-container flex items-center justify-center text-white text-lg font-semibold shrink-0">
               {user?.firstName?.[0] ||
                 user?.requesterName?.[0] ||
                 'U'}
             </div>
 
             <div className="min-w-0">
-              <p className="text-white font-semibold text-lg truncate">
+              <p className="text-on-surface font-semibold text-lg truncate">
                 {user?.requesterName ||
                   `${user.firstName || ''} ${
                     user.lastName || ''
                   }`}
               </p>
 
-              <p className="text-sm text-zinc-500 truncate">
+              <p className="text-sm text-on-surface-variant truncate">
                 {user.email}
               </p>
             </div>
@@ -245,22 +245,22 @@ const FriendshipModal = () => {
           whileTap={{
             scale: 0.99,
           }}
-          className="relative z-10 flex items-center justify-between gap-4 rounded-2xl border border-white/5 bg-[#0b0b0b] px-5 py-4 cursor-grab active:cursor-grabbing"
+          className="relative z-10 flex items-center justify-between gap-4 rounded-2xl border border-glass-stroke bg-surface-charcoal px-5 py-4 cursor-grab active:cursor-grabbing"
         >
           <div className="flex items-center gap-4 min-w-0 flex-1">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center text-white text-lg font-semibold shrink-0">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-container to-secondary-container flex items-center justify-center text-white text-lg font-semibold shrink-0">
               {user?.firstName?.[0] ||
                 'U'}
             </div>
 
             <div className="min-w-0">
-              <p className="text-white font-semibold text-lg truncate">
+              <p className="text-on-surface font-semibold text-lg truncate">
                 {`${user.firstName || ''} ${
                   user.lastName || ''
                 }`}
               </p>
 
-              <p className="text-sm text-zinc-500 truncate">
+              <p className="text-sm text-on-surface-variant truncate">
                 {user.email}
               </p>
             </div>
@@ -293,23 +293,23 @@ const FriendshipModal = () => {
           scale: 0.95,
           y: 20,
         }}
-        className="w-full max-w-2xl h-[82vh] bg-[#050505] shadow-[0_8px_30px_rgba(0,0,0,0.25)] rounded-[32px] shadow-2xl overflow-hidden flex flex-col"
+        className="w-full max-w-2xl h-[82vh] bg-surface-charcoal shadow-[0_8px_30px_rgba(0,0,0,0.25)] rounded-3xl shadow-2xl overflow-hidden flex flex-col"
       >
         {/* HEADER */}
-        <header className="flex items-start justify-between px-8 py-7 border-b border-white/[0.06] shrink-0">
+        <header className="flex items-start justify-between px-8 py-7 border-b border-glass-stroke shrink-0">
           <div>
-            <h2 className="text-5xl font-bold tracking-tight text-white">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-white">
               Friends
             </h2>
 
-            <p className="text-zinc-500 mt-2 text-lg">
+            <p className="text-on-surface-variant mt-2 text-lg">
               Manage friends and requests
             </p>
           </div>
 
           <button
             onClick={() => navigate(-1)}
-            className="p-2 rounded-full hover:bg-white/5 transition-all text-zinc-400"
+            className="p-2 rounded-full hover:bg-white/5 transition-all text-on-surface-variant"
           >
             <X size={22} />
           </button>
@@ -318,7 +318,7 @@ const FriendshipModal = () => {
         {/* BODY */}
         <div className="flex-1 overflow-y-auto hide-scrollbar px-8 py-6 space-y-6">
           {/* TABS */}
-          <div className="flex items-center gap-8 border-b border-white/[0.06] overflow-x-auto hide-scrollbar">
+          <div className="flex items-center gap-8 border-b border-glass-stroke overflow-x-auto hide-scrollbar">
             {tabs.map((tab) => (
               <button
                 key={tab}
@@ -331,14 +331,14 @@ const FriendshipModal = () => {
                 }}
                 className={`relative pb-4 text-lg font-semibold capitalize whitespace-nowrap transition-all ${
                   activeTab === tab
-                    ? 'text-white'
-                    : 'text-zinc-500 hover:text-white'
+                    ? 'text-on-surface'
+                    : 'text-on-surface-variant hover:text-on-surface'
                 }`}
               >
                 {tab}
 
                 {activeTab === tab && (
-                  <span className="absolute left-0 bottom-0 w-full h-[2px] bg-indigo-300 rounded-full" />
+                  <span className="absolute left-0 bottom-0 w-full h-[2px] bg-primary rounded-full" />
                 )}
               </button>
             ))}
@@ -346,7 +346,7 @@ const FriendshipModal = () => {
 
           {loading ? (
             <div className="py-24 flex justify-center">
-              <Loader2 className="animate-spin text-white" />
+              <Loader2 className="animate-spin text-primary" />
             </div>
           ) : (
             <>
@@ -356,7 +356,7 @@ const FriendshipModal = () => {
                   <div className="flex items-center gap-4 rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.25)] bg-white/[0.03] px-6 py-5">
                     <Search
                       size={22}
-                      className="text-zinc-600 shrink-0"
+                      className="text-on-surface-variant shrink-0"
                     />
 
                     <input
@@ -366,7 +366,7 @@ const FriendshipModal = () => {
                       onChange={(e) =>
                         setSearch(e.target.value)
                       }
-                      className="w-full bg-transparent outline-none text-lg text-white placeholder:text-zinc-600"
+                      className="w-full bg-transparent outline-none text-lg text-on-surface placeholder:text-on-surface-variant"
                     />
                   </div>
 
@@ -378,7 +378,7 @@ const FriendshipModal = () => {
                           Search Results
                         </h3>
 
-                        <span className="text-sm text-zinc-500">
+                        <span className="text-sm text-on-surface-variant">
                           {
                             searchResults.length
                           }{' '}
@@ -425,7 +425,7 @@ const FriendshipModal = () => {
                         Your Friends
                       </h3>
 
-                      <span className="text-sm text-zinc-500">
+                      <span className="text-sm text-on-surface-variant">
                         {
                           filteredFriends.length
                         }{' '}
@@ -435,7 +435,7 @@ const FriendshipModal = () => {
 
                     {filteredFriends.length ===
                     0 ? (
-                      <div className="py-20 text-center text-zinc-500">
+                      <div className="py-20 text-center text-on-surface-variant">
                         No friends found.
                       </div>
                     ) : (
@@ -476,7 +476,7 @@ const FriendshipModal = () => {
               {activeTab === 'requests' && (
                 <div className="space-y-4">
                   {requests.length === 0 ? (
-                    <div className="py-20 text-center text-zinc-500">
+                    <div className="py-20 text-center text-on-surface-variant">
                       No sent requests.
                     </div>
                   ) : (
@@ -497,7 +497,7 @@ const FriendshipModal = () => {
               {activeTab === 'pending' && (
                 <div className="space-y-4">
                   {pending.length === 0 ? (
-                    <div className="py-20 text-center text-zinc-500">
+                    <div className="py-20 text-center text-on-surface-variant">
                       No pending requests.
                     </div>
                   ) : (

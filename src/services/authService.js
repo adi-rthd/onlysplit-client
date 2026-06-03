@@ -11,7 +11,7 @@ const authService = {
     try {
       useAuthStore.getState().setAuthenticating(true);
 
-      let { data } = await client.post('/auth/login',credentials);
+      let { data } = await client.post('/auth/login', credentials);
 
       data = data?.data || data;
 
@@ -63,7 +63,7 @@ const authService = {
     try {
       useAuthStore.getState().setAuthenticating(true);
 
-      let { data } = await client.post('/auth/signup',userData);
+      let { data } = await client.post('/auth/signup', userData);
 
       data = data?.data || data;
 
@@ -195,7 +195,7 @@ const authService = {
   refreshToken: async () => {
     try {
       const { data } = await client.post('/auth/refresh');
-      
+
       const response = data?.data || data;
 
       const token =
@@ -222,6 +222,7 @@ const authService = {
       return null;
     }
   },
+
 };
 
 export default authService;

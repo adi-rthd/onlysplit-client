@@ -17,7 +17,7 @@ const MemberBalanceList = ({ members, currency: propCurrency, onSettleUp }) => {
   return (
     <div className="space-y-2">
       {members.map((member, index) => {
-        const balance = Number(member.balance || 0);
+        const balance = Number(member.netBalance || 0);
         const isPositive = balance > 0;
         const isNegative = balance < 0;
         const isZero = balance === 0;
@@ -27,10 +27,10 @@ const MemberBalanceList = ({ members, currency: propCurrency, onSettleUp }) => {
         let amountText = formatCurrency(Math.abs(balance), currency, locale);
 
         if (isPositive) {
-          statusText = `${member.name} owes you`;
+          statusText = `${member.firstName} owes you`;
           statusColor = "text-neon-lime";
         } else if (isNegative) {
-          statusText = `You owe ${member.name}`;
+          statusText = `You owe ${member.firstName}`;
           statusColor = "text-error";
         }
 

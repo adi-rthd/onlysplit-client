@@ -1,24 +1,23 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { ROUTES } from '../constants/routes';
 import { useNavigate } from 'react-router-dom';
 import { GlassPanel } from '../components/ui/GlassCard';
 import { Bell, Plus, Users, Utensils } from 'lucide-react';
 import { motion } from 'framer-motion';
+
 import { useGroupStore } from '../store/groupStore';
-import GroupCard from '../components/ui/GroupCard';
-import { ROUTES } from '../constants/routes';
 import { formatCurrency } from '../services/currencyService';
-import InviteGroupStore from '../services/groupInviteService';
-import GlowButton from '../components/ui/GlowButton';
 import { useInvitationStore } from '../store/groupInvitationStore';
+import GroupCard from '../components/ui/GroupCard';
+import GlowButton from '../components/ui/GlowButton';
+import InviteGroupStore from '../services/groupInviteService';
 import groupService from '../services/groupService';
 import useCurrencyStore from '../store/useCurrencyStore';
 
 const GroupsPage = () => {
   const navigate = useNavigate();
   const { currency, locale } = useCurrencyStore();
-
   const { groups, isLoading, fetchGroups } = useGroupStore();
-
   const { invitations, fetchMyInvitations } = useInvitationStore();
 
   useEffect(() => {
@@ -64,13 +63,13 @@ const GroupsPage = () => {
     <>
       <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-on-surface">Your Groups</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-on-surface">Your Groups</h1>
           <p className="text-on-surface-variant">Manage your shared expenses and groups.</p>
         </div>
 
         <div className="flex gap-3 w-full md:w-auto overflow-x-auto md:overflow-visible pb-2 md:pb-0 hide-scrollbar snap-x snap-mandatory">
           <GlowButton
-            className='min-w-[160px] h-[82px] snap-start   shrink-0 border border-[#4F46FF]'
+            className='min-w-[160px] h-[76px] snap-start   shrink-0 border border-[#4F46FF]'
             icon={Plus}
             onClick={() =>
               navigate(ROUTES.CREATE_GROUP)
@@ -79,7 +78,7 @@ const GroupsPage = () => {
             Create Group
           </GlowButton>
           <GlowButton
-            className='min-w-[160px] h-[82px] snap-start   shrink-0 border border-[#4F46FF]'
+            className='min-w-[160px] h-[76px] snap-start   shrink-0 border border-[#4F46FF]'
             icon={Plus}
             onClick={() =>
               navigate(ROUTES.FRIEND_MODAL)
@@ -93,7 +92,7 @@ const GroupsPage = () => {
                 ROUTES.INVITE_MODAL.replace(':id', 'bell')
               )
             }
-            className="relative flex items-center justify-center gap-2 min-w-[120px] h-[82px] shrink-0 snap-start rounded-2xl bg-surface-container-low border border-glass-stroke   hover:bg-white/5 transition-all"
+            className="relative flex items-center justify-center gap-2 min-w-[120px] h-[76px] shrink-0 snap-start rounded-2xl bg-surface-container-low border border-glass-stroke   hover:bg-white/5 transition-all"
           >
 
             <span className="sm:block font-medium">
@@ -173,7 +172,7 @@ const GroupsPage = () => {
       <motion.button
         whileTap={{ scale: 0.9 }}
         onClick={() => navigate(ROUTES.CREATE_GROUP)}
-        className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-gradient-to-br from-primary-container to-inverse-primary rounded-full flex items-center justify-center shadow-lg neon-glow z-50"
+        className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-gradient-to-br from-primary-container to-inverse-primary rounded-full flex items-center justify-center shadow-lg neon-glow z-[60]"
       >
         <Plus className="text-white" size={28} />
       </motion.button>

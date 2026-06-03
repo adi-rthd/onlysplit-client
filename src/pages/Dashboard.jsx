@@ -7,7 +7,7 @@ import React, {
 import { useNavigate } from 'react-router-dom';
 import { GlassPanel } from '../components/ui/GlassCard';
 import {
-  Wallet, TrendingUp, ArrowUpRight, ArrowDownRight, Plus, Utensils, Users
+  Wallet, TrendingUp, ArrowUpRight, ArrowDownRight, Plus, Utensils, Users, Receipt, ShoppingCart, Car, CreditCard
 } from 'lucide-react';
 import groupService from '../services/groupService';
 
@@ -162,12 +162,21 @@ const Dashboard = () => {
 
   const chartData = graphView === 'monthly' ? monthlyChart : groupChart;
 
+  const getActivityIcon = (title) => {
+    const lower = (title || '').toLowerCase();
+    if (lower.includes('food') || lower.includes('lunch') || lower.includes('dinner') || lower.includes('breakfast')) return Utensils;
+    if (lower.includes('travel') || lower.includes('uber') || lower.includes('cab') || lower.includes('fuel')) return Car;
+    if (lower.includes('shopping') || lower.includes('grocery')) return ShoppingCart;
+    if (lower.includes('pay') || lower.includes('recharge') || lower.includes('bill')) return CreditCard;
+    return Receipt;
+  };
+
   return (
     <>
       {/* HEADER */}
       <header className="flex justify-between items-end mb-8">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-on-surface">
+          <h1 className="text-3xl md:text-4xl font-bold text-on-surface">
             Overview
           </h1>
 
@@ -180,67 +189,58 @@ const Dashboard = () => {
       </header>
 
       {/* SUMMARY */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
         {/* NET BALANCE */}
-        <GlassPanel className="p-6 relative overflow-hidden group">
-          <div className="absolute -right-10 -top-10 w-32 h-32 bg-primary-container/20 rounded-full blur-3xl group-hover:bg-primary-container/30 transition-all duration-500"></div>
+        <GlassPanel className="p-6 relative overflow-hidden">
+          <div className="absolute -right-8 -top-8 w-28 h-28 bg-primary/8 rounded-full blur-2xl"></div>
 
-          <div className="flex justify-between items-center mb-4">
-            <span className="font-label-caps text-[12px] text-on-surface-variant">
-              NET BALANCE
+          <div className="flex justify-between items-center mb-5">
+            <span className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider">
+              Net Balance
             </span>
 
-            <Wallet
-              className="text-primary"
-              size={24}
-            />
+            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Wallet className="text-primary" size={18} />
+            </div>
           </div>
 
           {renderCurrencyTotals('totalSpending')}
 
-          <div className="text-neon-lime flex items-center gap-1">
-            <TrendingUp size={16} />
-
-            <span>
-              {summary?.totalGroups || 0}{' '}
-              active groups
-            </span>
+          <div className="text-neon-lime flex items-center gap-1.5 text-sm">
+            <TrendingUp size={14} />
+            <span>{summary?.totalGroups || 0} active groups</span>
           </div>
         </GlassPanel>
 
         {/* YOU OWE */}
-        <GlassPanel className="p-6 border-l-4 border-l-error">
-          <div className="flex justify-between items-center mb-4">
-            <span className="font-label-caps text-[12px] text-on-surface-variant">
-              YOU OWE
+        <GlassPanel className="p-6 border-l-[3px] border-l-error/80">
+          <div className="flex justify-between items-center mb-5">
+            <span className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider">
+              You Owe
             </span>
 
-            <ArrowUpRight
-              className="text-error"
-              size={33}
-            />
+            <div className="w-9 h-9 rounded-xl bg-error/10 flex items-center justify-center">
+              <ArrowUpRight className="text-error" size={18} />
+            </div>
           </div>
 
           {renderCurrencyTotals('youOwe')}
 
           <p className="text-on-surface-variant text-sm">
-            Across{' '}
-            {summary?.youOweGroups || 0}{' '}
-            groups
+            Across {summary?.youOweGroups || 0} groups
           </p>
         </GlassPanel>
 
         {/* YOU ARE OWED */}
-        <GlassPanel className="p-6 border-l-4 border-l-neon-lime">
-          <div className="flex justify-between items-center mb-4">
-            <span className="font-label-caps text-[12px] text-on-surface-variant">
-              YOU ARE OWED
+        <GlassPanel className="p-6 border-l-[3px] border-l-neon-lime/80">
+          <div className="flex justify-between items-center mb-5">
+            <span className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider">
+              You Are Owed
             </span>
 
-            <ArrowDownRight
-              className="text-neon-lime"
-              size={33}
-            />
+            <div className="w-9 h-9 rounded-xl bg-neon-lime/10 flex items-center justify-center">
+              <ArrowDownRight className="text-neon-lime" size={18} />
+            </div>
           </div>
 
           {renderCurrencyTotals('youAreOwed')}
@@ -252,24 +252,24 @@ const Dashboard = () => {
       </div>
 
       {/* GRAPH + ACTIVITY */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
         {/* GRAPH */}
-        <GlassPanel className="lg:col-span-2 p-6 h-80 flex flex-col justify-between">
-          <div className="flex justify-between items-center mb-4">
+        <GlassPanel className="lg:col-span-2 p-6 h-80 flex flex-col">
+          <div className="flex justify-between items-center mb-5">
             <div>
-              <h3 className="font-medium">
+              <h3 className="text-[15px] font-semibold text-on-surface">
                 {graphView === 'monthly' ? 'Monthly Spending' : 'Spending by Group'}
               </h3>
               <p className="text-[11px] text-on-surface-variant mt-0.5">
                 {graphView === 'monthly' ? new Date().getFullYear() : `${groups?.length || 0} groups`}
               </p>
             </div>
-            <div className="flex items-center bg-surface-container-high rounded-lg p-0.5 gap-0.5">
+            <div className="flex items-center bg-surface-container rounded-lg p-1 gap-0.5">
               <button
                 onClick={() => setGraphView('monthly')}
                 className={`px-3 py-1.5 rounded-md text-[11px] font-medium transition-all ${graphView === 'monthly'
-                  ? 'bg-primary-container text-white'
+                  ? 'bg-surface-container-high text-on-surface shadow-sm'
                   : 'text-on-surface-variant hover:text-on-surface'
                   }`}
               >
@@ -278,7 +278,7 @@ const Dashboard = () => {
               <button
                 onClick={() => setGraphView('groups')}
                 className={`px-3 py-1.5 rounded-md text-[11px] font-medium transition-all ${graphView === 'groups'
-                  ? 'bg-primary-container text-white'
+                  ? 'bg-surface-container-high text-on-surface shadow-sm'
                   : 'text-on-surface-variant hover:text-on-surface'
                   }`}
               >
@@ -288,9 +288,9 @@ const Dashboard = () => {
           </div>
 
           {/* GRAPH AREA */}
-          <div className="flex-1 flex gap-2 mt-2 h-full">
+          <div className="flex-1 flex gap-2">
             {/* Y-AXIS */}
-            <div className="flex flex-col justify-between py-6 text-[10px] text-on-surface-variant font-medium items-end w-12 border-r border-glass-stroke pr-2 pb-8">
+            <div className="flex flex-col justify-between text-[10px] text-on-surface-variant font-medium items-end w-12 pr-2 py-2 pb-7">
               <span>{chartData.yLabels[0]}</span>
               <span>{chartData.yLabels[1]}</span>
               <span>{chartData.yLabels[2]}</span>
@@ -299,25 +299,31 @@ const Dashboard = () => {
             {/* BARS + X-AXIS */}
             <div className="flex-1 flex flex-col">
               {/* BARS */}
-              <div className="flex-1 flex items-end gap-2 px-1 pb-2">
+              <div className="flex-1 flex items-end gap-1.5 px-1 pb-2 border-l border-surface-container-high">
                 {chartData.bars.map((item, index) => (
                   <div key={index} className="flex-1 flex flex-col justify-end items-center h-full group relative">
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: `${item.height}%`, opacity: 1 }}
-                      transition={{ duration: 0.45, delay: index * 0.05 }}
-                      className="w-full rounded-t-xl bg-gradient-to-t from-[#5e5ce6]/30 to-[#5e5ce6]/70 hover:from-[#5e5ce6]/50 hover:to-[#7c7aff] transition-all relative"
+                      transition={{ duration: 0.5, delay: index * 0.04, ease: 'easeOut' }}
+                      className={`w-full max-w-[24px] mx-auto rounded-t-lg transition-all duration-200 ${
+                        item.value > 0
+                          ? 'bg-primary/60 hover:bg-primary shadow-[0_0_12px_rgba(124,108,255,0.15)]'
+                          : 'bg-surface-container-high/60'
+                      }`}
                     >
-                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-surface-container-highest px-2 py-1 rounded text-xs whitespace-nowrap z-10 pointer-events-none text-white">
-                        {item.label}
-                      </div>
+                      {item.value > 0 && (
+                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-surface-container-highest border border-glass-stroke px-2 py-1 rounded-lg text-[10px] whitespace-nowrap z-10 pointer-events-none text-on-surface font-medium shadow-lg">
+                          {formatCompact(item.value, summary?.currency || 'INR')}
+                        </div>
+                      )}
                     </motion.div>
                   </div>
                 ))}
               </div>
 
               {/* X-AXIS LABELS */}
-              <div className="flex gap-2 px-1 pt-2 border-t border-glass-stroke">
+              <div className="flex gap-1.5 px-1 pt-2 border-t border-surface-container-high/50">
                 {chartData.bars.map((item, index) => (
                   <div key={index} className="flex-1 text-center text-[9px] text-on-surface-variant truncate">
                     {item.label}
@@ -330,42 +336,50 @@ const Dashboard = () => {
 
         {/* RECENT ACTIVITY */}
         <GlassPanel className="p-6 flex flex-col h-80">
-          <h3 className="font-medium mb-4">
+          <h3 className="text-[15px] font-semibold text-on-surface mb-4">
             Recent Activity
           </h3>
 
           <div className="flex-1 flex flex-col min-h-0">
             {!summary?.recentActivities || summary.recentActivities.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-center opacity-60">
-                <div className="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-primary mb-3">
-                  <Utensils size={20} />
+              <div className="flex-1 flex flex-col items-center justify-center text-center">
+                <div className="w-11 h-11 rounded-xl bg-surface-container-high flex items-center justify-center text-on-surface-variant mb-3">
+                  <Receipt size={20} />
                 </div>
                 <p className="text-sm font-medium text-on-surface mb-1">No activity yet</p>
                 <p className="text-xs text-on-surface-variant">Expenses will show up here</p>
               </div>
             ) : (
-              <div className="space-y-3 flex-1 overflow-y-auto hide-scrollbar pr-1">
-                {summary.recentActivities.slice(0, 5).map((activity, index) => (
-                  <div
-                    key={activity.expenseId || index}
-                    className="flex items-center justify-between cursor-pointer hover:bg-white/[0.03] rounded-lg px-1 py-1 transition-colors"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-full bg-surface-container-high flex items-center justify-center text-primary font-bold text-xs flex-shrink-0">
-                        EX
+              <div className="space-y-1 flex-1 overflow-y-auto hide-scrollbar">
+                {summary.recentActivities.slice(0, 5).map((activity, index) => {
+                  const ActivityIcon = getActivityIcon(activity.title);
+                  return (
+                    <div
+                      key={activity.expenseId || index}
+                      className="flex items-center justify-between rounded-xl px-2 py-2.5 hover:bg-white/[0.03] transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-9 h-9 rounded-xl bg-surface-container-high flex items-center justify-center flex-shrink-0">
+                          <ActivityIcon size={16} className="text-on-surface-variant" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate text-on-surface">{activity.title}</p>
+                          <p className="text-[11px] text-on-surface-variant truncate">
+                            {activity.groupName} · {new Date(activity.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                          </p>
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium truncate">{activity.title}</p>
-                        <p className="text-xs text-on-surface-variant truncate">
-                          {activity.groupName} · {new Date(activity.createdAt).toLocaleDateString()}
-                        </p>
-                      </div>
+                      <span className={`text-sm font-semibold ml-2 flex-shrink-0 tabular-nums ${
+                        (activity.type?.toLowerCase() === 'paymentcompleted' || activity.type?.toLowerCase() === 'settlement')
+                          ? 'text-neon-lime'
+                          : 'text-error'
+                      }`}>
+                        {(activity.type?.toLowerCase() === 'paymentcompleted' || activity.type?.toLowerCase() === 'settlement') ? '+' : '-'}
+                        {formatCurrency(activity.amount, activity.currency)}
+                      </span>
                     </div>
-                    <span className="text-sm font-semibold text-error ml-2 flex-shrink-0">
-                      {formatCurrency(activity.amount, activity.currency)}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -407,7 +421,7 @@ const Dashboard = () => {
         onClick={() =>
           navigate(ROUTES.ADD_EXPENSE.replace(':id', 'all'))
         }
-        className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-gradient-to-br from-primary-container to-inverse-primary rounded-full flex items-center justify-center shadow-lg neon-glow z-50"
+        className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-gradient-to-br from-primary-container to-inverse-primary rounded-full flex items-center justify-center shadow-lg neon-glow z-[60]"
       >
         <Plus
           className="text-white"
