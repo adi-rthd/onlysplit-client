@@ -44,7 +44,7 @@ useEffect(() => {
   const count = notifications?.length || 0;
 
   return (
-    <div className="relative" useRef={notificationRef}>
+    <div className="relative" ref={notificationRef}>
       {/* Bell */}
       <button
         onClick={() => setOpen(!open)}

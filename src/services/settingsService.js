@@ -16,9 +16,16 @@ export const getProfile = async () => {
 // ─────────────────────────────────────────────
 
 export const updateProfile = async (payload) => {
-    const response = await client.put('/auth/me', payload);
+    try {
+        await client.put('/auth/profile', payload);
 
-    return response?.data?.data;
+        toast.success('Profile updated successfully.');
+    } catch (error) {
+        handleApiError(
+            error,
+            'Failed to update profile'
+        );
+    }
 };
 
 // ─────────────────────────────────────────────

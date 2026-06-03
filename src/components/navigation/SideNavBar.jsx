@@ -1,29 +1,14 @@
 // src/components/navigation/SideNavBar.jsx
 
 import React, { useEffect, useState } from 'react';
-
-import {
-  Link,
-  useLocation,
-  useNavigate
-} from 'react-router-dom';
-
-import {
-  Plus,
-  Settings,
-  HelpCircle,
-  LogOut
-} from 'lucide-react';
-
+import { Link, useLocation, useNavigate} from 'react-router-dom';
+import { Plus, Settings, HelpCircle, LogOut} from 'lucide-react';
 import { motion } from 'framer-motion';
-
-import { NAVIGATION_ITEMS } from '../../constants/navigation';
-
 import { ROUTES } from '../../constants/routes';
 
-import authService from '../../services/authService';
-
+import { NAVIGATION_ITEMS } from '../../constants/navigation';
 import { getProfile } from '../../services/settingsService';
+import authService from '../../services/authService';
 
 const SideNavBar = () => {
   const location = useLocation();
@@ -45,9 +30,9 @@ const SideNavBar = () => {
       const user = await getProfile();
 
       setProfile({
-        firstName: user?.firstName || 'Aditya',
+        firstName: user?.firstName,
 
-        lastName: user?.lastName || 'Rathod',
+        lastName: user?.lastName,
 
         avatarUrl:
           user?.avatarUrl ||
@@ -70,10 +55,10 @@ const SideNavBar = () => {
   return (
     <aside className="hidden md:flex fixed left-0 top-0 h-screen w-50 border-r border-glass-stroke bg-surface-charcoal/90 backdrop-blur-2xl z-40 flex-col py-6">
       {/* TOP PROFILE */}
-      <div className="px-6 mb-8">
-        <div className="flex flex-col items-center">
+      <div className="px-4 mb-8">
+        <div className="flex flex-col items-center text-center gap-3">
           {/* AVATAR */}
-          <div className="w-12 h-12  rounded-full overflow-hidden border border-primary/30 shrink-0">
+          <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-primary/30 shrink-0 shadow-[0_0_20px_rgba(124,108,255,0.15)]">
             <img
               src={profile.avatarUrl}
               alt="Profile"
@@ -82,15 +67,13 @@ const SideNavBar = () => {
           </div>
 
           {/* INFO */}
-          <div className="min">
-            <h2 className="font-display-lg text-[18px] items-center justify-center font-bold text-primary  truncate">
-              {profile.firstName}{' '}
-              {profile.lastName}
+          <div className="w-full overflow-hidden">
+            <h2 className="font-display-lg text-[15px] font-bold text-primary truncate text-center">
+              {profile.firstName} {profile.lastName}
             </h2>
-            <p className="text-on-surface-variant text-center text-[12px]">
+            <p className="text-on-surface-variant text-center text-[11px] mt-0.5">
               🇮🇳 India • ₹ INR
             </p>
-
           </div>
         </div>
       </div>
@@ -129,9 +112,9 @@ const SideNavBar = () => {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex items-center gap-3 px-4 py-3 rounded-r-xl transition-all duration-300 hover:translate-x-1 ${isActive(item.path)
-                ? 'bg-primary-container/20 text-primary border-l-4 border-neon-lime'
-                : 'text-on-surface-variant hover:text-on-surface hover:bg-white/5'
+              className={`flex items-center gap-3 px-4 py-3 rounded-r-xl transition-all duration-300 hover:translate-x-1 border-l-4 ${isActive(item.path)
+                ? 'bg-primary-container/20 text-primary border-neon-lime'
+                : 'text-on-surface-variant hover:text-on-surface hover:bg-white/5 border-transparent'
                 }`}
             >
               <Icon

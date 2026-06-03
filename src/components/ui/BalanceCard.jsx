@@ -1,7 +1,11 @@
 import React from 'react';
 import { GlassPanel } from './GlassCard';
+import { formatCurrency } from '../../services/currencyService';
+import useCurrencyStore from '../../store/useCurrencyStore';
 
 const BalanceCard = ({ member, isCurrentUser }) => {
+  const { currency: storeCurrency, locale } = useCurrencyStore();
+  const currency = member.currency || storeCurrency || 'INR';
   const isPositive = Number(member.balance) > 0;
   const isZero = Number(member.balance) === 0;
 
@@ -35,7 +39,7 @@ const BalanceCard = ({ member, isCurrentUser }) => {
       </div>
       
       <div className={`font-bold ${statusColor}`}>
-        ${Math.abs(Number(member.balance || 0)).toFixed(2)}
+        {formatCurrency(Math.abs(Number(member.balance || 0)), currency, locale)}
       </div>
     </GlassPanel>
   );
