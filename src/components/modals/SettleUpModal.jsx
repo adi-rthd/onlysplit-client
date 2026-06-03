@@ -62,7 +62,7 @@ const SettleUpModal = ({ groupId, payerId, receiverId, defaultAmount = 0, onClos
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md p-4" onKeyDown={(e) => e.key === 'Escape' && (onClose ? onClose() : navigate(-1))} tabIndex={-1} ref={(el) => el?.focus()}>
       <motion.div 
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}

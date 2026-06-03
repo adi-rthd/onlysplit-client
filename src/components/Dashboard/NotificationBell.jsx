@@ -119,7 +119,7 @@ useEffect(() => {
             }}
             className="
               absolute right-0 mt-3
-              w-[340px]
+              w-[340px] max-w-[calc(100vw-2rem)]
               rounded-2xl
               border border-glass-stroke
               bg-[#111]
@@ -137,7 +137,7 @@ useEffect(() => {
             </div>
 
             {/* Notifications */}
-            <div className="max-h-[400px] overflow-y-auto">
+            <div className="max-h-[400px] overflow-y-auto overflow-x-hidden hide-scrollbar">
               {notifications?.length > 0 ? (
                 notifications.map((item, index) => (
                   <motion.div

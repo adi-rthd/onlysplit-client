@@ -215,7 +215,7 @@ const InviteGroupModal = () => {
   );
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-md">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-md" onKeyDown={(e) => e.key === 'Escape' && navigate(-1)} tabIndex={-1} ref={(el) => el?.focus()}>
       <motion.div
         initial={{
           opacity: 0,

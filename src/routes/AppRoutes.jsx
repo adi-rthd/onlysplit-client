@@ -51,6 +51,7 @@ const CreateGroupModal = lazy(() =>
 
 const AppRoutes = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isLoading = useAuthStore((state) => state.isLoading);
 
   return (
     <Suspense fallback={<PageLoader />}>
@@ -62,15 +63,17 @@ const AppRoutes = () => {
         <Route
           path={ROUTES.LANDING}
           element={
-            isAuthenticated
-              ? (
-                <Navigate
-                  to={ROUTES.DASHBOARD}
-                  replace
-                />
-              ) : (
-                <LandingPage />
-              )
+            isLoading
+              ? <PageLoader />
+              : isAuthenticated
+                ? (
+                  <Navigate
+                    to={ROUTES.DASHBOARD}
+                    replace
+                  />
+                ) : (
+                  <LandingPage />
+                )
           }
         />
         {/* ───────────────────────────────────────────── */}
