@@ -1,8 +1,16 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
 import { useNavigate } from 'react-router-dom';
+import FriendshipStore from '../../services/friendshipService';
 
-import { motion, AnimatePresence } from 'framer-motion';
+import {
+  motion,
+  AnimatePresence,
+} from 'framer-motion';
 
 import {
   X,
@@ -12,61 +20,90 @@ import {
   UserPlus,
   Clock3,
   Trash2,
+  Users,
 } from 'lucide-react';
 
-import FriendshipStore from '../../services/friendshipService';
 
-const tabs = ['friends', 'requests', 'pending'];
+const tabs = [
+  'friends',
+  'received',
+  'sent',
+];
 
 const FriendshipModal = () => {
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState('friends');
+  const [activeTab, setActiveTab] =
+    useState('friends');
 
-  const [friends, setFriends] = useState([]);
+  const [friends, setFriends] =
+    useState([]);
 
-  const [requests, setRequests] = useState([]);
+  const [receivedRequests, setReceivedRequests] =
+    useState([]);
 
-  const [pending, setPending] = useState([]);
+  const [sentRequests, setSentRequests] =
+    useState([]);
 
-  const [search, setSearch] = useState('');
+  const [loading, setLoading] =
+    useState(true);
 
-  const [searchResults, setSearchResults] = useState([]);
+  const [searchInput, setSearchInput] =
+    useState('');
 
-  const [loading, setLoading] = useState(false);
+  const [search, setSearch] =
+    useState('');
 
-  const [sendingIds, setSendingIds] = useState([]);
+  const [searchResults, setSearchResults] =
+    useState([]);
 
-  const [removingIds, setRemovingIds] = useState([]);
+  const [sendingIds, setSendingIds] =
+    useState([]);
+
+  const [removingIds, setRemovingIds] =
+    useState([]);
+
+  const [processingIds, setProcessingIds] =
+    useState([]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearch(searchInput);
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   const loadData = async () => {
-    setLoading(true);
-
     try {
-      const [friendsData, requestsData] =
-        await Promise.all([
-          FriendshipStore.getFriends(),
-          FriendshipStore.getRequests(),
-        ]);
+      setLoading(true);
+
+      const [
+        friendsData,
+        requestsData,
+      ] = await Promise.all([
+        FriendshipStore.getFriends(),
+        FriendshipStore.getRequests(),
+      ]);
 
       setFriends(friendsData || []);
 
-      const sent = requestsData.filter(
-        (r) =>
-          r.status === 'Pending' &&
-          r.isSender
-      );
+      const sent =
+        requestsData?.filter(
+          (r) =>
+            r.status === 'Pending' &&
+            r.isSender
+        ) || [];
 
       const received =
-        requestsData.filter(
+        requestsData?.filter(
           (r) =>
             r.status === 'Pending' &&
             !r.isSender
-        );
+        ) || [];
 
-      setRequests(sent);
-
-      setPending(received);
+      setSentRequests(sent);
+      setReceivedRequests(received);
     } finally {
       setLoading(false);
     }
@@ -77,26 +114,43 @@ const FriendshipModal = () => {
   }, []);
 
   useEffect(() => {
-    if (activeTab !== 'friends') {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        navigate(-1);
+      }
+    };
+
+    window.addEventListener(
+      'keydown',
+      handleEscape
+    );
+
+    return () =>
+      window.removeEventListener(
+        'keydown',
+        handleEscape
+      );
+  }, [navigate]);
+
+  useEffect(() => {
+    if (
+      activeTab !== 'friends' ||
+      !search.trim()
+    ) {
+      setSearchResults([]);
       return;
     }
 
-    const delay = setTimeout(async () => {
-      if (!search.trim()) {
-        setSearchResults([]);
-
-        return;
-      }
-
+    const runSearch = async () => {
       const users =
         await FriendshipStore.searchUsers(
           search
         );
 
       setSearchResults(users || []);
-    }, 400);
+    };
 
-    return () => clearTimeout(delay);
+    runSearch();
   }, [search, activeTab]);
 
   const filteredFriends = useMemo(() => {
@@ -104,128 +158,199 @@ const FriendshipModal = () => {
       return friends;
     }
 
+    const q =
+      search.toLowerCase();
+
     return friends.filter(
       (friend) =>
         friend.firstName
           ?.toLowerCase()
-          .includes(
-            search.toLowerCase()
-          ) ||
+          .includes(q) ||
         friend.lastName
           ?.toLowerCase()
-          .includes(
-            search.toLowerCase()
-          ) ||
+          .includes(q) ||
         friend.email
           ?.toLowerCase()
-          .includes(
-            search.toLowerCase()
-          )
+          .includes(q)
     );
   }, [friends, search]);
 
-  const handleSendRequest = async (id) => {
-    try {
-      setSendingIds((prev) => [
-        ...prev,
-        id,
-      ]);
+  const handleSendRequest =
+    async (id) => {
+      try {
+        setSendingIds((prev) => [
+          ...prev,
+          id,
+        ]);
 
-      await FriendshipStore.sendRequest(id);
+        await FriendshipStore.sendRequest(
+          id
+        );
 
-      await loadData();
-    } finally {
-      setSendingIds((prev) =>
-        prev.filter((x) => x !== id)
-      );
-    }
+        await loadData();
+      } finally {
+        setSendingIds((prev) =>
+          prev.filter((x) => x !== id)
+        );
+      }
+    };
+
+  const handleAccept =
+    async (id) => {
+      try {
+        setProcessingIds((prev) => [
+          ...prev,
+          id,
+        ]);
+
+        await FriendshipStore.acceptRequest(
+          id
+        );
+
+        await loadData();
+      } finally {
+        setProcessingIds((prev) =>
+          prev.filter((x) => x !== id)
+        );
+      }
+    };
+
+  const handleReject =
+    async (id) => {
+      try {
+        setProcessingIds((prev) => [
+          ...prev,
+          id,
+        ]);
+
+        await FriendshipStore.rejectRequest(
+          id
+        );
+
+        await loadData();
+      } finally {
+        setProcessingIds((prev) =>
+          prev.filter((x) => x !== id)
+        );
+      }
+    };
+
+  const handleRemoveFriend =
+    async (id) => {
+      try {
+        setRemovingIds((prev) => [
+          ...prev,
+          id,
+        ]);
+
+        await FriendshipStore.removeFriend(
+          id
+        );
+
+        setFriends((prev) =>
+          prev.filter(
+            (friend) =>
+              friend.id !== id
+          )
+        );
+      } finally {
+        setRemovingIds((prev) =>
+          prev.filter((x) => x !== id)
+        );
+      }
+    };
+  const EmptyState = ({
+    title,
+    subtitle,
+  }) => (
+    <div className="flex flex-col items-center justify-center py-20 text-center">
+      <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-4">
+        <Users
+          size={28}
+          className="text-on-surface-variant"
+        />
+      </div>
+
+      <h3 className="text-lg font-semibold text-white">
+        {title}
+      </h3>
+
+      <p className="text-sm text-on-surface-variant mt-2 max-w-xs">
+        {subtitle}
+      </p>
+    </div>
+  );
+
+  const Avatar = ({ user }) => {
+    const initial =
+      user?.firstName?.[0] ||
+      user?.requesterName?.[0] ||
+      'U';
+
+    return (
+      <div className="w-11 h-11 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-primary-container to-secondary-container flex items-center justify-center text-white font-semibold shrink-0">
+        {initial.toUpperCase()}
+      </div>
+    );
   };
 
-  const handleAccept = async (id) => {
-    await FriendshipStore.acceptRequest(id);
-
-    loadData();
-  };
-
-  const handleReject = async (id) => {
-    await FriendshipStore.rejectRequest(id);
-
-    loadData();
-  };
-
-  const handleRemoveFriend = async (
-    id
-  ) => {
-    try {
-      setRemovingIds((prev) => [
-        ...prev,
-        id,
-      ]);
-
-      await FriendshipStore.removeFriend(
-        id
-      );
-
-      setFriends((prev) =>
-        prev.filter(
-          (friend) =>
-            friend.id !== id
-        )
-      );
-    } finally {
-      setRemovingIds((prev) =>
-        prev.filter((x) => x !== id)
-      );
-    }
-  };
-
-  const renderUserCard = (
+  const UserCard = ({
     user,
-    actions,
-    swipeable = false
-  ) => {
-    if (!swipeable) {
-      return (
-        <div className="flex items-center justify-between gap-4 rounded-2xl border border-glass-stroke bg-white/[0.03] px-5 py-4 transition-all hover:bg-white/[0.05]">
-          <div className="flex items-center gap-4 min-w-0 flex-1">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-container to-secondary-container flex items-center justify-center text-white text-lg font-semibold shrink-0">
-              {user?.firstName?.[0] ||
-                user?.requesterName?.[0] ||
-                'U'}
+    children,
+  }) => {
+    const name =
+      user?.requesterName ||
+      `${user.firstName || ''} ${user.lastName || ''}`;
+
+    const initial =
+      user?.firstName?.[0] ||
+      user?.requesterName?.[0] ||
+      'U';
+
+    return (
+      <div className="rounded-2xl border border-glass-stroke bg-surface-container-low px-5 py-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-11 h-11 rounded-full bg-primary/20 text-primary flex items-center justify-center font-semibold shrink-0">
+              {initial.toUpperCase()}
             </div>
 
             <div className="min-w-0">
-              <p className="text-on-surface font-semibold text-lg truncate">
-                {user?.requesterName ||
-                  `${user.firstName || ''} ${
-                    user.lastName || ''
-                  }`}
+              <p className="truncate text-base font-semibold text-on-surface">
+                {name}
               </p>
 
-              <p className="text-sm text-on-surface-variant truncate">
+              <p className="truncate text-sm text-on-surface-variant">
                 {user.email}
               </p>
             </div>
           </div>
 
           <div className="shrink-0">
-            {actions}
+            {children}
           </div>
         </div>
-      );
-    }
+      </div>
+    );
+  };
+
+  const FriendCard = ({ user }) => {
+    const isRemoving =
+      removingIds.includes(user.id);
+
+    const name =
+      `${user.firstName || ''} ${user.lastName || ''}`;
 
     return (
       <div className="relative overflow-hidden rounded-2xl">
         {/* DELETE BG */}
-        <div className="absolute inset-0 flex items-center justify-end px-6">
-          <div className="flex items-center gap-2 text-white font-medium">
+        <div className="absolute inset-0 bg-red-500/20 flex items-center justify-end px-6">
+          <div className="flex items-center gap-2 text-red-400 font-medium">
             <Trash2 size={18} />
             Remove
           </div>
         </div>
 
-        {/* SWIPE CARD */}
         <motion.div
           drag="x"
           dragConstraints={{
@@ -233,307 +358,403 @@ const FriendshipModal = () => {
             right: 0,
           }}
           dragElastic={0.08}
+          whileTap={{
+            scale: 0.99,
+          }}
           onDragEnd={(_, info) => {
             if (
-              info.offset.x < -100
+              info.offset.x < -100 &&
+              !isRemoving
             ) {
               handleRemoveFriend(
                 user.id
               );
             }
           }}
-          whileTap={{
-            scale: 0.99,
-          }}
-          className="relative z-10 flex items-center justify-between gap-4 rounded-2xl border border-glass-stroke bg-surface-charcoal px-5 py-4 cursor-grab active:cursor-grabbing"
+          className="relative z-10 rounded-2xl border border-white/5 bg-surface-charcoal p-4 cursor-grab active:cursor-grabbing"
         >
-          <div className="flex items-center gap-4 min-w-0 flex-1">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-container to-secondary-container flex items-center justify-center text-white text-lg font-semibold shrink-0">
-              {user?.firstName?.[0] ||
-                'U'}
-            </div>
+          <div className="flex items-center gap-3">
+            <Avatar user={user} />
 
-            <div className="min-w-0">
-              <p className="text-on-surface font-semibold text-lg truncate">
-                {`${user.firstName || ''} ${
-                  user.lastName || ''
-                }`}
-              </p>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-white font-semibold truncate">
+                {name}
+              </h3>
 
-              <p className="text-sm text-on-surface-variant truncate">
+              <p className="text-sm text-on-surface-variant truncate mt-1">
                 {user.email}
               </p>
             </div>
-          </div>
 
-          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 text-green-400 text-sm font-medium border border-green-500/20">
-            <Check size={16} />
-            Friend
+            {isRemoving ? (
+              <Loader2
+                size={18}
+                className="animate-spin text-red-400"
+              />
+            ) : (
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 text-green-400 text-xs border border-green-500/20">
+                <Check size={14} />
+                Friend
+              </div>
+            )}
           </div>
         </motion.div>
       </div>
     );
   };
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md p-4" onKeyDown={(e) => e.key === 'Escape' && navigate(-1)} tabIndex={-1} ref={(el) => el?.focus()}>
+  const SearchResultCard = ({
+    user,
+  }) => {
+    const loading =
+      sendingIds.includes(user.id);
+
+    return (
+      <UserCard user={user}>
+        <button
+          onClick={() =>
+            handleSendRequest(
+              user.id
+            )
+          }
+          disabled={loading}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 hover:bg-indigo-500/20 transition-all disabled:opacity-60"
+        >
+          {loading ? (
+            <Loader2
+              size={16}
+              className="animate-spin"
+            />
+          ) : (
+            <UserPlus size={16} />
+          )}
+
+          Add Friend
+        </button>
+      </UserCard>
+    );
+  };
+
+  const ReceivedRequestCard = ({
+    user,
+  }) => {
+    const loading =
+      processingIds.includes(
+        user.id
+      );
+
+    return (
+      <UserCard user={user}>
+        <div className="flex flex-wrap gap-2">
+          <button
+            disabled={loading}
+            onClick={() =>
+              handleAccept(user.id)
+            }
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/20 transition-all"
+          >
+            <Check size={16} />
+            Accept
+          </button>
+
+          <button
+            disabled={loading}
+            onClick={() =>
+              handleReject(user.id)
+            }
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-all"
+          >
+            <X size={16} />
+            Reject
+          </button>
+        </div>
+      </UserCard>
+    );
+  };
+
+  const SentRequestCard = ({
+    user,
+  }) => (
+    <UserCard user={user}>
+      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+        <Clock3 size={16} />
+        Pending
+      </div>
+    </UserCard>
+  ); return (
+    <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-md flex items-end md:items-center justify-center">
       <motion.div
         initial={{
           opacity: 0,
-          scale: 0.95,
-          y: 20,
+          y: 30,
+          scale: 0.98,
         }}
         animate={{
           opacity: 1,
-          scale: 1,
           y: 0,
+          scale: 1,
         }}
         exit={{
           opacity: 0,
-          scale: 0.95,
-          y: 20,
+          y: 30,
+          scale: 0.98,
         }}
-        className="w-full max-w-2xl h-[82vh] bg-surface-charcoal shadow-[0_8px_30px_rgba(0,0,0,0.25)] rounded-3xl shadow-2xl overflow-hidden flex flex-col"
+        transition={{
+          duration: 0.2,
+        }}
+        className="
+        w-full
+        h-[100dvh]
+        md:h-[85vh]
+        md:max-w-3xl
+        bg-surface-charcoal
+        overflow-hidden
+        flex
+        flex-col
+        rounded-none
+        md:rounded-3xl
+        border
+        border-white/5
+        shadow-2xl
+      "
       >
         {/* HEADER */}
-        <header className="flex items-start justify-between px-8 py-7 border-b border-glass-stroke shrink-0">
-          <div>
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-white">
-              Friends
-            </h2>
+        <header className="sticky top-0 z-20 bg-surface-charcoal border-b border-white/5 px-4 md:px-6 py-4">
+          <div className="flex items-start justify-between">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold text-white">
+                Friends
+              </h2>
 
-            <p className="text-on-surface-variant mt-2 text-lg">
-              Manage friends and requests
-            </p>
+              <p className="text-sm md:text-base text-on-surface-variant mt-1">
+                Manage your OnlySplit connections
+              </p>
+            </div>
+
+            <button
+              onClick={() => navigate(-1)}
+              className="p-2 rounded-xl hover:bg-white/5 transition-all"
+            >
+              <X
+                size={20}
+                className="text-on-surface-variant"
+              />
+            </button>
           </div>
 
-          <button
-            onClick={() => navigate(-1)}
-            className="p-2 rounded-full hover:bg-white/5 transition-all text-on-surface-variant"
-          >
-            <X size={22} />
-          </button>
-        </header>
+          {/* SEARCH */}
+          <div className="mt-4">
+            <div className="flex items-center gap-3 rounded-2xl bg-white/[0.03] border border-white/10 px-4 py-3 transition-all focus-within:border-primary/40 focus-within:bg-white/[0.05]">              <Search
+              size={18}
+              className="text-on-surface-variant shrink-0"
+            />
 
-        {/* BODY */}
-        <div className="flex-1 overflow-y-auto hide-scrollbar px-8 py-6 space-y-6">
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) =>
+                  setSearchInput(e.target.value)
+                }
+                placeholder="Search users..."
+                className=" w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-on-surface placeholder:text-on-surface-variant" />
+            </div>
+          </div>
+
           {/* TABS */}
-          <div className="flex items-center gap-8 border-b border-glass-stroke overflow-x-auto hide-scrollbar">
+          <div className="grid grid-cols-3 gap-2 mt-4">
             {tabs.map((tab) => (
               <button
                 key={tab}
                 onClick={() => {
                   setActiveTab(tab);
-
-                  setSearch('');
-
-                  setSearchResults([]);
                 }}
-                className={`relative pb-4 text-lg font-semibold capitalize whitespace-nowrap transition-all ${
-                  activeTab === tab
-                    ? 'text-on-surface'
-                    : 'text-on-surface-variant hover:text-on-surface'
-                }`}
-              >
-                {tab}
+                className={`
+        h-11
+        rounded-xl
+        text-sm
+        font-medium
+        transition-all
+        border
 
-                {activeTab === tab && (
-                  <span className="absolute left-0 bottom-0 w-full h-[2px] bg-primary rounded-full" />
-                )}
+        ${activeTab === tab
+                    ? 'bg-primary/15 text-primary border-primary/30'
+                    : 'bg-surface-container-low border-transparent text-on-surface-variant hover:text-on-surface'
+                  }
+      `}
+              >
+                {tab === 'friends'
+                  ? 'Friends'
+                  : tab === 'received'
+                    ? 'Received'
+                    : 'Sent'}
               </button>
             ))}
           </div>
+        </header>
 
+        {/* CONTENT */}
+        <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4">
           {loading ? (
-            <div className="py-24 flex justify-center">
-              <Loader2 className="animate-spin text-primary" />
+            <div className="h-full flex items-center justify-center">
+              <Loader2
+                size={28}
+                className="animate-spin text-primary"
+              />
             </div>
           ) : (
             <>
-              {/* FRIENDS */}
-              {activeTab === 'friends' && (
-                <>
-                  <div className="flex items-center gap-4 rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.25)] bg-white/[0.03] px-6 py-5">
-                    <Search
-                      size={22}
-                      className="text-on-surface-variant shrink-0"
-                    />
+              {/* FRIENDS TAB */}
+              {activeTab ===
+                'friends' && (
+                  <div className="space-y-4">
+                    {/* SEARCH RESULTS */}
+                    {searchResults.length >
+                      0 && (
+                        <div>
+                          <div className="flex items-center justify-between mb-3">
+                            <h3 className="text-white font-semibold">
+                              Search Results
+                            </h3>
 
-                    <input
-                      type="text"
-                      placeholder="Search users or friends..."
-                      value={search}
-                      onChange={(e) =>
-                        setSearch(e.target.value)
-                      }
-                      className="w-full bg-transparent outline-none text-lg text-on-surface placeholder:text-on-surface-variant"
-                    />
-                  </div>
+                            <span className="text-xs text-on-surface-variant">
+                              {
+                                searchResults.length
+                              }{' '}
+                              found
+                            </span>
+                          </div>
 
-                  {/* SEARCH RESULTS */}
-                  {searchResults.length > 0 && (
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-xl font-semibold text-white">
-                          Search Results
+                          <div className="space-y-3">
+                            {searchResults.map(
+                              (user) => (
+                                <SearchResultCard
+                                  key={
+                                    user.id
+                                  }
+                                  user={
+                                    user
+                                  }
+                                />
+                              )
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                    {/* FRIENDS */}
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-white font-semibold">
+                          Your Friends
                         </h3>
 
-                        <span className="text-sm text-on-surface-variant">
+                        <span className="text-xs text-on-surface-variant">
                           {
-                            searchResults.length
+                            filteredFriends.length
                           }{' '}
-                          found
+                          total
                         </span>
                       </div>
 
-                      {searchResults.map((user) =>
-                        renderUserCard(
-                          user,
-                          <button
-                            onClick={() =>
-                              handleSendRequest(
-                                user.id
+                      {filteredFriends.length ===
+                        0 ? (
+                        <EmptyState
+                          title="No friends yet"
+                          subtitle="Search for users and start building your network."
+                        />
+                      ) : (
+                        <div className="space-y-3">
+                          <AnimatePresence>
+                            {filteredFriends.map(
+                              (
+                                friend
+                              ) => (
+                                <motion.div
+                                  key={
+                                    friend.id
+                                  }
+                                  layout
+                                  initial={{
+                                    opacity: 0,
+                                    y: 10,
+                                  }}
+                                  animate={{
+                                    opacity: 1,
+                                    y: 0,
+                                  }}
+                                  exit={{
+                                    opacity: 0,
+                                    x: -50,
+                                  }}
+                                >
+                                  <FriendCard
+                                    user={
+                                      friend
+                                    }
+                                  />
+                                </motion.div>
                               )
-                            }
-                            disabled={sendingIds.includes(
-                              user.id
                             )}
-                            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-indigo-400/15 text-indigo-300 text-sm font-medium border border-indigo-400/20 hover:bg-indigo-400/20 transition-all"
-                          >
-                            {sendingIds.includes(
-                              user.id
-                            ) ? (
-                              <Loader2
-                                size={16}
-                                className="animate-spin"
-                              />
-                            ) : (
-                              <UserPlus size={16} />
-                            )}
-
-                            Add Friend
-                          </button>
-                        )
+                          </AnimatePresence>
+                        </div>
                       )}
                     </div>
-                  )}
+                  </div>
+                )}
 
-                  {/* FRIENDS LIST */}
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-xl font-semibold text-white">
-                        Your Friends
-                      </h3>
-
-                      <span className="text-sm text-on-surface-variant">
-                        {
-                          filteredFriends.length
-                        }{' '}
-                        total
-                      </span>
-                    </div>
-
-                    {filteredFriends.length ===
-                    0 ? (
-                      <div className="py-20 text-center text-on-surface-variant">
-                        No friends found.
-                      </div>
+              {/* RECEIVED TAB */}
+              {activeTab ===
+                'received' && (
+                  <div className="space-y-3">
+                    {receivedRequests.length ===
+                      0 ? (
+                      <EmptyState
+                        title="No incoming requests"
+                        subtitle="When someone sends you a request it will appear here."
+                      />
                     ) : (
-                      <AnimatePresence>
-                        {filteredFriends.map(
-                          (friend) => (
-                            <motion.div
-                              key={friend.id}
-                              layout
-                              initial={{
-                                opacity: 0,
-                                y: 10,
-                              }}
-                              animate={{
-                                opacity: 1,
-                                y: 0,
-                              }}
-                              exit={{
-                                opacity: 0,
-                                x: -100,
-                              }}
-                            >
-                              {renderUserCard(
-                                friend,
-                                null,
-                                true
-                              )}
-                            </motion.div>
-                          )
-                        )}
-                      </AnimatePresence>
+                      receivedRequests.map(
+                        (user) => (
+                          <ReceivedRequestCard
+                            key={
+                              user.id
+                            }
+                            user={
+                              user
+                            }
+                          />
+                        )
+                      )
                     )}
                   </div>
-                </>
-              )}
+                )}
 
-              {/* REQUESTS */}
-              {activeTab === 'requests' && (
-                <div className="space-y-4">
-                  {requests.length === 0 ? (
-                    <div className="py-20 text-center text-on-surface-variant">
-                      No sent requests.
-                    </div>
-                  ) : (
-                    requests.map((user) =>
-                      renderUserCard(
-                        user,
-                        <div className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-yellow-500/10 text-yellow-400 text-sm font-medium border border-yellow-500/20">
-                          <Clock3 size={16} />
-                          Pending
-                        </div>
-                      )
-                    )
-                  )}
-                </div>
-              )}
-
-              {/* PENDING */}
-              {activeTab === 'pending' && (
-                <div className="space-y-4">
-                  {pending.length === 0 ? (
-                    <div className="py-20 text-center text-on-surface-variant">
-                      No pending requests.
-                    </div>
-                  ) : (
-                    pending.map((user) =>
-                      renderUserCard(
-                        user,
-                        <div className="flex items-center gap-3">
-                          <button
-                            onClick={() =>
-                              handleAccept(
-                                user.id
-                              )
+              {/* SENT TAB */}
+              {activeTab ===
+                'sent' && (
+                  <div className="space-y-3">
+                    {sentRequests.length ===
+                      0 ? (
+                      <EmptyState
+                        title="No sent requests"
+                        subtitle="Friend requests you've sent will appear here."
+                      />
+                    ) : (
+                      sentRequests.map(
+                        (user) => (
+                          <SentRequestCard
+                            key={
+                              user.id
                             }
-                            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-green-500/10 text-green-400 text-sm font-medium border border-green-500/20 hover:bg-green-500/20 transition-all"
-                          >
-                            <Check size={16} />
-                            Accept
-                          </button>
-
-                          <button
-                            onClick={() =>
-                              handleReject(
-                                user.id
-                              )
+                            user={
+                              user
                             }
-                            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-red-500/10 text-red-400 text-sm font-medium border border-red-500/20 hover:bg-red-500/20 transition-all"
-                          >
-                            <X size={16} />
-                            Reject
-                          </button>
-                        </div>
+                          />
+                        )
                       )
-                    )
-                  )}
-                </div>
-              )}
+                    )}
+                  </div>
+                )}
             </>
           )}
         </div>

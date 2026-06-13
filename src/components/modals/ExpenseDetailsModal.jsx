@@ -91,23 +91,7 @@ const ExpenseDetailsModal = ({
                                     {expense.title}
                                 </h3>
 
-                                <div className="flex items-center gap-2 mt-2 text-sm">
-                                    <span className="text-on-surface-variant">
-                                        Paid by
-                                    </span>
 
-                                    <span className="font-semibold text-white">
-                                        {expense.paidByName}
-                                    </span>
-
-                                    <span className="text-on-surface-variant">
-                                        •
-                                    </span>
-
-                                    <span className="text-primary capitalize">
-                                        {expense.splits?.[0]?.splitType || 'Equal'} Split
-                                    </span>
-                                </div>
                             </div>
                         </div>
 
@@ -138,6 +122,7 @@ const ExpenseDetailsModal = ({
                     <div className="p-6">
                         {/* Expense Header */}
                         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5 mb-6">
+
                             {/* <div>
                 <h3 className="text-3xl font-bold text-white">
                   {expense.title}
@@ -150,20 +135,32 @@ const ExpenseDetailsModal = ({
                   ).toLocaleString()}
                 </p>
               </div> */}
+                            <div className="flex items-center gap-2 mt-2 text-sm">
 
-                            {/* <div className="text-left md:text-right">
-                <p className="text-xs uppercase tracking-wider text-on-surface-variant mb-1">
-                  Paid By
-                </p>
+                                <span className="text-on-surface-variant">
+                                    Paid by
+                                </span>
 
-                <p className="font-semibold text-lg">
-                  {expense.paidByName}
-                </p>
+                                <span className="font-semibold text-white">
+                                    {expense.paidByName}
+                                </span>
 
-                <span className="inline-flex mt-3 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs capitalize">
-                  {expense.category}
-                </span>
-              </div> */}
+                                <span className="text-on-surface-variant">
+                                    •
+                                </span>
+
+                                <span className="text-primary capitalize">
+                                    {expense.splits?.[0]?.splitType || 'Equal'} Split
+                                </span>
+                            </div>
+
+                            <div className="text-left md:text-right">
+
+
+                                <span className="inline-flex mt-3 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs capitalize">
+                                    {expense.category}
+                                </span>
+                            </div>
                         </div>
 
                         {/* Summary Cards */}
