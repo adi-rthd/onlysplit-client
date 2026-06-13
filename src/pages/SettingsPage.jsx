@@ -79,7 +79,7 @@ const SettingsPage = () => {
         lastName: profile.lastName,
         avatarUrl: profile.avatarUrl
       });
-
+      
     } catch (error) {
       console.error(error);
     } finally {

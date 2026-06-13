@@ -1,9 +1,7 @@
 import client from '../api/client';
 // src/services/settingsclient.js
+import toast from 'react-hot-toast';
 
-// ─────────────────────────────────────────────
-// GET CURRENT USER PROFILE
-// ─────────────────────────────────────────────
 
 export const getProfile = async () => {
     const response = await client.get('/auth/me');
