@@ -15,6 +15,8 @@ import SettlementCard from '../components/ui/SettlementCard';
 import MemberBalanceList from '../components/ui/MemberBalanceList';
 import GlowButton from '../components/ui/GlowButton';
 import useCurrencyStore from '../store/useCurrencyStore';
+import ExpenseDetailsModal from '../components/modals/ExpenseDetailsModal';
+import { AnimatePresence } from 'framer-motion';
 
 
 
@@ -28,7 +30,7 @@ const GroupDetailsPage = () => {
   const { expenses, fetchExpenses, isLoading: isExpensesLoading } = useExpenseStore();
   const { balances, settlements, fetchBalances, fetchSettlements, regenerateSettlements, isLoading: isSettlementsLoading } = useSettlementStore();
   const [activeTab, setActiveTab] = useState('expenses');
-
+  const [selectedExpense, setSelectedExpense] = useState(null);
 
   useEffect(() => {
     if (!groupId) return;
@@ -263,7 +265,20 @@ const GroupDetailsPage = () => {
               Settlements
             </button>
           </div>
-
+          <AnimatePresence>
+            {selectedExpense && (
+              <ExpenseDetailsModal
+                expense={selectedExpense}
+                onClose={() =>
+                  setSelectedExpense(null)
+                }
+                onEdit={(expense) => {
+                  setEditingExpense(expense);
+                  setShowEditModal(true);
+                }}
+              />
+            )}
+          </AnimatePresence>
           {activeTab === 'expenses' && (
             <div className="space-y-5">
               {isExpensesLoading ? (
@@ -273,6 +288,7 @@ const GroupDetailsPage = () => {
               ) : expenses?.length > 0 ? (
                 expenses.map(expense => (
                   <ExpenseCard
+                    onClick={() => setSelectedExpense(expense)}
                     key={expense.id}
                     expense={expense}
                   />

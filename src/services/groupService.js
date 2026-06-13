@@ -69,7 +69,7 @@ const groupService = {
 
   removeMember: async (groupId, memberId) => {
     try {
-      await client.delete(`/groups/${groupId}/members/${memberId}`);
+      await client.delete(`/groups/${groupId}/member/${memberId}`);
       toast.success('Member removed.');
       return true;
     } catch (error) {
