@@ -69,7 +69,7 @@ export const useInvitationStore = create(
                         isLoading: true,
                     });
 
-                    const invitedUsers = 
+                    const invitedUsers =
                         await invitationService.getGroupInvites(
                             groupId
                         );
@@ -97,6 +97,22 @@ export const useInvitationStore = create(
                 groupId,
                 invitedUserId
             );
+        },
+        markAllNotificationsAsRead: async () => {
+            const success = await invitationService.markAllNotificationsAsRead();
+
+            if (!success) return false;
+
+            set((state) => ({
+                notifications: state.notifications.map(
+                    (notification) => ({
+                        ...notification,
+                        isRead: true,
+                    })
+                ),
+            }));
+
+            return true;
         },
 
         acceptInvitation:
