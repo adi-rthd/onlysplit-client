@@ -3,23 +3,20 @@ import React, {
   useMemo,
   useState
 } from 'react';
-
-import { useNavigate } from 'react-router-dom';
-import { GlassPanel } from '../components/ui/GlassCard';
-import {
-  Wallet, TrendingUp, ArrowUpRight, ArrowDownRight, Plus, Utensils, Users, Receipt, ShoppingCart, Car, CreditCard
-} from 'lucide-react';
-import groupService from '../services/groupService';
-
-import GroupCard from '../components/ui/GroupCard';
-
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { Wallet, TrendingUp, ArrowUpRight, ArrowDownRight, Plus, Utensils, Users, Receipt, ShoppingCart, Car, CreditCard } from 'lucide-react';
+import { ROUTES } from '../constants/routes';
 
+import groupService from '../services/groupService';
+import GroupCard from '../components/ui/GroupCard';
+import NotificationBell from '../components/Dashboard/NotificationBell';
+
+import { getExpenseIcon } from '../utils/expenseIcons';
+import { GlassPanel } from '../components/ui/GlassCard';
 import { useGroupStore } from '../store/groupStore';
 import { useDashboardStore } from '../store/DashboardStore';
 import { formatCurrency } from '../services/currencyService'
-import { ROUTES } from '../constants/routes';
-import NotificationBell from '../components/Dashboard/NotificationBell';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -42,7 +39,7 @@ const Dashboard = () => {
   const fetchSummary = useDashboardStore(
     (state) => state.fetchSummary
   );
-  
+
   const handleDeleteGroup = async (groupId) => {
     try {
       await groupService.deleteGroup(groupId);
@@ -162,14 +159,14 @@ const Dashboard = () => {
 
   const chartData = graphView === 'monthly' ? monthlyChart : groupChart;
 
-  const getActivityIcon = (title) => {
-    const lower = (title || '').toLowerCase();
-    if (lower.includes('food') || lower.includes('lunch') || lower.includes('dinner') || lower.includes('breakfast')) return Utensils;
-    if (lower.includes('travel') || lower.includes('uber') || lower.includes('cab') || lower.includes('fuel')) return Car;
-    if (lower.includes('shopping') || lower.includes('grocery')) return ShoppingCart;
-    if (lower.includes('pay') || lower.includes('recharge') || lower.includes('bill')) return CreditCard;
-    return Receipt;
-  };
+  // const getActivityIcon = (title) => {
+  //   const lower = (title || '').toLowerCase();
+  //   if (lower.includes('food') || lower.includes('lunch') || lower.includes('dinner') || lower.includes('breakfast')) return Utensils;
+  //   if (lower.includes('travel') || lower.includes('uber') || lower.includes('cab') || lower.includes('fuel')) return Car;
+  //   if (lower.includes('shopping') || lower.includes('grocery')) return ShoppingCart;
+  //   if (lower.includes('pay') || lower.includes('recharge') || lower.includes('bill')) return CreditCard;
+  //   return Receipt;
+  // };
 
   return (
     <>
@@ -306,11 +303,10 @@ const Dashboard = () => {
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: `${item.height}%`, opacity: 1 }}
                       transition={{ duration: 0.5, delay: index * 0.04, ease: 'easeOut' }}
-                      className={`w-full max-w-[24px] mx-auto rounded-t-lg transition-all duration-200 ${
-                        item.value > 0
+                      className={`w-full max-w-[24px] mx-auto rounded-t-lg transition-all duration-200 ${item.value > 0
                           ? 'bg-primary/60 hover:bg-primary shadow-[0_0_12px_rgba(124,108,255,0.15)]'
                           : 'bg-surface-container-high/60'
-                      }`}
+                        }`}
                     >
                       {item.value > 0 && (
                         <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-surface-container-highest border border-glass-stroke px-2 py-1 rounded-lg text-[10px] whitespace-nowrap z-10 pointer-events-none text-on-surface font-medium shadow-lg">
@@ -352,7 +348,7 @@ const Dashboard = () => {
             ) : (
               <div className="space-y-1 flex-1 overflow-y-auto hide-scrollbar">
                 {summary.recentActivities.slice(0, 5).map((activity, index) => {
-                  const ActivityIcon = getActivityIcon(activity.title);
+                  const ActivityIcon = getExpenseIcon(activity.title, activity?.description);
                   return (
                     <div
                       key={activity.expenseId || index}
@@ -369,11 +365,10 @@ const Dashboard = () => {
                           </p>
                         </div>
                       </div>
-                      <span className={`text-[13px] font-bold ml-2 flex-shrink-0 tabular-nums ${
-                        (activity.type?.toLowerCase() === 'paymentcompleted' || activity.type?.toLowerCase() === 'settlement')
+                      <span className={`text-[13px] font-bold ml-2 flex-shrink-0 tabular-nums ${(activity.type?.toLowerCase() === 'paymentcompleted' || activity.type?.toLowerCase() === 'settlement')
                           ? 'text-green-400'
                           : 'text-error'
-                      }`}>
+                        }`}>
                         {(activity.type?.toLowerCase() === 'paymentcompleted' || activity.type?.toLowerCase() === 'settlement') ? '+' : '-'}
                         {formatCurrency(activity.amount, activity.currency)}
                       </span>

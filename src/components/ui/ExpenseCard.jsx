@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 
 import { GlassPanel } from './GlassCard';
+import { getExpenseIcon } from '../../utils/expenseIcons';
 
 import { formatCurrency } from '../../services/currencyService';
 import useCurrencyStore from '../../store/useCurrencyStore';
@@ -15,6 +16,7 @@ const ExpenseCard = ({
   expense,
   onEdit,
   onDelete,
+  onClick
 }) => {
   const { currency: storeCurrency, locale } = useCurrencyStore();
 
@@ -29,15 +31,15 @@ const ExpenseCard = ({
   const amount = Number(
     expense.amount || 0
   );
-
-  const currency =
-    expense.currency || storeCurrency || 'INR';
+  const Icon = getExpenseIcon(expense.title, expense.description)
+  const currency = expense.currency || storeCurrency || 'INR';
 
   return (
-    <GlassPanel className="group mb-4 flex items-center justify-between rounded-3xl border border-white/10 p-5 transition-all duration-300 hover:border-primary/30 hover:bg-white/[0.03] hover:shadow-[0_0_30px_rgba(99,102,241,0.12)]">
+    <GlassPanel onClick={onClick} className="group mb-4 flex items-center justify-between rounded-3xl border border-white/10 p-5 transition-all duration-300 hover:border-primary/30 hover:bg-white/[0.03] hover:shadow-[0_0_30px_rgba(99,102,241,0.12)]">
       <div className="flex min-w-0 items-center gap-4">
         <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-          <Utensils size={24} />
+          
+          <Icon size={24} />
         </div>
 
         <div className="min-w-0">

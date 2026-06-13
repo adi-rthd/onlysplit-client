@@ -1,6 +1,6 @@
 // src/components/ui/GroupCard.jsx
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, useAnimation } from 'framer-motion';
 import { Users, Trash2 } from 'lucide-react';
@@ -9,6 +9,7 @@ import { ROUTES } from '../../constants/routes';
 import { GlassPanel } from './GlassCard';
 import { formatCurrency } from '../../services/currencyService';
 import useCurrencyStore from '../../store/useCurrencyStore';
+import ConfirmModal from '../modals/ConfirmModal';
 
 const GroupCard = ({
   group,
@@ -19,7 +20,8 @@ const GroupCard = ({
 
   const controls = useAnimation();
 
-  const [isDeleting, setIsDeleting] = React.useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const handleOpenGroup = () => {
     if (isDeleting) return;
@@ -66,6 +68,18 @@ const GroupCard = ({
   return (
     <div className="relative overflow-hidden rounded-[28px]">
       {/* DELETE AREA */}
+      <ConfirmModal
+        open={showDeleteModal}
+        title="Delete Group"
+        message={`Are you sure you want to delete "${group.name}"? This will permanently remove all expenses and settlements.`}
+        confirmText="Delete Group"
+        danger
+        onCancel={async () => {
+          setShowDeleteModal(false);
+          await resetCardPosition();
+        }}
+        onConfirm={handleDelete}
+      />
       <div className="absolute inset-y-0 right-0 w-[120px] flex items-center justify-center">
         <motion.div
           animate={
@@ -113,7 +127,7 @@ const GroupCard = ({
         whileTap={{ scale: 0.985 }}
         onDragEnd={async (_, info) => {
           if (info.offset.x < -60) {
-            await handleDelete();
+            setShowDeleteModal(true);
           } else {
             await resetCardPosition();
           }
@@ -186,10 +200,10 @@ const GroupCard = ({
 
               <span
                 className={`text-lg font-bold ${Number(group.balance || 0) > 0
-                    ? 'text-neon-lime'
-                    : Number(group.balance || 0) < 0
-                      ? 'text-error'
-                      : 'text-yellow-400'
+                  ? 'text-neon-lime'
+                  : Number(group.balance || 0) < 0
+                    ? 'text-error'
+                    : 'text-yellow-400'
                   }`}
               >
                 {formatCurrency(
