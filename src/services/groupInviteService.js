@@ -21,7 +21,7 @@ const invitationService = {
 
       toast.success(
         data?.message ||
-          'Invitation sent.'
+        'Invitation sent.'
       );
 
       return data?.data || true;
@@ -151,6 +151,22 @@ const invitationService = {
         return false;
       }
     },
+  markAllNotificationsAsRead: async () => {
+    try {
+      await client.put(
+        '/notifications/read-all'
+      );
+
+      return true;
+    } catch (error) {
+      handleApiError(
+        error,
+        'Failed to mark notifications as read.'
+      );
+
+      return false;
+    }
+  },
 };
 
 export default invitationService;

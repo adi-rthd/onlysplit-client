@@ -9,8 +9,11 @@ export default function NotificationBell() {
   const [now, setNow] = useState(Date.now());
 
   const notificationRef = useRef(null);
-  const { notifications, fetchNotifications } = useInvitationStore();
-
+  const { notifications, fetchNotifications, markAllNotificationsAsRead } = useInvitationStore();
+  const handleReadNotification = async () => {
+    setOpen(!open)
+    await markAllNotificationsAsRead();
+  }
   const timeAgo = (dateString, now) => {
     const date = new Date(dateString);
 
@@ -91,7 +94,7 @@ export default function NotificationBell() {
     <div className="relative" ref={notificationRef}>
       {/* Bell */}
       <button
-        onClick={() => setOpen(!open)}
+        onClick={() => handleReadNotification()}
         className=" relative flex items-center justify-center w-11 h-11 rounded-2xl bg-surface-container-low border border-glass-stroke hover:bg-white/5 transition-all "
       >
         <motion.div
