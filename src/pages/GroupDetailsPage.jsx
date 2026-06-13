@@ -1,13 +1,14 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { ROUTES } from '../constants/routes';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, CheckCircle2, Users, Receipt, Sparkles, Wallet,} from 'lucide-react';
+import { ArrowLeft, Plus, CheckCircle2, Users, Receipt, Sparkles, Wallet, Dice4, } from 'lucide-react';
 
 import { GlassPanel } from '../components/ui/GlassCard';
 import { useGroupStore } from '../store/groupStore';
 import { useExpenseStore } from '../store/expenseStore';
 import { useSettlementStore } from '../store/settlementStore';
 import { formatCurrency } from '../services/currencyService';
+import { useAuthStore } from '../store/authStore';
 
 import ExpenseCard from '../components/ui/ExpenseCard';
 import SettlementCard from '../components/ui/SettlementCard';
@@ -19,12 +20,13 @@ import useCurrencyStore from '../store/useCurrencyStore';
 
 const GroupDetailsPage = () => {
   const { id: groupId } = useParams();
+  const { user } = useAuthStore();
 
   const navigate = useNavigate();
   const { currency: storeCurrency, locale } = useCurrencyStore();
-  const { currentGroup, fetchGroupById, isLoading: isGroupLoading} = useGroupStore();
-  const { expenses, fetchExpenses, isLoading: isExpensesLoading} = useExpenseStore();
-  const { balances, settlements, fetchBalances, fetchSettlements, regenerateSettlements, isLoading: isSettlementsLoading} = useSettlementStore();
+  const { currentGroup, fetchGroupById, isLoading: isGroupLoading } = useGroupStore();
+  const { expenses, fetchExpenses, isLoading: isExpensesLoading } = useExpenseStore();
+  const { balances, settlements, fetchBalances, fetchSettlements, regenerateSettlements, isLoading: isSettlementsLoading } = useSettlementStore();
   const [activeTab, setActiveTab] = useState('expenses');
 
 
@@ -49,29 +51,24 @@ const GroupDetailsPage = () => {
     const totalSpent =
       expenses?.reduce(
         (sum, expense) =>
-          sum + Number(expense.netBalance || 0),
+          sum + Number(expense.amount || 0),
         0
       ) || 0;
+
+    const myBalance = balances.find(
+      x => x.userId === user.id
+    );
 
     let youOwe = 0;
     let youAreOwed = 0;
 
-    // balances?.forEach(balance => {
-    //   const amount = Number(
-    //     balance.amount ||
-    //     balance.balance ||
-    //     balance.netAmount ||
-    //     0
-    //   );
-
-    //   if (amount < 0) {
-    //     youOwe += Math.abs(amount);
-    //   }
-
-    //   if (amount > 0) {
-    //     youAreOwed += amount;
-    //   }
-    // });
+    if (myBalance) {
+      if (myBalance.netBalance > 0) {
+        youAreOwed = myBalance.netBalance;
+      } else {
+        youOwe = Math.abs(myBalance.netBalance);
+      }
+    }
 
     return {
       totalSpent,

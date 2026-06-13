@@ -10,6 +10,7 @@ export const useExpenseStore = create((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const data = await expenseService.getGroupExpenses(groupId);
+      
       const expensesArray = Array.isArray(data) ? data : data?.data || [];
       set({ expenses: expensesArray, isLoading: false });
     } catch (error) {

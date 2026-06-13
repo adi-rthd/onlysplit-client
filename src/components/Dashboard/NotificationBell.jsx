@@ -2,47 +2,91 @@ import { Bell } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
 
-import {useInvitationStore} from '../../store/groupInvitationStore';
+import { useInvitationStore } from '../../store/groupInvitationStore';
 
 export default function NotificationBell() {
   const [open, setOpen] = useState(false);
-  const notificationRef = useRef(null);
-  const {
-    notifications,
-    fetchNotifications,
-  } = useInvitationStore();
+  const [now, setNow] = useState(Date.now());
 
+  const notificationRef = useRef(null);
+  const { notifications, fetchNotifications } = useInvitationStore();
+
+  const timeAgo = (dateString, now) => {
+    const date = new Date(dateString);
+
+    const seconds = Math.floor((now - date) / 1000);
+
+    if (seconds < 60) {
+      return 'Just now';
+    }
+
+    const minutes = Math.floor(seconds / 60);
+
+    if (minutes < 60) {
+      return `${minutes} min${minutes > 1 ? 's' : ''} ago`;
+    }
+
+    const hours = Math.floor(minutes / 60);
+
+    if (hours < 24) {
+      return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    }
+
+    const days = Math.floor(hours / 24);
+
+    if (days < 30) {
+      return `${days} day${days > 1 ? 's' : ''} ago`;
+    }
+
+    const months = Math.floor(days / 30);
+
+    if (months < 12) {
+      return `${months} month${months > 1 ? 's' : ''} ago`;
+    }
+
+    const years = Math.floor(months / 12);
+
+    return `${years} year${years > 1 ? 's' : ''} ago`;
+  };
   useEffect(() => {
     fetchNotifications();
+    const interval = setInterval(() => {
+      setNow(Date.now());
+    }, 60000);
+
+    return () => clearInterval(interval);
   }, []);
-useEffect(() => {
-      const handleClickOutside = (
-        event
-      ) => {
-        if (
-          notificationRef.current &&
-          !notificationRef.current.contains(
-            event.target
-          )
-        ) {
-          setOpen(false);
-        }
-      };
-  
-      document.addEventListener(
+  useEffect(() => {
+    const handleClickOutside = (
+      event
+    ) => {
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(
+          event.target
+        )
+      ) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener(
+      'mousedown',
+      handleClickOutside
+    );
+
+    return () => {
+      document.removeEventListener(
         'mousedown',
         handleClickOutside
       );
-  
-      return () => {
-        document.removeEventListener(
-          'mousedown',
-          handleClickOutside
-        );
-      };
-    }, []);
-  const count = notifications?.length || 0;
+    };
+  }, []);
 
+  const count =
+    notifications?.filter(
+      notification => !notification.isRead
+    ).length || 0;
   return (
     <div className="relative" ref={notificationRef}>
       {/* Bell */}
@@ -54,8 +98,8 @@ useEffect(() => {
           animate={
             count > 0
               ? {
-                  rotate: [0, 15, -15, 10, -10, 0],
-                }
+                rotate: [0, 15, -15, 10, -10, 0],
+              }
               : {}
           }
           transition={{
@@ -166,7 +210,7 @@ useEffect(() => {
                     </p>
 
                     <span className="text-xs text-white/40">
-                      Just now
+                      {timeAgo(item.createdAt, now)}
                     </span>
                   </motion.div>
                 ))

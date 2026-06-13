@@ -11,7 +11,7 @@ export const useSettlementStore = create((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const data = await settlementService.getBalances(groupId);
-      
+
       set({ balances: Array.isArray(data) ? data : [], isLoading: false });
       return data;
     } catch (error) {
@@ -23,7 +23,7 @@ export const useSettlementStore = create((set, get) => ({
   fetchSettlements: async (groupId) => {
     set({ isLoading: true, error: null });
     try {
-      const data = await settlementService.getSettlements({ groupId });
+      const data = await settlementService.getPendingSettlements(groupId);
       const settlementsArray = Array.isArray(data) ? data : data?.data || data?.settlements || [];
       set({
         settlements: settlementsArray,
