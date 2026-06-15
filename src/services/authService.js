@@ -1,5 +1,6 @@
 // src/services/authService.js
 
+import axios from 'axios';
 import client from '../api/client';
 import { useAuthStore } from '../store/authStore';
 import { handleApiError } from '../utils/apiErrorHandler';
@@ -194,7 +195,12 @@ const authService = {
    */
   refreshToken: async () => {
     try {
-      const { data } = await client.post('/auth/refresh');
+      // Use raw axios (not intercepted client) to avoid interceptor loops
+      const { data } = await axios.post(
+        `${client.defaults.baseURL}/auth/refresh`,
+        {},
+        { withCredentials: true }
+      );
 
       const response = data?.data || data;
 

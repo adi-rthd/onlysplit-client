@@ -51,6 +51,9 @@ const FriendshipModal = () => {
   const [searchInput, setSearchInput] =
     useState('');
 
+  const [showSearch, setShowSearch] =
+    useState(false);
+
   const [search, setSearch] =
     useState('');
 
@@ -482,111 +485,80 @@ const FriendshipModal = () => {
       </div>
     </UserCard>
   ); return (
-    <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-md flex items-end md:items-center justify-center">
+    <div className="fixed inset-0 z-[100] !ml-0 !left-0 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={(e) => e.target === e.currentTarget && navigate(-1)}>
       <motion.div
-        initial={{
-          opacity: 0,
-          y: 30,
-          scale: 0.98,
-        }}
-        animate={{
-          opacity: 1,
-          y: 0,
-          scale: 1,
-        }}
-        exit={{
-          opacity: 0,
-          y: 30,
-          scale: 0.98,
-        }}
-        transition={{
-          duration: 0.2,
-        }}
-        className="
-        w-full
-        h-[100dvh]
-        md:h-[85vh]
-        md:max-w-3xl
-        bg-surface-charcoal
-        overflow-hidden
-        flex
-        flex-col
-        rounded-none
-        md:rounded-3xl
-        border
-        border-white/5
-        shadow-2xl
-      "
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 40 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+        className="w-full h-[92vh] md:h-[85vh] md:max-w-3xl glass-card overflow-hidden flex flex-col rounded-2xl shadow-2xl"
       >
         {/* HEADER */}
-        <header className="sticky top-0 z-20 bg-surface-charcoal border-b border-white/5 px-4 md:px-6 py-4">
-          <div className="flex items-start justify-between">
+        <header className="sticky top-0 z-20 px-5 py-4 border-b border-glass-stroke backdrop-blur-xl bg-white/[0.03]">
+          <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl md:text-3xl font-bold text-white">
+              <h2 className="text-lg font-bold text-on-surface">
                 Friends
               </h2>
-
-              <p className="text-sm md:text-base text-on-surface-variant mt-1">
-                Manage your OnlySplit connections
-              </p>
             </div>
 
-            <button
-              onClick={() => navigate(-1)}
-              className="p-2 rounded-xl hover:bg-white/5 transition-all"
-            >
-              <X
-                size={20}
-                className="text-on-surface-variant"
-              />
-            </button>
+            <div className="flex items-center gap-2">
+              {/* Search toggle */}
+              <button
+                onClick={() => {
+                  if (showSearch) { setSearchInput(''); setSearch(''); }
+                  setShowSearch(!showSearch);
+                }}
+                className="w-8 h-8 rounded-lg glass-button flex items-center justify-center"
+              >
+                <Search size={14} className={showSearch ? 'text-primary' : 'text-on-surface-variant'} />
+              </button>
+
+              <button
+                onClick={() => navigate(-1)}
+                className="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center hover:bg-white/10 transition-colors"
+              >
+                <X size={14} className="text-on-surface-variant" />
+              </button>
+            </div>
           </div>
 
-          {/* SEARCH */}
-          <div className="mt-4">
-            <div className="flex items-center gap-3 rounded-2xl bg-white/[0.03] border border-white/10 px-4 py-3 transition-all focus-within:border-primary/40 focus-within:bg-white/[0.05]">              <Search
-              size={18}
-              className="text-on-surface-variant shrink-0"
-            />
-
+          {/* Search bar — toggled */}
+          {showSearch && (
+            <div className="mt-3 flex items-center gap-2 rounded-xl bg-surface-container-low border border-glass-stroke px-3 py-2.5 focus-within:border-primary/40 transition-colors">
+              <Search size={14} className="text-on-surface-variant shrink-0" />
               <input
                 type="text"
+                autoFocus
                 value={searchInput}
-                onChange={(e) =>
-                  setSearchInput(e.target.value)
-                }
-                placeholder="Search users..."
-                className=" w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-on-surface placeholder:text-on-surface-variant" />
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Search users or friends..."
+                className="flex-1 bg-transparent border-none outline-none ring-0 focus:ring-0 text-sm text-on-surface placeholder:text-on-surface-variant/50"
+              />
+              {searchInput && (
+                <button onClick={() => { setSearchInput(''); setSearch(''); }}>
+                  <X size={12} className="text-on-surface-variant" />
+                </button>
+              )}
             </div>
-          </div>
+          )}
 
-          {/* TABS */}
-          <div className="grid grid-cols-3 gap-2 mt-4">
+          {/* TABS — underline style */}
+          <div className="flex items-center gap-6 mt-3 border-b border-glass-stroke -mx-5 px-5">
             {tabs.map((tab) => (
               <button
                 key={tab}
-                onClick={() => {
-                  setActiveTab(tab);
-                }}
-                className={`
-        h-11
-        rounded-xl
-        text-sm
-        font-medium
-        transition-all
-        border
-
-        ${activeTab === tab
-                    ? 'bg-primary/15 text-primary border-primary/30'
-                    : 'bg-surface-container-low border-transparent text-on-surface-variant hover:text-on-surface'
-                  }
-      `}
+                onClick={() => setActiveTab(tab)}
+                className={`relative pb-3 text-sm font-medium capitalize transition-all ${
+                  activeTab === tab
+                    ? 'text-on-surface'
+                    : 'text-on-surface-variant hover:text-on-surface'
+                }`}
               >
-                {tab === 'friends'
-                  ? 'Friends'
-                  : tab === 'received'
-                    ? 'Received'
-                    : 'Sent'}
+                {tab === 'friends' ? 'Friends' : tab === 'received' ? 'Received' : 'Sent'}
+                {activeTab === tab && (
+                  <span className="absolute left-0 bottom-0 w-full h-[2px] bg-primary rounded-full" />
+                )}
               </button>
             ))}
           </div>

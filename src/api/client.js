@@ -2,7 +2,6 @@ import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 
 const client = axios.create({
-  // baseURL: import.meta.env.VITE_API_BASE_URL,
   baseURL: "https://api-split.onlylabs.in/api",
   withCredentials: true,
   headers: {
@@ -11,25 +10,32 @@ const client = axios.create({
   timeout: 15000,
 });
 
+// --- Request interceptor: attach access token ---
 client.interceptors.request.use(
   (config) => {
     const token = useAuthStore.getState().token;
     if (token) {
-      if (config.headers && typeof config.headers.set === 'function') {
-        config.headers.set(
-          'Authorization',
-          `Bearer ${token}`
-        );
-      } else {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
+      config.headers.Authorization = `Bearer ${token}`;
     }
-
     return config;
   },
-
   (error) => Promise.reject(error)
 );
+
+// --- Response interceptor: handle 401 with queued refresh ---
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(({ resolve, reject }) => {
+    if (error) {
+      reject(error);
+    } else {
+      resolve(token);
+    }
+  });
+  failedQueue = [];
+};
 
 client.interceptors.response.use(
   (response) => response,
@@ -37,100 +43,79 @@ client.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    const isAuthRoute = 
-      originalRequest?.url?.includes(
-        '/auth/login'
-      ) ||
-      originalRequest?.url?.includes(
-        '/auth/signup'
-      ) ||
-      originalRequest?.url?.includes(
-        '/auth/refresh'
-      ) ||
-      originalRequest?.url?.includes(
-        '/auth/logout'
-      );
+    // Don't intercept auth routes
+    const isAuthRoute =
+      originalRequest?.url?.includes('/auth/login') ||
+      originalRequest?.url?.includes('/auth/signup') ||
+      originalRequest?.url?.includes('/auth/refresh') ||
+      originalRequest?.url?.includes('/auth/logout');
 
-    if (error.response?.status === 401 && !originalRequest._retry && !isAuthRoute) {
-      originalRequest._retry = true;
-      try {
-        const response = await axios.post(
-          `${client.defaults.baseURL}/auth/refresh`,
-          {},
-          {
-            withCredentials: true,
-          }
-        );
-
-        const responseData =
-          response.data?.data ||
-          response.data;
-
-        const newAccessToken =
-          responseData.token ||
-          responseData.accessToken ||
-          responseData.jwt;
-
-        if (!newAccessToken) {
-          throw new Error(
-            'No access token returned'
-          );
-        }
-
-        // Update Zustand store only
-        const authStore = useAuthStore.getState();
-
-        authStore.setToken(
-          newAccessToken
-        );
-
-        if (responseData.user) {
-          authStore.setUser(
-            responseData.user
-          );
-        }
-
-        if (
-          originalRequest.headers &&
-          typeof originalRequest.headers.set ===
-            'function'
-        ) {
-          originalRequest.headers.set(
-            'Authorization',
-            `Bearer ${newAccessToken}`
-          );
-        } else {
-          originalRequest.headers.Authorization =
-            `Bearer ${newAccessToken}`;
-        }
-
-        return client(originalRequest);
-      } catch (refreshError) {
-        console.error(
-          'Token refresh failed:',
-          refreshError
-        );
-
-        useAuthStore
-          .getState()
-          .logout();
-
-        // Avoid redirect loops
-        if (
-          window.location.pathname !==
-          '/login'
-        ) {
-          window.location.href =
-            '/login';
-        }
-
-        return Promise.reject(
-          refreshError
-        );
-      }
+    if (error.response?.status !== 401 || originalRequest._retry || isAuthRoute) {
+      return Promise.reject(error);
     }
 
-    return Promise.reject(error);
+    // If already refreshing, queue this request
+    if (isRefreshing) {
+      return new Promise((resolve, reject) => {
+        failedQueue.push({ resolve, reject });
+      }).then((token) => {
+        originalRequest.headers.Authorization = `Bearer ${token}`;
+        return client(originalRequest);
+      }).catch((err) => Promise.reject(err));
+    }
+
+    originalRequest._retry = true;
+    isRefreshing = true;
+
+    try {
+      // Use raw axios (not intercepted client) to avoid loops
+      const response = await axios.post(
+        `${client.defaults.baseURL}/auth/refresh`,
+        {},
+        { withCredentials: true }
+      );
+
+      const responseData = response.data?.data || response.data;
+
+      const newAccessToken =
+        responseData.token ||
+        responseData.accessToken ||
+        responseData.jwt;
+
+      if (!newAccessToken) {
+        throw new Error('No access token returned from refresh');
+      }
+
+      // Update store
+      const authStore = useAuthStore.getState();
+      authStore.setToken(newAccessToken);
+
+      if (responseData.user) {
+        authStore.setUser(responseData.user);
+      }
+
+      // Process queued requests with new token
+      processQueue(null, newAccessToken);
+
+      // Retry original request
+      originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+      return client(originalRequest);
+
+    } catch (refreshError) {
+      // Refresh failed — reject all queued requests
+      processQueue(refreshError, null);
+
+      useAuthStore.getState().logout();
+
+      // Redirect to login (use hash router format)
+      if (!window.location.hash?.includes('/login')) {
+        window.location.hash = '#/login';
+      }
+
+      return Promise.reject(refreshError);
+    } finally {
+      isRefreshing = false;
+    }
   }
 );
 

@@ -75,7 +75,7 @@ const CreateGroupModal = () => {
   return (
     <div
       ref={backdropRef}
-      className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-black/70 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] !ml-0 !left-0 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
       onClick={(e) => e.target === backdropRef.current && navigate(-1)}
     >
       <motion.div
@@ -83,7 +83,7 @@ const CreateGroupModal = () => {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 40 }}
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        className="w-full max-w-md bg-surface border border-glass-stroke rounded-t-3xl md:rounded-2xl shadow-2xl flex flex-col max-h-[92vh] md:max-h-[85vh] overflow-visible"
+        className="w-full max-w-md glass-card rounded-2xl shadow-2xl flex flex-col max-h-[92vh] md:max-h-[85vh] overflow-visible"
       >
         {/* HEADER */}
         <div className="flex items-center justify-between px-5 py-4 shrink-0">

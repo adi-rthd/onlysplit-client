@@ -200,7 +200,7 @@ const GroupCard = ({
 
               <span
                 className={`text-lg font-bold ${Number(group.balance || 0) > 0
-                  ? 'text-neon-lime'
+                  ? 'text-green-400'
                   : Number(group.balance || 0) < 0
                     ? 'text-error'
                     : 'text-yellow-400'

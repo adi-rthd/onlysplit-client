@@ -57,6 +57,13 @@ const InviteGroupModal = () => {
     rejectInvitation,
   } = useInvitationStore();
 
+  // Escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => { if (e.key === 'Escape') navigate(-1); };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [navigate]);
+
   const loadData = async () => {
     setLoading(true);
     try {
@@ -140,18 +147,18 @@ const InviteGroupModal = () => {
 
   return (
     <div 
-      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/70 sm:p-4 backdrop-blur-md"
-      onKeyDown={(e) => e.key === 'Escape' && navigate(-1)}
+      className="fixed inset-0 z-[100] !ml-0 !left-0 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+      onClick={(e) => e.target === e.currentTarget && navigate(-1)}
     >
       <motion.div
-        initial={{ opacity: 0, y: 100 }}
+        initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 100 }}
-        transition={{ type: 'spring', damping: 28, stiffness: 380 }}
-        className="flex h-[90vh] sm:h-[80vh] w-full max-w-xl flex-col overflow-hidden rounded-t-2xl sm:rounded-2xl border-t sm:border border-glass-stroke bg-surface-charcoal/90 shadow-2xl backdrop-blur-2xl"
+        exit={{ opacity: 0, y: 40 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+        className="flex h-[90vh] md:h-[80vh] w-full max-w-xl flex-col overflow-hidden rounded-2xl glass-card shadow-2xl"
       >
         {/* HEADER */}
-        <header className="shrink-0 border-b border-glass-stroke bg-white/5 px-5 py-5 sm:px-6">
+        <header className="shrink-0 px-5 py-4 border-b border-glass-stroke backdrop-blur-xl bg-white/[0.03]">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <h2 className="truncate text-2xl font-bold text-on-surface sm:text-3xl">
@@ -255,7 +262,58 @@ const InviteGroupModal = () => {
           {/* ... Rest of the tabs (Invited/Invitations) follow same renderUserCard pattern ... */}
           {!loading && activeTab === 'invited' && (
             <div className="space-y-3 sm:space-y-4">
-               {invitedUsers.map(user => renderUserCard(user, <div className="text-green-400 text-xs">Invited</div>))}
+              {invitedUsers?.length === 0 ? (
+                <div className="py-16 text-center text-sm text-on-surface-variant">No invited users yet.</div>
+              ) : (
+                invitedUsers.map(user => renderUserCard(user, <div className="flex items-center gap-1.5 rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1.5 text-xs font-medium text-yellow-400"><Clock3 size={12} /> Pending</div>))
+              )}
+            </div>
+          )}
+
+          {!loading && activeTab === 'invitations' && (
+            <div className="space-y-3 sm:space-y-4">
+              <h3 className="text-base font-semibold sm:text-lg text-white">Pending Invitations</h3>
+
+              {!invitations || invitations.length === 0 ? (
+                <div className="py-16 text-center text-sm text-on-surface-variant">
+                  No pending invitations.
+                </div>
+              ) : (
+                invitations.map((invite) => (
+                  <div
+                    key={invite.invitationId || invite.id}
+                    className="rounded-2xl border border-glass-stroke bg-surface-container-low p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-base font-semibold text-on-surface truncate">
+                          {invite.groupName || 'Unknown Group'}
+                        </p>
+                        <p className="text-xs text-on-surface-variant mt-0.5">
+                          Invited by {invite.inviterName || 'someone'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 mt-3">
+                      <button
+                        onClick={() => handleAccept(invite.invitationId, invite.notificationId)}
+                        className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-green-500/10 border border-green-500/20 py-2.5 text-sm font-medium text-green-400 hover:bg-green-500/20 transition-colors"
+                      >
+                        <Check size={14} />
+                        Accept
+                      </button>
+                      <button
+                        onClick={() => handleReject(invite.invitationId, invite.notificationId)}
+                        className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-red-500/10 border border-red-500/20 py-2.5 text-sm font-medium text-red-400 hover:bg-red-500/20 transition-colors"
+                      >
+                        <X size={14} />
+                        Decline
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           )}
         </div>

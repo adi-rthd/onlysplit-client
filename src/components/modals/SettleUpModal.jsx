@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { X, DollarSign, Loader2 } from 'lucide-react';
@@ -13,7 +13,12 @@ const SettleUpModal = ({ groupId, payerId, receiverId, defaultAmount = 0, onClos
   const { currency: storeCurrency } = useCurrencyStore();
   const { groups } = useGroupStore();
 
-  const group = groups?.find(g => g.id === groupId);
+  // Escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => { if (e.key === 'Escape') (onClose ? onClose() : navigate(-1)); };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose, navigate]);  const group = groups?.find(g => g.id === groupId);
   const currencyCode = group?.currency || storeCurrency || 'INR';
 
   const getCurrencySymbol = (code) => {
@@ -62,17 +67,18 @@ const SettleUpModal = ({ groupId, payerId, receiverId, defaultAmount = 0, onClos
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md p-4" onKeyDown={(e) => e.key === 'Escape' && (onClose ? onClose() : navigate(-1))} tabIndex={-1} ref={(el) => el?.focus()}>
+    <div className="fixed inset-0 z-[100] !ml-0 !left-0 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={(e) => e.target === e.currentTarget && (onClose ? onClose() : navigate(-1))}>
       <motion.div 
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="w-full max-w-sm bg-surface-charcoal/90 backdrop-blur-2xl border border-glass-stroke rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 40 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+        className="w-full max-w-sm glass-card rounded-2xl shadow-2xl flex flex-col overflow-hidden"
       >
-        <header className="flex items-center justify-between px-6 py-5 border-b border-glass-stroke bg-white/5">
-          <h2 className="text-xl font-bold">Settle Up</h2>
-          <button onClick={() => onClose && onClose(false)} className="p-2 rounded-full hover:bg-white/10 transition-colors">
-            <X size={20} />
+        <header className="flex items-center justify-between px-5 py-4 border-b border-glass-stroke backdrop-blur-xl bg-white/[0.03]">
+          <h2 className="text-lg font-bold">Settle Up</h2>
+          <button onClick={() => onClose && onClose(false)} className="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center hover:bg-white/10 transition-colors">
+            <X size={16} className="text-on-surface-variant" />
           </button>
         </header>
         
