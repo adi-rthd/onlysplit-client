@@ -1,11 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { User, Shield, Camera, Mail, Globe, Bell, CreditCard, Lock, Check, IndianRupee, Smartphone, Moon, Trash2, ChevronRight, BadgeCheck, KeyRound, UploadCloud, AlertTriangle } from 'lucide-react';
 import { GlassPanel } from '../components/ui/GlassCard';
 import { getProfile, updateProfile } from '../services/settingsService';
 import { useAuthStore } from '../store/authStore';
+import authService from '../services/authService';
+import { ROUTES } from '../constants/routes';
 
 const SettingsPage = () => {
-
+  const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const { logout } = useAuthStore();
   const [loading, setLoading] = useState(true);
@@ -637,7 +640,10 @@ const SettingsPage = () => {
             {/* LOGOUT */}
 
             <button
-              onClick={logout}
+              onClick={async () => {
+                await authService.logout();
+                navigate(ROUTES.LANDING);
+              }}
               className="
         px-6 py-3
         rounded-2xl

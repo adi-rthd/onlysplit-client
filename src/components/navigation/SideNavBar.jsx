@@ -46,9 +46,8 @@ const SideNavBar = () => {
   const isActive = (path) =>
     location.pathname === path;
 
-  const handleLogout = () => {
-    authService.logout();
-
+  const handleLogout = async () => {
+    await authService.logout();
     navigate(ROUTES.LANDING);
   };
 
