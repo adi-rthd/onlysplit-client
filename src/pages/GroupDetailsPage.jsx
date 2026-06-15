@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { ROUTES } from '../constants/routes';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, CheckCircle2, Users, Receipt, Sparkles, Wallet, Dice4, } from 'lucide-react';
+import { ArrowLeft, Plus, Users, Receipt, Sparkles, Wallet, UserPlus, Search, SortAsc, X, RefreshCw } from 'lucide-react';
 
 import { GlassPanel } from '../components/ui/GlassCard';
 import { useGroupStore } from '../store/groupStore';
@@ -13,7 +13,6 @@ import { useAuthStore } from '../store/authStore';
 import ExpenseCard from '../components/ui/ExpenseCard';
 import SettlementCard from '../components/ui/SettlementCard';
 import MemberBalanceList from '../components/ui/MemberBalanceList';
-import GlowButton from '../components/ui/GlowButton';
 import useCurrencyStore from '../store/useCurrencyStore';
 import ExpenseDetailsModal from '../components/modals/ExpenseDetailsModal';
 import { AnimatePresence } from 'framer-motion';
@@ -31,6 +30,10 @@ const GroupDetailsPage = () => {
   const { balances, settlements, fetchBalances, fetchSettlements, regenerateSettlements, isLoading: isSettlementsLoading } = useSettlementStore();
   const [activeTab, setActiveTab] = useState('expenses');
   const [selectedExpense, setSelectedExpense] = useState(null);
+  const [expenseSearch, setExpenseSearch] = useState('');
+  const [showExpenseSearch, setShowExpenseSearch] = useState(false);
+  const [expenseSort, setExpenseSort] = useState('recent');
+  const [showExpenseSort, setShowExpenseSort] = useState(false);
 
   useEffect(() => {
     if (!groupId) return;
@@ -81,6 +84,35 @@ const GroupDetailsPage = () => {
 
   const [isRecalculating, setIsRecalculating] = useState(false);
 
+  // Filtered & sorted expenses
+  const filteredExpenses = useMemo(() => {
+    let result = expenses || [];
+
+    if (expenseSearch.trim()) {
+      const term = expenseSearch.toLowerCase();
+      result = result.filter(
+        (e) =>
+          e.title?.toLowerCase().includes(term) ||
+          e.description?.toLowerCase().includes(term) ||
+          e.paidByName?.toLowerCase().includes(term)
+      );
+    }
+
+    result = [...result].sort((a, b) => {
+      switch (expenseSort) {
+        case 'amount':
+          return Number(b.amount || 0) - Number(a.amount || 0);
+        case 'name':
+          return (a.title || '').localeCompare(b.title || '');
+        case 'recent':
+        default:
+          return new Date(b.expenseDate || b.createdAt || 0) - new Date(a.expenseDate || a.createdAt || 0);
+      }
+    });
+
+    return result;
+  }, [expenses, expenseSearch, expenseSort]);
+
   const handleRecalculate = async () => {
     try {
       setIsRecalculating(true);
@@ -123,116 +155,92 @@ const GroupDetailsPage = () => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
+      {/* HEADER — back + title left, buttons top-right */}
       <header>
-
-        <button
-          onClick={() =>
-            navigate(ROUTES.GROUPS)
-          }
-          className="mb-4 flex items-center gap-2 text-on-surface-variant transition-colors hover:text-on-surface"
-        >
-          <ArrowLeft size={16} />
-
-          <span className="text-sm font-medium">
-            Back
-          </span>
-        </button>
-
-        <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+        <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-on-surface">
+            <button
+              onClick={() => navigate(ROUTES.GROUPS)}
+              className="mb-2 flex items-center gap-1.5 text-on-surface-variant transition-colors hover:text-on-surface text-sm"
+            >
+              <ArrowLeft size={14} />
+              Back
+            </button>
+
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-on-surface">
               {currentGroup.name}
             </h1>
 
-            <p className="mt-2 text-base text-on-surface-variant">
-              {currentGroup.description ||
-                'No description'}
+            <p className="mt-1 text-sm text-on-surface-variant">
+              {currentGroup.description || 'No description'}
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-3">
-            <GlowButton
-              className="min-w-[140px] h-[76px] border border-[#4F46FF]"
-              icon={Sparkles}
+          {/* Action buttons — top right */}
+          <div className="flex items-center gap-2 shrink-0">
+            <button
               onClick={handleRecalculate}
-              isLoading={isRecalculating}
+              disabled={isRecalculating}
+              className="w-9 h-9 md:w-auto md:h-auto md:px-3 md:py-2 rounded-xl glass-button text-on-surface flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              Recalculate
-            </GlowButton>
-            <GlowButton
-              className='min-w-[140px] h-[76px] border border-[#4F46FF]'
-              icon={Plus}
-              onClick={() =>
-                navigate(ROUTES.INVITE_MODAL.replace(
-                  ':id',
-                  groupId))
-              }
-            >Invite
-            </GlowButton>
-            <GlowButton
-              className='min-w-[140px] h-[76px] border border-[#4F46FF]'
-              icon={Plus}
-              onClick={() =>
-                navigate(ROUTES.ADD_EXPENSE.replace(
-                  ':id',
-                  groupId))
-              }
-            >Add Expense
-            </GlowButton>
+              <RefreshCw size={16} className={`text-primary ${isRecalculating ? 'animate-spin' : ''}`} />
+              <span className="hidden md:inline text-xs font-medium">Recalculate</span>
+            </button>
+
+            <button
+              onClick={() => navigate(ROUTES.INVITE_MODAL.replace(':id', groupId))}
+              className="w-9 h-9 md:w-auto md:h-auto md:px-3 md:py-2 rounded-xl glass-button text-on-surface flex items-center justify-center gap-2"
+            >
+              <UserPlus size={16} className="text-primary" />
+              <span className="hidden md:inline text-xs font-medium">Invite</span>
+            </button>
+
+            <button
+              onClick={() => navigate(ROUTES.ADD_EXPENSE.replace(':id', groupId))}
+              className="w-9 h-9 md:w-auto md:h-auto md:px-3 md:py-2 rounded-xl glass-button text-on-surface flex items-center justify-center gap-2"
+            >
+              <Plus size={16} className="text-primary" />
+              <span className="hidden md:inline text-xs font-medium">Add Expense</span>
+            </button>
           </div>
         </div>
       </header>
 
-      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
-        <GlassPanel className="rounded-3xl p-6">
-          <p className="text-xs uppercase tracking-[0.2em] text-on-surface-variant">
+      {/* STATS — compact, consistent */}
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+        <GlassPanel className="rounded-2xl p-4">
+          <p className="text-[10px] uppercase tracking-wider text-on-surface-variant font-medium">
             Total Spent
           </p>
-
-          <h2 className="mt-4 text-4xl font-black text-on-surface">
-            {formatCurrency(
-              totals.totalSpent,
-              currency,
-              locale
-            )}
+          <h2 className="mt-2 text-xl md:text-2xl font-bold text-on-surface tabular-nums">
+            {formatCurrency(totals.totalSpent, currency, locale)}
           </h2>
         </GlassPanel>
 
-        <GlassPanel className="rounded-3xl border border-error/20 p-6">
-          <p className="text-xs uppercase tracking-[0.2em] text-on-surface-variant">
+        <GlassPanel className="rounded-2xl p-4">
+          <p className="text-[10px] uppercase tracking-wider text-on-surface-variant font-medium">
             You Owe
           </p>
-
-          <h2 className="mt-4 text-4xl font-black text-error">
-            {formatCurrency(
-              totals.youOwe,
-              currency,
-              locale
-            )}
+          <h2 className="mt-2 text-xl md:text-2xl font-bold text-error tabular-nums">
+            {formatCurrency(totals.youOwe, currency, locale)}
           </h2>
         </GlassPanel>
 
-        <GlassPanel className="rounded-3xl border border-neon-lime/20 p-6">
-          <p className="text-xs uppercase tracking-[0.2em] text-on-surface-variant">
+        <GlassPanel className="rounded-2xl p-4">
+          <p className="text-[10px] uppercase tracking-wider text-on-surface-variant font-medium">
             You Are Owed
           </p>
-
-          <h2 className="mt-4 text-4xl font-black text-neon-lime">
-            {formatCurrency(
-              totals.youAreOwed,
-              currency,
-              locale
-            )}
+          <h2 className="mt-2 text-xl md:text-2xl font-bold text-green-400 tabular-nums">
+            {formatCurrency(totals.youAreOwed, currency, locale)}
           </h2>
         </GlassPanel>
 
-        <GlassPanel className="rounded-3xl p-6">
-          <p className="text-xs uppercase tracking-[0.2em] text-on-surface-variant">
+        <GlassPanel className="rounded-2xl p-4">
+          <p className="text-[10px] uppercase tracking-wider text-on-surface-variant font-medium">
             Members
           </p>
-
-          <h2 className="mt-4 text-4xl font-black text-on-surface">
+          <h2 className="mt-2 text-xl md:text-2xl font-bold text-on-surface">
             {balances?.length || 0}
           </h2>
         </GlassPanel>
@@ -240,59 +248,112 @@ const GroupDetailsPage = () => {
 
       <div className="grid grid-cols-1 gap-8 xl:grid-cols-3">
         <div className="xl:col-span-2">
-          <div className="mb-6 flex items-center gap-6 border-b border-white/10">
-            <button
-              onClick={() =>
-                setActiveTab('expenses')
-              }
-              className={`pb-3 text-sm font-semibold transition-all ${activeTab === 'expenses'
-                ? 'border-b-2 border-primary text-primary'
-                : 'text-on-surface-variant'
-                }`}
-            >
-              Expenses
-            </button>
+          {/* Tab bar + search/sort */}
+          <div className="mb-5 flex items-center justify-between border-b border-white/10">
+            <div className="flex items-center gap-6">
+              <button
+                onClick={() => setActiveTab('expenses')}
+                className={`pb-3 text-sm font-semibold transition-all ${activeTab === 'expenses'
+                  ? 'border-b-2 border-primary text-primary'
+                  : 'text-on-surface-variant'
+                  }`}
+              >
+                Expenses
+              </button>
 
-            <button
-              onClick={() =>
-                setActiveTab('settlements')
-              }
-              className={`pb-3 text-sm font-semibold transition-all ${activeTab === 'settlements'
-                ? 'border-b-2 border-primary text-primary'
-                : 'text-on-surface-variant'
-                }`}
-            >
-              Settlements
-            </button>
+              <button
+                onClick={() => setActiveTab('settlements')}
+                className={`pb-3 text-sm font-semibold transition-all ${activeTab === 'settlements'
+                  ? 'border-b-2 border-primary text-primary'
+                  : 'text-on-surface-variant'
+                  }`}
+              >
+                Settlements
+              </button>
+            </div>
+
+            {/* Search + Sort for expenses */}
+            {activeTab === 'expenses' && (
+              <div className="flex items-center gap-1.5 pb-2">
+                {showExpenseSearch ? (
+                  <div className="flex items-center gap-2 bg-surface-container-low border border-outline-variant/50 rounded-lg px-2.5 py-1.5">
+                    <Search size={13} className="text-on-surface-variant" />
+                    <input
+                      type="text"
+                      autoFocus
+                      placeholder="Search..."
+                      value={expenseSearch}
+                      onChange={(e) => setExpenseSearch(e.target.value)}
+                      className="w-28 md:w-36 bg-transparent border-none ring-0 focus:ring-0 outline-none text-xs text-on-surface placeholder:text-on-surface-variant/50"
+                    />
+                    <button onClick={() => { setExpenseSearch(''); setShowExpenseSearch(false); }}>
+                      <X size={12} className="text-on-surface-variant" />
+                    </button>
+                  </div>
+                ) : (
+                  <button onClick={() => setShowExpenseSearch(true)} className="w-8 h-8 rounded-lg glass-button flex items-center justify-center">
+                    <Search size={14} className="text-on-surface-variant" />
+                  </button>
+                )}
+
+                <div className="relative">
+                  <button onClick={() => setShowExpenseSort(!showExpenseSort)} className="w-8 h-8 rounded-lg glass-button flex items-center justify-center">
+                    <SortAsc size={14} className="text-on-surface-variant" />
+                  </button>
+                  {showExpenseSort && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setShowExpenseSort(false)} />
+                      <div className="absolute right-0 top-10 z-50 w-36 bg-surface-container border border-glass-stroke rounded-xl shadow-2xl py-1">
+                        {[
+                          { value: 'recent', label: 'Recent' },
+                          { value: 'amount', label: 'Amount' },
+                          { value: 'name', label: 'Name' },
+                        ].map((opt) => (
+                          <button
+                            key={opt.value}
+                            onClick={() => { setExpenseSort(opt.value); setShowExpenseSort(false); }}
+                            className={`w-full text-left px-3 py-2 text-xs transition-colors ${
+                              expenseSort === opt.value ? 'text-primary bg-primary/5 font-medium' : 'text-on-surface-variant hover:text-on-surface hover:bg-white/5'
+                            }`}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
+
           <AnimatePresence>
             {selectedExpense && (
               <ExpenseDetailsModal
                 expense={selectedExpense}
-                onClose={() =>
-                  setSelectedExpense(null)
-                }
-                onEdit={(expense) => {
-                  setEditingExpense(expense);
-                  setShowEditModal(true);
-                }}
+                onClose={() => setSelectedExpense(null)}
               />
             )}
           </AnimatePresence>
+
           {activeTab === 'expenses' && (
-            <div className="space-y-5">
+            <div className="space-y-4">
               {isExpensesLoading ? (
                 <div className="flex justify-center py-16">
                   <div className="h-7 w-7 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
                 </div>
-              ) : expenses?.length > 0 ? (
-                expenses.map(expense => (
+              ) : filteredExpenses?.length > 0 ? (
+                filteredExpenses.map(expense => (
                   <ExpenseCard
                     onClick={() => setSelectedExpense(expense)}
                     key={expense.id}
                     expense={expense}
                   />
                 ))
+              ) : expenses?.length > 0 && expenseSearch ? (
+                <div className="py-10 text-center text-sm text-on-surface-variant">
+                  No expenses match "{expenseSearch}"
+                </div>
               ) : (
                 <GlassPanel className="rounded-3xl border border-dashed border-white/10 py-16 text-center">
                   <Receipt

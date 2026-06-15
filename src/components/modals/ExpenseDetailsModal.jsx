@@ -2,16 +2,26 @@ import { X, Receipt, Users, CreditCard, Pencil, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getExpenseIcon } from '../../utils/expenseIcons';
 import { useExpenseStore } from '../../store/expenseStore';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import ConfirmModal from './ConfirmModal';
 
 const ExpenseDetailsModal = ({
     expense,
     onClose,
+    onEdit,
 }) => {
-    if (!expense) return null;
     const { deleteExpense } = useExpenseStore();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+    // Escape key
+    useEffect(() => {
+      const handleKeyDown = (e) => { if (e.key === 'Escape') onClose(); };
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [onClose]);
+
+    if (!expense) return null;
 
     const handleDelete = async () => {
 
@@ -36,7 +46,7 @@ const ExpenseDetailsModal = ({
         <AnimatePresence>
 
             <motion.div
-                className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4"
+                className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -55,29 +65,15 @@ const ExpenseDetailsModal = ({
                     onClick={(e) =>
                         e.stopPropagation()
                     }
-                    initial={{
-                        opacity: 0,
-                        scale: 0.95,
-                        y: 20,
-                    }}
-                    animate={{
-                        opacity: 1,
-                        scale: 1,
-                        y: 0,
-                    }}
-                    exit={{
-                        opacity: 0,
-                        scale: 0.95,
-                        y: 20,
-                    }}
-                    transition={{
-                        duration: 0.2,
-                    }}
-                    className="w-full max-w-2xl rounded-3xl bg-[#0B0B0D] border border-white/10 shadow-2xl overflow-hidden"
+                    initial={{ opacity: 0, y: 40 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 40 }}
+                    transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                    className="w-full max-w-2xl rounded-2xl glass-card shadow-2xl overflow-hidden max-h-[92vh] md:max-h-[85vh] overflow-y-auto"
                 >
 
                     {/* Header */}
-                    <div className="flex items-center justify-between px-6 py-5 border-b border-white/5">
+                    <div className="flex items-center justify-between px-5 py-4 border-b border-glass-stroke backdrop-blur-xl bg-white/[0.03]">
                         <div className="flex items-center gap-4">
                             <div className="w-11 h-11 rounded-2xl bg-primary/10 flex items-center justify-center">
                                 <Icon
@@ -96,12 +92,14 @@ const ExpenseDetailsModal = ({
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <button
+                            {onEdit && (
+                              <button
                                 onClick={() => onEdit(expense)}
                                 className="w-9 h-9 rounded-xl hover:bg-blue-500/10 text-blue-400 flex items-center justify-center transition-colors"
-                            >
+                              >
                                 <Pencil size={16} />
-                            </button>
+                              </button>
+                            )}
 
                             <button
                                 onClick={() => setShowDeleteModal(true)}

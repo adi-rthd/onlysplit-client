@@ -13,12 +13,14 @@ import toast from 'react-hot-toast';
 import { useGroupStore } from '../../store/groupStore';
 import { useExpenseStore } from '../../store/expenseStore';
 import { getCurrencies } from '../../services/currencyService';
+import { getExpenseCategory } from '../../utils/expenseIcons';
 import { useAuthStore } from '../../store/authStore';
 import useCurrencyStore from '../../store/useCurrencyStore';
 
 const AddExpenseModal = () => {
   const navigate = useNavigate();
-  const { groupId } = useParams();
+  const { id: rawGroupId } = useParams();
+  const groupId = rawGroupId && rawGroupId !== 'all' ? rawGroupId : '';
   const { user } = useAuthStore();
   const { currency: storeCurrency } = useCurrencyStore();
   const { groups, fetchGroups } = useGroupStore();
@@ -156,7 +158,7 @@ const AddExpenseModal = () => {
         title: description,
         description: '',
         amount: parseFloat(amount),
-        category: 'General',
+        category: getExpenseCategory(description),
         splitType: splitMethod,
         splits: generateSplits(),
       });
@@ -175,7 +177,7 @@ const AddExpenseModal = () => {
   return (
     <div
       ref={backdropRef}
-      className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-black/70 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] !ml-0 !left-0 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
       onClick={(e) => e.target === backdropRef.current && navigate(-1)}
     >
       <motion.div
@@ -183,7 +185,7 @@ const AddExpenseModal = () => {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 40 }}
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        className="w-full max-w-md bg-surface border border-glass-stroke rounded-t-3xl md:rounded-2xl shadow-2xl flex flex-col max-h-[92vh] md:max-h-[85vh]"
+        className="w-full max-w-md glass-card rounded-2xl shadow-2xl flex flex-col max-h-[92vh] md:max-h-[85vh]"
       >
         {/* HEADER */}
         <div className="flex items-center justify-between px-5 py-4 shrink-0">

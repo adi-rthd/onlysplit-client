@@ -254,12 +254,12 @@ const SettlementsPage = () => {
                 }
               </h2>
 
-              <p className="mt-2 text-sm font-medium text-neon-lime">
+              <p className="mt-2 text-sm font-medium text-green-400">
                 Transactions completed
               </p>
             </div>
 
-            <div className="rounded-2xl bg-neon-lime/10 p-4 text-neon-lime">
+            <div className="rounded-2xl bg-green-400/10 p-4 text-green-400">
               <CheckCircle2 size={22} />
             </div>
           </div>
@@ -368,7 +368,7 @@ const SettlementsPage = () => {
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <CheckCircle2
                 size={52}
-                className="mb-4 text-neon-lime"
+                className="mb-4 text-green-400"
               />
 
               <h3 className="text-xl font-bold text-on-surface">
@@ -386,7 +386,7 @@ const SettlementsPage = () => {
           <div className="mb-6 flex items-center gap-2">
             <CheckCircle2
               size={18}
-              className="text-neon-lime"
+              className="text-green-400"
             />
 
             <h2 className="text-xl font-bold text-on-surface">
@@ -409,7 +409,7 @@ const SettlementsPage = () => {
                   >
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-neon-lime/10 text-neon-lime">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-green-400/10 text-green-400">
                           <CheckCircle2
                             size={20}
                           />
@@ -429,7 +429,7 @@ const SettlementsPage = () => {
                         </div>
                       </div>
 
-                      <div className="rounded-full bg-neon-lime/10 px-3 py-1 text-xs font-semibold text-neon-lime">
+                      <div className="rounded-full bg-green-400/10 px-3 py-1 text-xs font-semibold text-green-400">
                         Completed
                       </div>
                     </div>

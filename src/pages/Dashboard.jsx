@@ -58,14 +58,14 @@ const Dashboard = () => {
     loadData();
   }, []);
 
-  const renderCurrencyTotals = (key) => {
-    if (isLoading || !summary) return <div className="text-[32px] font-bold text-on-surface mb-1">--</div>;
+  const renderCurrencyTotals = (key, colorClass = 'text-on-surface') => {
+    if (isLoading || !summary) return <div className={`text-[28px] md:text-[32px] font-bold ${colorClass} mb-1`}>--</div>;
 
     // Support flat structure where summary contains currency as a string
     if (typeof summary.currency === 'string') {
       return (
         <div className="space-y-1 mb-2">
-          <div className="text-[28px] md:text-[32px] font-bold text-on-surface tracking-tight leading-none">
+          <div className={`text-[28px] md:text-[32px] font-bold ${colorClass} tracking-tight leading-none`}>
             {formatCurrency(summary[key] || 0, summary.currency)}
           </div>
         </div>
@@ -74,12 +74,12 @@ const Dashboard = () => {
 
     // Support multi-currency structure if added in the future
     const entries = summary.balances ? Object.entries(summary.balances) : [];
-    if (entries.length === 0) return <div className="text-[32px] font-bold text-on-surface mb-1">--</div>;
+    if (entries.length === 0) return <div className={`text-[28px] md:text-[32px] font-bold ${colorClass} mb-1`}>--</div>;
 
     return (
       <div className="space-y-1 mb-2">
         {entries.map(([currency, totals]) => (
-          <div key={currency} className="text-[28px] md:text-[32px] font-bold text-on-surface tracking-tight leading-none">
+          <div key={currency} className={`text-[28px] md:text-[32px] font-bold ${colorClass} tracking-tight leading-none`}>
             {formatCurrency(totals[key] || 0, currency)}
           </div>
         ))}
@@ -203,7 +203,7 @@ const Dashboard = () => {
 
           {renderCurrencyTotals('totalSpending')}
 
-          <div className="text-neon-lime flex items-center gap-1.5 text-sm">
+          <div className="text-green-400 flex items-center gap-1.5 text-sm">
             <TrendingUp size={14} />
             <span>{summary?.totalGroups || 0} active groups</span>
           </div>
@@ -221,7 +221,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {renderCurrencyTotals('youOwe')}
+          {renderCurrencyTotals('youOwe', 'text-error')}
 
           <p className="text-on-surface-variant text-sm">
             Across {summary?.youOweGroups || 0} groups
@@ -235,12 +235,12 @@ const Dashboard = () => {
               You Are Owed
             </span>
 
-            <div className="w-9 h-9 rounded-xl bg-neon-lime/10 flex items-center justify-center">
-              <ArrowDownRight className="text-neon-lime" size={18} />
+            <div className="w-9 h-9 rounded-xl bg-green-400/10 flex items-center justify-center">
+              <ArrowDownRight className="text-green-400" size={18} />
             </div>
           </div>
 
-          {renderCurrencyTotals('youAreOwed')}
+          {renderCurrencyTotals('youAreOwed', 'text-green-400')}
 
           <p className="text-on-surface-variant text-sm">
             {summary?.youAreOwedGroups || 0} pending settlements

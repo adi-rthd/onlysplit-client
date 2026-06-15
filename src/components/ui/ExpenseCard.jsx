@@ -35,47 +35,38 @@ const ExpenseCard = ({
   const currency = expense.currency || storeCurrency || 'INR';
 
   return (
-    <GlassPanel onClick={onClick} className="group mb-4 flex items-center justify-between rounded-3xl border border-white/10 p-5 transition-all duration-300 hover:border-primary/30 hover:bg-white/[0.03] hover:shadow-[0_0_30px_rgba(99,102,241,0.12)]">
-      <div className="flex min-w-0 items-center gap-4">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-          
-          <Icon size={24} />
+    <GlassPanel onClick={onClick} className="group mb-3 flex items-center justify-between rounded-2xl border border-white/10 p-4 transition-all duration-300 hover:border-primary/30 hover:bg-white/[0.03] hover:shadow-[0_0_30px_rgba(99,102,241,0.12)]">
+      <div className="flex min-w-0 items-center gap-3">
+        <div className="flex h-10 w-10 md:h-12 md:w-12 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0">
+          <Icon size={20} />
         </div>
 
         <div className="min-w-0">
-          <h4 className="truncate text-lg font-semibold text-on-surface">
+          <h4 className="truncate text-sm md:text-base font-semibold text-on-surface">
             {expense.title ||
               expense.description ||
               'Untitled Expense'}
           </h4>
 
-          <p className="mt-1 text-sm text-on-surface-variant">
+          <p className="mt-0.5 text-xs text-on-surface-variant truncate">
             {formattedDate}
             {' • '}
             Paid by{' '}
             <span className="font-medium text-on-surface">
-              {expense.paidByName ||
-                'Someone'}
+              {expense.paidByName || 'Someone'}
             </span>
           </p>
         </div>
       </div>
 
-      <div className="ml-4 flex items-center gap-5">
+      <div className="ml-3 flex items-center gap-3 shrink-0">
         <div className="text-right">
-          <p className="text-2xl font-bold text-on-surface">
-            {formatCurrency(
-              amount,
-              currency,
-              locale
-            )}
+          <p className="text-base md:text-lg font-bold text-on-surface tabular-nums">
+            {formatCurrency(amount, currency, locale)}
           </p>
 
-          <p className="mt-1 text-xs font-medium text-on-surface-variant">
-            {expense.splitType?.toLowerCase() ===
-            'equal'
-              ? 'Equally split'
-              : 'Custom split'}
+          <p className="mt-0.5 text-[10px] font-medium text-on-surface-variant">
+            {expense.splitType?.toLowerCase() === 'equal' ? 'Equal split' : 'Custom split'}
           </p>
         </div>
 
@@ -83,23 +74,19 @@ const ExpenseCard = ({
           <div className="flex flex-col gap-2 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
             {onEdit && (
               <button
-                onClick={() =>
-                  onEdit(expense)
-                }
+                onClick={(e) => { e.stopPropagation(); onEdit(expense); }}
                 className="rounded-lg p-2 text-on-surface-variant transition-colors hover:bg-primary/10 hover:text-primary"
               >
-                <Edit2 size={15} />
+                <Edit2 size={14} />
               </button>
             )}
 
             {onDelete && (
               <button
-                onClick={() =>
-                  onDelete(expense.id)
-                }
+                onClick={(e) => { e.stopPropagation(); onDelete(expense.id); }}
                 className="rounded-lg p-2 text-on-surface-variant transition-colors hover:bg-error/10 hover:text-error"
               >
-                <Trash2 size={15} />
+                <Trash2 size={14} />
               </button>
             )}
           </div>

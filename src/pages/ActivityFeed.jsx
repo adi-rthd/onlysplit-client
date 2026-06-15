@@ -61,7 +61,7 @@ const ActivityFeed = () => {
         return 'bg-primary/10 border-primary/30 text-primary';
 
       case 'paymentcompleted':
-        return 'bg-neon-lime/10 border-neon-lime/30 text-neon-lime';
+        return 'bg-green-400/10 border-neon-lime/30 text-green-400';
 
       case 'settlementcreated':
         return 'bg-warning/10 border-warning/30 text-warning';
