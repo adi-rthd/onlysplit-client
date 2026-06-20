@@ -29,6 +29,7 @@ const GroupsPage = () => {
   const [sortBy, setSortBy] = useState('recent');
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -308,10 +309,13 @@ const GroupsPage = () => {
         message={`Are you sure you want to delete "${deleteTarget?.name}"? This will permanently remove all expenses and settlements.`}
         confirmText="Delete Group"
         danger
+        isLoading={isDeleting}
         onCancel={() => setDeleteTarget(null)}
         onConfirm={async () => {
-          if (deleteTarget) {
+          if (deleteTarget && !isDeleting) {
+            setIsDeleting(true);
             await handleDeleteGroup(deleteTarget.id);
+            setIsDeleting(false);
             setDeleteTarget(null);
           }
         }}
