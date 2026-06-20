@@ -5,5 +5,8 @@
   "server": {
     "androidScheme": "https",
     "hostname": "app.onlysplit.com"
+  },
+  "android": {
+    "adjustMarginsForEdgeToEdge": "disable"
   }
 }
