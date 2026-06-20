@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- OnlySplit brand colors -->
+    <color name="colorPrimary">#18181B</color>
+    <color name="colorPrimaryDark">#18181B</color>
+    <color name="colorAccent">#4C1D95</color>
+
+    <!-- System bar colors -->
+    <color name="colorStatusBar">#18181B</color>
+    <color name="colorNavigationBar">#18181B</color>
+</resources>
