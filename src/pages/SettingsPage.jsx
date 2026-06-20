@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Shield, Camera, Mail, Globe, Bell, CreditCard, Lock, Check, IndianRupee, Smartphone, Moon, Trash2, ChevronRight, BadgeCheck, KeyRound, UploadCloud, AlertTriangle } from 'lucide-react';
+import { User, Shield, Camera, Mail, Globe, Bell, CreditCard, Lock, Check, IndianRupee, Smartphone, Moon, Trash2, ChevronRight, BadgeCheck, KeyRound, UploadCloud, AlertTriangle, Download } from 'lucide-react';
 import { GlassPanel } from '../components/ui/GlassCard';
 import { getProfile, updateProfile } from '../services/settingsService';
 import { useAuthStore } from '../store/authStore';
 import authService from '../services/authService';
 import { ROUTES } from '../constants/routes';
 import { Capacitor } from '@capacitor/core';
+import { checkForUpdate, downloadUpdate } from '../services/updateService';
 
 const LATEST_JSON_URL = 'https://api-split.onlylabs.in/downloads/latest.json';
 
@@ -19,6 +20,12 @@ const SettingsPage = () => {
   const [saving, setSaving] = useState(false);
 
   const [apkUrl, setApkUrl] = useState('https://api-split.onlylabs.in/downloads/onlysplit-v1.0.1.apk');
+
+  // Native: app version + update state
+  const [appVersion, setAppVersion] = useState('');
+  const [appBuild, setAppBuild] = useState('');
+  const [updateAvailable, setUpdateAvailable] = useState(null);
+  const [updating, setUpdating] = useState(false);
 
   const [comingSoonModal, setComingSoonModal] =
     useState('');
@@ -39,10 +46,26 @@ const SettingsPage = () => {
 
   useEffect(() => {
     fetchProfile();
-    // Fetch latest APK URL (only on web — native uses updateService)
-    if (!Capacitor.isNativePlatform()) {
+
+    if (Capacitor.isNativePlatform()) {
+      // Get installed version
+      import('@capacitor/device').then(({ Device }) => {
+        Device.getInfo().then((info) => {
+          setAppVersion(info.appVersion || '1.0.0');
+          setAppBuild(info.appBuild || '1');
+        });
+      });
+      // Check for updates
+      checkForUpdate().then((info) => {
+        if (info) setUpdateAvailable(info);
+      });
+    } else {
+      // Web: fetch APK URL for download button
       fetch(LATEST_JSON_URL, { cache: 'no-store' })
-        .then((res) => res.json())
+        .then((res) => {
+          if (!res.ok) throw new Error();
+          return res.json();
+        })
         .then((data) => {
           if (data?.apkUrl) setApkUrl(data.apkUrl);
         })
@@ -636,47 +659,120 @@ const SettingsPage = () => {
           </div>
         </GlassPanel>
 
-        {/* MOBILE APP - Only show on web, not inside the native app */}
-        {!Capacitor.isNativePlatform() && (
-        <GlassPanel className="p-8 rounded-[32px]">
-          <h2 className="text-2xl font-bold mb-8 flex items-center gap-3">
-            <Smartphone className="text-primary" size={26} />
-            Mobile App
-          </h2>
+        {/* APP VERSION & UPDATE (native) / DOWNLOAD (web) */}
+        {Capacitor.isNativePlatform() ? (
+          <GlassPanel className="p-8 rounded-[32px]">
+            <h2 className="text-2xl font-bold mb-8 flex items-center gap-3">
+              <Smartphone className="text-primary" size={26} />
+              About
+            </h2>
 
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <div>
-              <h3 className="font-semibold text-lg">
-                Download for Android
-              </h3>
-              <p className="text-sm text-on-surface-variant mt-1">
-                Get the native OnlySplit app for a faster, offline-ready experience.
-              </p>
+            <div className="space-y-5">
+              {/* Version info */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-lg">Version</h3>
+                  <p className="text-sm text-on-surface-variant mt-1">
+                    v{appVersion} (Build {appBuild})
+                  </p>
+                </div>
+                {!updateAvailable && (
+                  <span className="px-3 py-1.5 rounded-full bg-neon-lime/10 text-neon-lime text-xs font-semibold">
+                    Up to date
+                  </span>
+                )}
+              </div>
+
+              {/* Update available */}
+              {updateAvailable && (
+                <div className="rounded-2xl border border-primary/30 bg-primary/5 p-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <h3 className="font-semibold text-lg text-on-surface">
+                        Update Available
+                      </h3>
+                      <p className="text-sm text-on-surface-variant mt-0.5">
+                        v{updateAvailable.version} is ready to install
+                      </p>
+                    </div>
+                  </div>
+
+                  {updateAvailable.releaseNotes?.length > 0 && (
+                    <ul className="space-y-1 mb-4">
+                      {updateAvailable.releaseNotes.map((note, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm text-on-surface-variant">
+                          <span className="text-primary mt-0.5">•</span>
+                          {note}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  <button
+                    onClick={async () => {
+                      setUpdating(true);
+                      await downloadUpdate(updateAvailable.apkUrl);
+                      setTimeout(() => setUpdating(false), 3000);
+                    }}
+                    disabled={updating}
+                    className="w-full py-3 rounded-xl bg-primary text-white font-semibold flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-60"
+                  >
+                    {updating ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Opening...
+                      </>
+                    ) : (
+                      <>
+                        <Download size={16} />
+                        Update Now
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
             </div>
+          </GlassPanel>
+        ) : (
+          <GlassPanel className="p-8 rounded-[32px]">
+            <h2 className="text-2xl font-bold mb-8 flex items-center gap-3">
+              <Smartphone className="text-primary" size={26} />
+              Mobile App
+            </h2>
 
-            <a
-              href={apkUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="
-                px-6 py-3
-                rounded-2xl
-                bg-primary/10
-                border border-primary/30
-                text-primary
-                hover:bg-primary/20
-                transition-all duration-300
-                hover:shadow-[0_0_25px_rgba(124,108,255,0.2)]
-                font-semibold
-                flex items-center gap-3
-                w-fit
-              "
-            >
-              <Smartphone size={18} />
-              Download APK
-            </a>
-          </div>
-        </GlassPanel>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+              <div>
+                <h3 className="font-semibold text-lg">
+                  Download for Android
+                </h3>
+                <p className="text-sm text-on-surface-variant mt-1">
+                  Get the native OnlySplit app for a faster, offline-ready experience.
+                </p>
+              </div>
+
+              <a
+                href={apkUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="
+                  px-6 py-3
+                  rounded-2xl
+                  bg-primary/10
+                  border border-primary/30
+                  text-primary
+                  hover:bg-primary/20
+                  transition-all duration-300
+                  hover:shadow-[0_0_25px_rgba(124,108,255,0.2)]
+                  font-semibold
+                  flex items-center gap-3
+                  w-fit
+                "
+              >
+                <Smartphone size={18} />
+                Download APK
+              </a>
+            </div>
+          </GlassPanel>
         )}
 
         <GlassPanel className="p-8 rounded-[32px] border border-error/20">
