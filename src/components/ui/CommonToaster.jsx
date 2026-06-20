@@ -7,6 +7,10 @@ export default function CommonToaster() {
                 position="top-right"
                 reverseOrder={false}
                 gutter={20}
+                containerStyle={{
+                    // Push toasts below the transparent status bar on native
+                    top: 'env(safe-area-inset-top, 0px)',
+                }}
                 toastOptions={{
                     duration: 3000,
 

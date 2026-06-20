@@ -5,8 +5,7 @@ import { useAuthStore } from '../store/authStore';
 //   1. VITE_API_BASE_URL (set per-environment via .env / .env.production)
 //   2. Fallback to the production API so existing web behaviour is preserved
 //      even if no env var is provided.
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || 'https://api-split.onlylabs.in/api';
+const API_BASE_URL = 'https://api-split.onlylabs.in/api';
 
 const client = axios.create({
   baseURL: API_BASE_URL,

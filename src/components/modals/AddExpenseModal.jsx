@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -174,10 +175,11 @@ const AddExpenseModal = () => {
     return (Number(amount) / selectedMembers.length).toFixed(2);
   }, [amount, selectedMembers.length, splitMethod]);
 
-  return (
+  return createPortal(
     <div
       ref={backdropRef}
-      className="fixed inset-0 z-[100] !ml-0 !left-0 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+      style={{ margin: 0, padding: 16, left: 0, right: 0, top: 0, bottom: 0 }}
       onClick={(e) => e.target === backdropRef.current && navigate(-1)}
     >
       <motion.div
@@ -199,7 +201,7 @@ const AddExpenseModal = () => {
         </div>
 
         {/* SCROLLABLE BODY */}
-        <div className="flex-1 overflow-y-auto hide-scrollbar px-5 pb-5 space-y-5">
+        <div className="flex-1 hide-scrollbar px-5 pb-5 space-y-5">
 
           {/* AMOUNT INPUT */}
           <div className="rounded-xl bg-surface-container-low border border-glass-stroke p-4">
@@ -378,7 +380,8 @@ const AddExpenseModal = () => {
           </button>
         </div>
       </motion.div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

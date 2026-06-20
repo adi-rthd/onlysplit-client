@@ -6,6 +6,9 @@ import { getProfile, updateProfile } from '../services/settingsService';
 import { useAuthStore } from '../store/authStore';
 import authService from '../services/authService';
 import { ROUTES } from '../constants/routes';
+import { Capacitor } from '@capacitor/core';
+
+const LATEST_JSON_URL = 'https://api-split.onlylabs.in/downloads/latest.json';
 
 const SettingsPage = () => {
   const navigate = useNavigate();
@@ -14,6 +17,8 @@ const SettingsPage = () => {
   const [loading, setLoading] = useState(true);
 
   const [saving, setSaving] = useState(false);
+
+  const [apkUrl, setApkUrl] = useState('https://api-split.onlylabs.in/downloads/onlysplit-v1.0.1.apk');
 
   const [comingSoonModal, setComingSoonModal] =
     useState('');
@@ -34,6 +39,15 @@ const SettingsPage = () => {
 
   useEffect(() => {
     fetchProfile();
+    // Fetch latest APK URL (only on web — native uses updateService)
+    if (!Capacitor.isNativePlatform()) {
+      fetch(LATEST_JSON_URL, { cache: 'no-store' })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.apkUrl) setApkUrl(data.apkUrl);
+        })
+        .catch(() => {});
+    }
   }, []);
 
   const fetchProfile = async () => {
@@ -621,6 +635,50 @@ const SettingsPage = () => {
             </div>
           </div>
         </GlassPanel>
+
+        {/* MOBILE APP - Only show on web, not inside the native app */}
+        {!Capacitor.isNativePlatform() && (
+        <GlassPanel className="p-8 rounded-[32px]">
+          <h2 className="text-2xl font-bold mb-8 flex items-center gap-3">
+            <Smartphone className="text-primary" size={26} />
+            Mobile App
+          </h2>
+
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div>
+              <h3 className="font-semibold text-lg">
+                Download for Android
+              </h3>
+              <p className="text-sm text-on-surface-variant mt-1">
+                Get the native OnlySplit app for a faster, offline-ready experience.
+              </p>
+            </div>
+
+            <a
+              href={apkUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="
+                px-6 py-3
+                rounded-2xl
+                bg-primary/10
+                border border-primary/30
+                text-primary
+                hover:bg-primary/20
+                transition-all duration-300
+                hover:shadow-[0_0_25px_rgba(124,108,255,0.2)]
+                font-semibold
+                flex items-center gap-3
+                w-fit
+              "
+            >
+              <Smartphone size={18} />
+              Download APK
+            </a>
+          </div>
+        </GlassPanel>
+        )}
+
         <GlassPanel className="p-8 rounded-[32px] border border-error/20">
           <h2 className="text-2xl font-bold mb-8 flex items-center gap-3 text-error">
             <Lock size={26} />
