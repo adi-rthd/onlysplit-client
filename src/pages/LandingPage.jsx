@@ -12,7 +12,6 @@ import {
   Receipt,
   Menu,
   X,
-  Smartphone,
 } from 'lucide-react';
 
 import { GlassCard } from '../components/ui/GlassCard';
@@ -20,8 +19,6 @@ import { GradientButton } from '../components/ui/GradientButton';
 import { ROUTES } from '../constants/routes';
 
 import analyticsService from '../services/analyticsService';
-
-const LATEST_JSON_URL = 'https://api-split.onlylabs.in/downloads/latest.json';
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -35,21 +32,6 @@ const LandingPage = () => {
   });
 
   const [loading, setLoading] = useState(true);
-
-  const [apkUrl, setApkUrl] = useState('https://api-split.onlylabs.in/downloads/onlysplit-v1.0.1.apk');
-
-  useEffect(() => {
-    // Fetch latest APK URL (silent fail if offline)
-    fetch(LATEST_JSON_URL, { cache: 'no-store' })
-      .then((res) => {
-        if (!res.ok) throw new Error();
-        return res.json();
-      })
-      .then((data) => {
-        if (data?.apkUrl) setApkUrl(data.apkUrl);
-      })
-      .catch(() => { /* silent — fallback URL is fine */ });
-  }, []);
 
   useEffect(() => {
     const loadPlatformStats = async () => {
@@ -337,16 +319,6 @@ const LandingPage = () => {
                 <PlayCircle size={18} />
                 View Demo
               </button>
-
-              <a
-                href={apkUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hidden sm:flex w-full sm:w-auto px-8 py-4 rounded-2xl border border-lime-400/20 bg-lime-400/5 backdrop-blur-xl text-lime-400 items-center justify-center gap-2 hover:bg-lime-400/10 transition-all font-medium"
-              >
-                <Smartphone size={18} />
-                Download for Android
-              </a>
             </motion.div>
           </div>
         </section>

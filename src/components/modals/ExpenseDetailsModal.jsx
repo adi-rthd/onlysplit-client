@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getExpenseIcon } from '../../utils/expenseIcons';
 import { useExpenseStore } from '../../store/expenseStore';
 import { useState, useEffect } from 'react';
-import toast from 'react-hot-toast';
 import ConfirmModal from './ConfirmModal';
 
 const ExpenseDetailsModal = ({
@@ -27,16 +26,9 @@ const ExpenseDetailsModal = ({
 
         try {
             await deleteExpense(expense.id);
-
-            toast.success(
-                'Expense deleted successfully'
-            );
-
             onClose();
         } catch {
-            toast.error(
-                'Failed to delete expense'
-            );
+            // Error toast handled by expenseService
         }
     };
     const splitCount = expense.splits?.length || 0;
