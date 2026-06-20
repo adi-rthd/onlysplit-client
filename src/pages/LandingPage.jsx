@@ -342,7 +342,7 @@ const LandingPage = () => {
                 href={apkUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full sm:w-auto px-8 py-4 rounded-2xl border border-lime-400/20 bg-lime-400/5 backdrop-blur-xl text-lime-400 flex items-center justify-center gap-2 hover:bg-lime-400/10 transition-all font-medium"
+                className="hidden sm:flex w-full sm:w-auto px-8 py-4 rounded-2xl border border-lime-400/20 bg-lime-400/5 backdrop-blur-xl text-lime-400 items-center justify-center gap-2 hover:bg-lime-400/10 transition-all font-medium"
               >
                 <Smartphone size={18} />
                 Download for Android
