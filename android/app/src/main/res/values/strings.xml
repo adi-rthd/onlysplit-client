@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">OnlySplit</string>
+    <string name="title_activity_main">OnlySplit</string>
+    <string name="package_name">com.onlysplit.app</string>
+    <string name="custom_url_scheme">com.onlysplit.app</string>
+</resources>
