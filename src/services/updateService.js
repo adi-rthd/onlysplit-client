@@ -48,7 +48,7 @@ export async function checkForUpdate() {
     // Capacitor returns appBuild as a string
     const installedVersionCode = parseInt(info.appBuild, 10) || 0;
 
-    if (latest.versionCode > installedVersionCode) {
+    if (latest.versionCode > installedVersionCode || latest.version !== info.appVersion) {
       return latest;
     }
 
