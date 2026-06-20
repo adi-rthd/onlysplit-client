@@ -43,12 +43,16 @@ export async function checkForUpdate() {
     /** @type {UpdateInfo} */
     const latest = await response.json();
 
-    // Get installed build number
-    const info = await Device.getInfo();
-    // Capacitor returns appBuild as a string
-    const installedVersionCode = parseInt(info.appBuild, 10) || 0;
+    // Get installed app version from @capacitor/app (not device)
+    const { App } = await import('@capacitor/app');
+    const appInfo = await App.getInfo();
+    const installedVersionCode = parseInt(appInfo.build, 10) || 0;
+    const installedVersion = appInfo.version || '';
 
-    if (latest.versionCode > installedVersionCode || latest.version !== info.appVersion) {
+    console.log('[UpdateService] Installed:', installedVersion, 'build:', installedVersionCode);
+    console.log('[UpdateService] Server:', latest.version, 'build:', latest.versionCode);
+
+    if (latest.versionCode > installedVersionCode || latest.version.trim() !== installedVersion.trim()) {
       return latest;
     }
 

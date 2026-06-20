@@ -1,105 +1,67 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+/**
+ * Edit Expense Modal — allows updating an existing expense.
+ * Pre-fills all fields from the current expense data.
+ * Calls PUT /api/expenses/{id} via the expense store.
+ */
+import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import {
-  X,
-  IndianRupee,
-  Users,
-  ChevronsUpDown,
-  Loader2,
-  Check,
-} from 'lucide-react';
+import { X, Loader2, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useGroupStore } from '../../store/groupStore';
 import { useExpenseStore } from '../../store/expenseStore';
+import { useGroupStore } from '../../store/groupStore';
+import { useAuthStore } from '../../store/authStore';
 import { getCurrencies } from '../../services/currencyService';
 import { getExpenseCategory } from '../../utils/expenseIcons';
-import { useAuthStore } from '../../store/authStore';
 import useCurrencyStore from '../../store/useCurrencyStore';
 
-const AddExpenseModal = () => {
-  const navigate = useNavigate();
-  const { id: rawGroupId } = useParams();
-  const groupId = rawGroupId && rawGroupId !== 'all' ? rawGroupId : '';
+const EditExpenseModal = ({ expense, groupId, onClose, onUpdated }) => {
+  const { updateExpense } = useExpenseStore();
+  const { currentGroup } = useGroupStore();
   const { user } = useAuthStore();
   const { currency: storeCurrency } = useCurrencyStore();
-  const { groups, fetchGroups } = useGroupStore();
-  const { createExpense, isLoading: isSubmitting } = useExpenseStore();
-  const backdropRef = useRef(null);
-  const amountRef = useRef(null);
 
-  const [currencies, setCurrencies] = useState([]);
-  const [amount, setAmount] = useState('');
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [selectedGroupId, setSelectedGroupId] = useState(groupId || '');
-  const [splitMethod, setSplitMethod] = useState('equal');
-  const [selectedMembers, setSelectedMembers] = useState([]);
+  const [amount, setAmount] = useState(String(expense?.amount || ''));
+  const [title, setTitle] = useState(expense?.title || '');
+  const [description, setDescription] = useState(expense?.description || '');
+  const [splitMethod, setSplitMethod] = useState(expense?.splitType || expense?.splits?.[0]?.splitType || 'equal');
+  const [selectedMembers, setSelectedMembers] = useState(
+    expense?.splits?.map((s) => s.userId) || []
+  );
   const [splitValues, setSplitValues] = useState({});
+  const [saving, setSaving] = useState(false);
+  const [currencies, setCurrencies] = useState([]);
 
-  const isGroupContext = Boolean(groupId);
+  const members = useMemo(() => currentGroup?.members || [], [currentGroup]);
 
-  // Escape key handler
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') navigate(-1);
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [navigate]);
-
-  // Auto-focus amount input on mount
-  useEffect(() => {
-    setTimeout(() => amountRef.current?.focus(), 100);
+    getCurrencies().then((data) => { if (data) setCurrencies(data); });
   }, []);
 
-  useEffect(() => { fetchGroups(); }, []);
-
+  // Initialize split values for non-equal methods
   useEffect(() => {
-    const loadCurrencies = async () => {
-      const data = await getCurrencies();
-      setCurrencies(data || []);
-    };
-    loadCurrencies();
+    if (splitMethod !== 'equal' && expense?.splits) {
+      const values = {};
+      expense.splits.forEach((s) => {
+        if (splitMethod === 'percentage') values[s.userId] = s.percentage || '';
+        else if (splitMethod === 'shares') values[s.userId] = s.shares || '';
+        else values[s.userId] = s.amountOwed || s.amount || '';
+      });
+      setSplitValues(values);
+    }
   }, []);
-
-  useEffect(() => {
-    if (groups.length > 0 && !selectedGroupId) {
-      setSelectedGroupId(groups[0].id);
-    }
-  }, [groups]);
-
-  const selectedGroup = useMemo(() => {
-    return groups.find((g) => g.id === selectedGroupId);
-  }, [groups, selectedGroupId]);
-
-  const members = useMemo(() => {
-    if (!selectedGroup?.members) return [];
-    return selectedGroup.members;
-  }, [selectedGroup, user]);
-
-  useEffect(() => {
-    setSplitValues({});
-    if (members.length > 0) {
-      setSelectedMembers(members.map((m) => m.userId));
-    } else {
-      setSelectedMembers([]);
-    }
-  }, [selectedGroupId, members.length]);
 
   const currencySymbol = useMemo(() => {
-    const activeCurrency = selectedGroup?.currency || storeCurrency || 'INR';
-    if (activeCurrency === 'INR') return '₹';
-    if (activeCurrency === 'USD') return '$';
-    if (activeCurrency === 'EUR') return '€';
-    if (activeCurrency === 'GBP') return '£';
-    const currencyItem = currencies.find((c) => (c.iso_code || c.code) === activeCurrency);
-    return currencyItem?.symbol || activeCurrency;
-  }, [currencies, selectedGroup, storeCurrency]);
+    const active = currentGroup?.currency || storeCurrency || 'INR';
+    if (active === 'INR') return '₹';
+    if (active === 'USD') return '$';
+    if (active === 'EUR') return '€';
+    if (active === 'GBP') return '£';
+    return active;
+  }, [currentGroup, storeCurrency]);
 
   const totalPercentage = useMemo(() => {
-    return selectedMembers.reduce((acc, memberId) => acc + Number(splitValues[memberId] || 0), 0);
+    return selectedMembers.reduce((acc, id) => acc + Number(splitValues[id] || 0), 0);
   }, [selectedMembers, splitValues]);
 
   const toggleMember = (memberId) => {
@@ -112,38 +74,35 @@ const AddExpenseModal = () => {
     );
   };
 
-  const handleSplitValueChange = (memberId, value) => {
-    setSplitValues((prev) => ({ ...prev, [memberId]: value }));
-  };
-
   const generateSplits = () => {
     const totalAmount = Number(amount);
     if (splitMethod === 'equal') {
-      const perPerson = totalAmount / selectedMembers.length;
-      return selectedMembers.map((memberId) => ({ userId: memberId, amount: Number(perPerson.toFixed(2)) }));
+      return selectedMembers.map((userId) => ({ userId }));
     }
     if (splitMethod === 'percentage') {
-      return selectedMembers.map((memberId) => {
-        const percent = Number(splitValues[memberId] || 0);
-        return { userId: memberId, percentage: percent, amount: Number(((totalAmount * percent) / 100).toFixed(2)) };
-      });
+      return selectedMembers.map((userId) => ({
+        userId,
+        percentage: Number(splitValues[userId] || 0),
+      }));
     }
     if (splitMethod === 'exact') {
-      return selectedMembers.map((memberId) => ({ userId: memberId, amount: Number(splitValues[memberId] || 0) }));
+      return selectedMembers.map((userId) => ({
+        userId,
+        amount: Number(splitValues[userId] || 0),
+      }));
     }
     if (splitMethod === 'shares') {
-      const totalShares = selectedMembers.reduce((acc, id) => acc + Number(splitValues[id] || 0), 0);
-      return selectedMembers.map((memberId) => {
-        const shares = Number(splitValues[memberId] || 0);
-        return { userId: memberId, shares, amount: Number(((totalAmount * shares) / totalShares).toFixed(2)) };
-      });
+      return selectedMembers.map((userId) => ({
+        userId,
+        shares: Number(splitValues[userId] || 0),
+      }));
     }
     return [];
   };
 
-  const handleSubmit = async () => {
-    if (!amount || !title || !selectedGroupId) {
-      toast.error('Please fill in all fields');
+  const handleSave = async () => {
+    if (!amount || !title) {
+      toast.error('Title and amount are required.');
       return;
     }
     if (selectedMembers.length === 0) {
@@ -151,37 +110,34 @@ const AddExpenseModal = () => {
       return;
     }
     if (splitMethod === 'percentage' && Math.round(totalPercentage) !== 100) {
-      toast.error(`Total percentage is ${totalPercentage}%. It must equal 100%.`);
+      toast.error(`Total percentage is ${totalPercentage}%. Must equal 100%.`);
       return;
     }
+
+    setSaving(true);
     try {
-      await createExpense({
-        groupId: selectedGroupId,
-        title: title,
-        description: description,
+      await updateExpense(expense.id, {
+        title,
+        description,
         amount: parseFloat(amount),
         category: getExpenseCategory(title),
         splitType: splitMethod,
         splits: generateSplits(),
       });
-      navigate(-1);
-    } catch (error) {
-      console.error(error);
+      onUpdated?.();
+      onClose();
+    } catch (err) {
+      // Error toast handled by service
+    } finally {
+      setSaving(false);
     }
   };
 
-  const perPersonAmount = useMemo(() => {
-    if (!amount || selectedMembers.length === 0) return '';
-    if (splitMethod !== 'equal') return '';
-    return (Number(amount) / selectedMembers.length).toFixed(2);
-  }, [amount, selectedMembers.length, splitMethod]);
-
   return createPortal(
     <div
-      ref={backdropRef}
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
-      style={{ margin: 0, padding: 16, left: 0, right: 0, top: 0, bottom: 0 }}
-      onClick={(e) => e.target === backdropRef.current && navigate(-1)}
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+      style={{ margin: 0, padding: 16, top: 0, left: 0, right: 0, bottom: 0 }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <motion.div
         initial={{ opacity: 0, y: 40 }}
@@ -190,21 +146,20 @@ const AddExpenseModal = () => {
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
         className="w-full max-w-md glass-card rounded-2xl shadow-2xl flex flex-col max-h-[92vh] md:max-h-[85vh]"
       >
-        {/* HEADER */}
+        {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 shrink-0">
-          <h2 className="text-lg font-bold text-on-surface">Add Expense</h2>
+          <h2 className="text-lg font-bold text-on-surface">Edit Expense</h2>
           <button
-            onClick={() => navigate(-1)}
+            onClick={onClose}
             className="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center hover:bg-white/10 transition-colors"
           >
             <X size={16} className="text-on-surface-variant" />
           </button>
         </div>
 
-        {/* SCROLLABLE BODY */}
-        <div className="flex-1 hide-scrollbar px-5 pb-5 space-y-5">
-
-          {/* AMOUNT INPUT */}
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto hide-scrollbar px-5 pb-5 space-y-5">
+          {/* Amount */}
           <div className="rounded-xl bg-surface-container-low border border-glass-stroke p-4">
             <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider block mb-2">
               Amount
@@ -212,28 +167,20 @@ const AddExpenseModal = () => {
             <div className="flex items-center gap-2">
               <span className="text-xl text-on-surface-variant font-semibold">{currencySymbol}</span>
               <input
-                ref={amountRef}
                 type="text"
                 inputMode="decimal"
-                className="flex-1 bg-transparent text-2xl font-bold text-on-surface outline-none border-none ring-0 focus:ring-0 focus:border-none placeholder:text-on-surface-variant/40"
+                className="flex-1 bg-transparent text-2xl font-bold text-on-surface outline-none border-none ring-0 focus:ring-0 placeholder:text-on-surface-variant/40"
                 placeholder="0.00"
                 value={amount}
                 onChange={(e) => {
                   const val = e.target.value;
-                  if (val === '' || /^\d*\.?\d*$/.test(val)) {
-                    setAmount(val);
-                  }
+                  if (val === '' || /^\d*\.?\d*$/.test(val)) setAmount(val);
                 }}
               />
             </div>
-            {perPersonAmount && (
-              <p className="text-xs text-on-surface-variant mt-2">
-                {currencySymbol}{perPersonAmount} per person × {selectedMembers.length}
-              </p>
-            )}
           </div>
 
-          {/* TITLE */}
+          {/* Title */}
           <div>
             <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider block mb-1.5">
               Title
@@ -246,44 +193,20 @@ const AddExpenseModal = () => {
             />
           </div>
 
-          {/* DESCRIPTION */}
+          {/* Description */}
           <div>
             <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider block mb-1.5">
               Description (optional)
             </label>
             <input
               className="w-full bg-surface-container-low border border-glass-stroke rounded-xl px-4 py-3 text-on-surface outline-none ring-0 focus:ring-0 focus:border-primary/40 placeholder:text-on-surface-variant/50 text-sm transition-colors"
-              placeholder="Additional notes..."
+              placeholder="Additional details..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
 
-          {/* GROUP SELECTOR */}
-          {!isGroupContext && (
-            <div>
-              <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider block mb-1.5">
-                Group
-              </label>
-              <div className="relative">
-                <Users size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" />
-                <select
-                  className="w-full bg-surface-container-low border border-glass-stroke rounded-xl pl-10 pr-10 py-3 text-on-surface outline-none appearance-none cursor-pointer text-sm"
-                  value={selectedGroupId}
-                  onChange={(e) => setSelectedGroupId(e.target.value)}
-                >
-                  {groups.map((g) => (
-                    <option key={g.id} value={g.id} className="bg-surface-charcoal text-on-surface">
-                      {g.name}
-                    </option>
-                  ))}
-                </select>
-                <ChevronsUpDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" />
-              </div>
-            </div>
-          )}
-
-          {/* SPLIT METHOD */}
+          {/* Split Method */}
           <div>
             <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider block mb-1.5">
               Split Method
@@ -305,7 +228,7 @@ const AddExpenseModal = () => {
             </div>
           </div>
 
-          {/* SPLIT WITH */}
+          {/* Members */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">
@@ -353,7 +276,7 @@ const AddExpenseModal = () => {
                           onChange={(e) => {
                             const val = e.target.value;
                             if (val === '' || /^\d*\.?\d*$/.test(val)) {
-                              handleSplitValueChange(member.userId, val);
+                              setSplitValues((prev) => ({ ...prev, [member.userId]: val }));
                             }
                           }}
                           placeholder={splitMethod === 'percentage' ? '0' : splitMethod === 'shares' ? '1' : '0'}
@@ -377,20 +300,21 @@ const AddExpenseModal = () => {
           </div>
         </div>
 
-        {/* FOOTER */}
+        {/* Footer */}
         <div className="px-5 py-4 border-t border-glass-stroke flex gap-3 shrink-0">
           <button
-            onClick={() => navigate(-1)}
+            onClick={onClose}
+            disabled={saving}
             className="flex-1 py-3 rounded-xl border border-glass-stroke text-on-surface-variant text-sm font-medium hover:bg-white/5 transition-colors"
           >
             Cancel
           </button>
           <button
-            onClick={handleSubmit}
-            disabled={isSubmitting || !amount || !title}
+            onClick={handleSave}
+            disabled={saving || !amount || !title}
             className="flex-1 py-3 rounded-xl bg-primary text-white text-sm font-semibold flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : 'Split Expense'}
+            {saving ? <Loader2 size={16} className="animate-spin" /> : 'Save Changes'}
           </button>
         </div>
       </motion.div>
@@ -399,4 +323,4 @@ const AddExpenseModal = () => {
   );
 };
 
-export default AddExpenseModal;
+export default EditExpenseModal;

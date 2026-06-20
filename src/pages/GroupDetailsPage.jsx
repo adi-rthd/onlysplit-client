@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { ROUTES } from '../constants/routes';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Users, Receipt, Sparkles, Wallet, UserPlus, Search, SortAsc, X, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Plus, Users, Receipt, Sparkles, Wallet, UserPlus, Search, SortAsc, X, RefreshCw, Pencil } from 'lucide-react';
 
 import { GlassPanel } from '../components/ui/GlassCard';
 import { useGroupStore } from '../store/groupStore';
@@ -15,6 +15,8 @@ import SettlementCard from '../components/ui/SettlementCard';
 import MemberBalanceList from '../components/ui/MemberBalanceList';
 import useCurrencyStore from '../store/useCurrencyStore';
 import ExpenseDetailsModal from '../components/modals/ExpenseDetailsModal';
+import EditGroupModal from '../components/modals/EditGroupModal';
+import EditExpenseModal from '../components/modals/EditExpenseModal';
 import { AnimatePresence } from 'framer-motion';
 
 
@@ -30,10 +32,15 @@ const GroupDetailsPage = () => {
   const { balances, settlements, fetchBalances, fetchSettlements, regenerateSettlements, isLoading: isSettlementsLoading } = useSettlementStore();
   const [activeTab, setActiveTab] = useState('expenses');
   const [selectedExpense, setSelectedExpense] = useState(null);
+  const [editingExpense, setEditingExpense] = useState(null);
   const [expenseSearch, setExpenseSearch] = useState('');
   const [showExpenseSearch, setShowExpenseSearch] = useState(false);
   const [expenseSort, setExpenseSort] = useState('recent');
   const [showExpenseSort, setShowExpenseSort] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+
+  // Check if current user is the group owner
+  const isOwner = currentGroup?.createdBy === user?.id;
 
   useEffect(() => {
     if (!groupId) return;
@@ -188,6 +195,16 @@ const GroupDetailsPage = () => {
               <span className="hidden md:inline text-xs font-medium">Recalculate</span>
             </button>
 
+            {isOwner && (
+              <button
+                onClick={() => setShowEditModal(true)}
+                className="w-9 h-9 md:w-auto md:h-auto md:px-3 md:py-2 rounded-xl glass-button text-on-surface flex items-center justify-center gap-2"
+              >
+                <Pencil size={16} className="text-primary" />
+                <span className="hidden md:inline text-xs font-medium">Edit</span>
+              </button>
+            )}
+
             <button
               onClick={() => navigate(ROUTES.INVITE_MODAL.replace(':id', groupId))}
               className="w-9 h-9 md:w-auto md:h-auto md:px-3 md:py-2 rounded-xl glass-button text-on-surface flex items-center justify-center gap-2"
@@ -332,6 +349,10 @@ const GroupDetailsPage = () => {
               <ExpenseDetailsModal
                 expense={selectedExpense}
                 onClose={() => setSelectedExpense(null)}
+                onEdit={(exp) => {
+                  setSelectedExpense(null);
+                  setEditingExpense(exp);
+                }}
               />
             )}
           </AnimatePresence>
@@ -425,6 +446,29 @@ const GroupDetailsPage = () => {
           </GlassPanel>
         </div>
       </div>
+
+      {/* Edit Group Modal — only rendered for owner */}
+      {showEditModal && (
+        <EditGroupModal
+          group={currentGroup}
+          onClose={() => setShowEditModal(false)}
+          onUpdated={() => fetchGroupById(groupId)}
+        />
+      )}
+
+      {/* Edit Expense Modal */}
+      {editingExpense && (
+        <EditExpenseModal
+          expense={editingExpense}
+          groupId={groupId}
+          onClose={() => setEditingExpense(null)}
+          onUpdated={() => {
+            fetchExpenses(groupId);
+            fetchBalances(groupId);
+            fetchSettlements(groupId);
+          }}
+        />
+      )}
     </div>
   );
 };
