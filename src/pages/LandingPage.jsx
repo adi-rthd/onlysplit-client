@@ -63,7 +63,7 @@ const LandingPage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#05060a] overflow-hidden text-white">
+    <div className="min-h-screen bg-[#05060a] overflow-x-hidden overflow-y-auto text-white">
 
       <div className="absolute top-[-5%] left-[-5%] w-[800px] h-[800px] rounded-full bg-[radial-gradient(circle,rgba(94,92,230,0.10)_0%,transparent_90%)] blur-3xl pointer-events-none" />
 
