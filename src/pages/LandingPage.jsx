@@ -321,20 +321,13 @@ const LandingPage = () => {
                 View Demo
               </button>
 
-              <a
-                href="https://api-split.onlylabs.in/downloads/latest.json"
-                onClick={(e) => {
-                  e.preventDefault();
-                  fetch('https://api-split.onlylabs.in/downloads/latest.json')
-                    .then(r => r.json())
-                    .then(d => { if (d?.apkUrl) window.open(d.apkUrl, '_blank'); })
-                    .catch(() => window.open('https://api-split.onlylabs.in/downloads/', '_blank'));
-                }}
+              <button
+                onClick={() => navigate(ROUTES.DOWNLOAD)}
                 className="hidden sm:flex w-full sm:w-auto px-8 py-4 rounded-2xl border border-lime-400/20 bg-lime-400/5 backdrop-blur-xl text-lime-400 items-center justify-center gap-2 hover:bg-lime-400/10 transition-all font-medium cursor-pointer"
               >
                 <Smartphone size={18} />
                 Download for Android
-              </a>
+              </button>
             </motion.div>
           </div>
         </section>

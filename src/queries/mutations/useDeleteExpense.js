@@ -33,7 +33,7 @@ export function useDeleteExpense(groupId) {
           context.previousExpenses
         );
       }
-      toast.error(`Failed to delete expense: ${err.message}`);
+      toast.error(err.message || 'Failed to delete expense');
     },
 
     onSuccess: () => {
