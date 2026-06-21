@@ -1,161 +1,50 @@
 import client from '../api/client';
-import { handleApiError } from '../utils/apiErrorHandler';
-import toast from 'react-hot-toast';
 
+/**
+ * Friendship service — friend management operations.
+ *
+ * All methods return raw data on success and let errors propagate.
+ * Callers (mutation hooks, stores) are responsible for error handling and toasts.
+ */
 const FriendshipStore = {
   searchUsers: async (query) => {
-    try {
-      const { data } = await client.get(
-        `/friends/search?q=${query}`
-      );
-
-      return data?.data ?? [];
-    } catch (error) {
-      handleApiError(
-        error,
-        'Failed to search users.'
-      );
-
-      return [];
-    }
+    const { data } = await client.get(`/friends/search?q=${query}`);
+    return data?.data ?? [];
   },
 
   getFriends: async () => {
-    try {
-      const { data } = await client.get(
-        '/friends'
-      );
-
-      return data?.data ?? [];
-    } catch (error) {
-      handleApiError(
-        error,
-        'Failed to load friends.'
-      );
-
-      return [];
-    }
+    const { data } = await client.get('/friends');
+    return data?.data ?? [];
   },
 
   getRequests: async () => {
-    try {
-      const { data } = await client.get(
-        '/friends/requests'
-      );
-
-      return data?.data ?? [];
-    } catch (error) {
-      handleApiError(
-        error,
-        'Failed to load friend requests.'
-      );
-
-      return [];
-    }
+    const { data } = await client.get('/friends/requests');
+    return data?.data ?? [];
   },
 
   getSent: async () => {
-    try {
-      const { data } = await client.get(
-        '/friends/sent'
-      );
-
-      return data?.data ?? [];
-    } catch (error) {
-      handleApiError(
-        error,
-        'Failed to load sent requests.'
-      );
-
-      return [];
-    }
+    const { data } = await client.get('/friends/sent');
+    return data?.data ?? [];
   },
 
   sendRequest: async (addresseeId) => {
-    try {
-      const { data } = await client.post(
-        '/friends/request',
-        {
-          addresseeId,
-        }
-      );
-
-      toast.success(
-        data?.data || 'Friend request sent.'
-      );
-
-      return data?.data;
-    } catch (error) {
-      handleApiError(
-        error,
-        'Failed to send friend request.'
-      );
-
-      return null;
-    }
+    const { data } = await client.post('/friends/request', { addresseeId });
+    return data?.data || data;
   },
 
   acceptRequest: async (id) => {
-    try {
-      const { data } = await client.post(
-        `/friends/${id}/accept`
-      );
-
-      toast.success(
-        data?.data || 'Request accepted.'
-      );
-
-      return data?.data;
-    } catch (error) {
-      handleApiError(
-        error,
-        'Failed to accept request.'
-      );
-
-      return null;
-    }
+    const { data } = await client.post(`/friends/${id}/accept`);
+    return data?.data || data;
   },
 
   rejectRequest: async (id) => {
-    try {
-      const { data } = await client.post(
-        `/friends/${id}/reject`
-      );
-
-      toast.success(
-        data?.data || 'Request rejected.'
-      );
-
-      return data?.data;
-    } catch (error) {
-      handleApiError(
-        error,
-        'Failed to reject request.'
-      );
-
-      return null;
-    }
+    const { data } = await client.post(`/friends/${id}/reject`);
+    return data?.data || data;
   },
 
   removeFriend: async (friendId) => {
-    try {
-      const { data } = await client.delete(
-        `/friends/${friendId}`
-      );
-
-      toast.success(
-        data?.data || 'Friend removed.'
-      );
-
-      return data?.data;
-    } catch (error) {
-      handleApiError(
-        error,
-        'Failed to remove friend.'
-      );
-
-      return null;
-    }
+    const { data } = await client.delete(`/friends/${friendId}`);
+    return data?.data || data;
   },
 };
 

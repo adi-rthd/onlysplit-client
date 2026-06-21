@@ -1,22 +1,15 @@
 import client from '../api/client';
 
-import { handleApiError } from '../utils/apiErrorHandler';
-
+/**
+ * Activity service — activity feed operations.
+ *
+ * All methods return raw data on success and let errors propagate.
+ * Callers (mutation hooks, stores) are responsible for error handling and toasts.
+ */
 const activityService = {
   getActivities: async () => {
-    try {
-      const { data } =
-        await client.get('/activities');
-
-      return data?.data || [];
-    } catch (error) {
-      handleApiError(
-        error,
-        'Failed to load activities.'
-      );
-
-      return [];
-    }
+    const { data } = await client.get('/activities');
+    return data?.data || [];
   },
 };
 

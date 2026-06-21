@@ -3,14 +3,137 @@
  * Clean, minimal, mobile-first design.
  */
 import { useEffect, useMemo, useState } from 'react';
-import { motion, AnimatePresence, useAnimation } from 'framer-motion';
+import { motion, useAnimation } from 'framer-motion';
 import { Search, Loader2, Check, UserPlus, Clock3, Trash2, X, Users } from 'lucide-react';
 import FriendshipStore from '../services/friendshipService';
-import toast from 'react-hot-toast';
+import { featureFlags } from '../utils/featureFlags';
+import { useFriends, useFriendRequests, useSentRequests } from '../queries/hooks/useFriends';
+import { useSendFriendRequest } from '../queries/mutations/useSendFriendRequest';
+import { useAcceptFriendRequest } from '../queries/mutations/useAcceptFriendRequest';
+import { useRejectFriendRequest } from '../queries/mutations/useRejectFriendRequest';
+import { useRemoveFriend } from '../queries/mutations/useRemoveFriend';
+import { QueryBoundary } from '../components/ui/QueryBoundary';
 
 const tabs = ['friends', 'received', 'sent'];
 
 const FriendsPage = () => {
+  if (featureFlags.useQueryFriends) {
+    return <FriendsPageQuery />;
+  }
+  return <FriendsPageLegacy />;
+};
+
+// ─── Query-based implementation ─────────────────────────────────────────────
+const FriendsPageQuery = () => {
+  const [activeTab, setActiveTab] = useState('friends');
+  const [searchInput, setSearchInput] = useState('');
+  const [search, setSearch] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [sendingIds, setSendingIds] = useState([]);
+  const [removingIds, setRemovingIds] = useState([]);
+  const [processingIds, setProcessingIds] = useState([]);
+
+  // Query hooks
+  const friendsQuery = useFriends();
+  const requestsQuery = useFriendRequests();
+  const sentQuery = useSentRequests();
+
+  // Mutation hooks
+  const sendFriendRequestMutation = useSendFriendRequest();
+  const acceptFriendRequestMutation = useAcceptFriendRequest();
+  const rejectFriendRequestMutation = useRejectFriendRequest();
+  const removeFriendMutation = useRemoveFriend();
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => setSearch(searchInput), 400);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  // Search users (local debounced API call, not cached)
+  useEffect(() => {
+    if (!search.trim()) { setSearchResults([]); return; }
+    FriendshipStore.searchUsers(search).then((users) => setSearchResults(users || []));
+  }, [search]);
+
+  const friends = friendsQuery.data || [];
+  const receivedRequests = requestsQuery.data || [];
+  const sentRequests = sentQuery.data || [];
+
+  const filteredFriends = useMemo(() => {
+    if (!search.trim()) return friends;
+    const q = search.toLowerCase();
+    return friends.filter((f) =>
+      f.firstName?.toLowerCase().includes(q) ||
+      f.lastName?.toLowerCase().includes(q) ||
+      f.email?.toLowerCase().includes(q)
+    );
+  }, [friends, search]);
+
+  const handleSendRequest = (id) => {
+    setSendingIds((prev) => [...prev, id]);
+    sendFriendRequestMutation.mutate(id, {
+      onSettled: () => {
+        setSendingIds((prev) => prev.filter((x) => x !== id));
+        setSearchResults((prev) => prev.filter((u) => u.id !== id));
+      },
+    });
+  };
+
+  const handleAccept = (id) => {
+    setProcessingIds((prev) => [...prev, id]);
+    acceptFriendRequestMutation.mutate(id, {
+      onSettled: () => setProcessingIds((prev) => prev.filter((x) => x !== id)),
+    });
+  };
+
+  const handleReject = (id) => {
+    setProcessingIds((prev) => [...prev, id]);
+    rejectFriendRequestMutation.mutate(id, {
+      onSettled: () => setProcessingIds((prev) => prev.filter((x) => x !== id)),
+    });
+  };
+
+  const handleRemoveFriend = (id) => {
+    setRemovingIds((prev) => [...prev, id]);
+    removeFriendMutation.mutate(id, {
+      onSettled: () => setRemovingIds((prev) => prev.filter((x) => x !== id)),
+    });
+  };
+
+  const loading = friendsQuery.isLoading || requestsQuery.isLoading || sentQuery.isLoading;
+
+  return (
+    <FriendsPageLayout
+      activeTab={activeTab}
+      setActiveTab={setActiveTab}
+      searchInput={searchInput}
+      setSearchInput={setSearchInput}
+      search={search}
+      setSearch={setSearch}
+      friends={friends}
+      receivedRequests={receivedRequests}
+      sentRequests={sentRequests}
+      loading={loading}
+      searchResults={searchResults}
+      sendingIds={sendingIds}
+      removingIds={removingIds}
+      processingIds={processingIds}
+      filteredFriends={filteredFriends}
+      handleSendRequest={handleSendRequest}
+      handleAccept={handleAccept}
+      handleReject={handleReject}
+      handleRemoveFriend={handleRemoveFriend}
+      friendsQuery={friendsQuery}
+      requestsQuery={requestsQuery}
+      sentQuery={sentQuery}
+      useQueryBoundary
+    />
+  );
+};
+
+// ─── Legacy implementation ──────────────────────────────────────────────────
+const FriendsPageLegacy = () => {
   const [activeTab, setActiveTab] = useState('friends');
   const [friends, setFriends] = useState([]);
   const [receivedRequests, setReceivedRequests] = useState([]);
@@ -97,6 +220,39 @@ const FriendsPage = () => {
   };
 
   return (
+    <FriendsPageLayout
+      activeTab={activeTab}
+      setActiveTab={setActiveTab}
+      searchInput={searchInput}
+      setSearchInput={setSearchInput}
+      search={search}
+      setSearch={setSearch}
+      friends={friends}
+      receivedRequests={receivedRequests}
+      sentRequests={sentRequests}
+      loading={loading}
+      searchResults={searchResults}
+      sendingIds={sendingIds}
+      removingIds={removingIds}
+      processingIds={processingIds}
+      filteredFriends={filteredFriends}
+      handleSendRequest={handleSendRequest}
+      handleAccept={handleAccept}
+      handleReject={handleReject}
+      handleRemoveFriend={handleRemoveFriend}
+    />
+  );
+};
+
+// ─── Shared Layout ──────────────────────────────────────────────────────────
+const FriendsPageLayout = ({
+  activeTab, setActiveTab, searchInput, setSearchInput, search, setSearch,
+  friends, receivedRequests, sentRequests, loading, searchResults,
+  sendingIds, removingIds, processingIds, filteredFriends,
+  handleSendRequest, handleAccept, handleReject, handleRemoveFriend,
+  friendsQuery, requestsQuery, sentQuery, useQueryBoundary,
+}) => {
+  return (
     <div className="space-y-5">
       {/* Header */}
       <div>
@@ -154,7 +310,7 @@ const FriendsPage = () => {
       </div>
 
       {/* Content */}
-      {loading ? (
+      {!useQueryBoundary && loading ? (
         <div className="flex justify-center py-20">
           <Loader2 size={24} className="animate-spin text-primary" />
         </div>
@@ -202,71 +358,76 @@ const FriendsPage = () => {
 
           {/* Friends Tab */}
           {activeTab === 'friends' && (
-            filteredFriends.length === 0 ? (
-              <EmptyState icon={Users} title="No friends yet" subtitle="Search for users above to connect." />
+            useQueryBoundary ? (
+              <QueryBoundary query={friendsQuery}>
+                {() => (
+                  filteredFriends.length === 0 ? (
+                    <EmptyState icon={Users} title="No friends yet" subtitle="Search for users above to connect." />
+                  ) : (
+                    filteredFriends.map((friend) => (
+                      <FriendCard key={friend.id} user={friend} isRemoving={removingIds.includes(friend.id)} onRemove={() => handleRemoveFriend(friend.id)} />
+                    ))
+                  )
+                )}
+              </QueryBoundary>
             ) : (
-              filteredFriends.map((friend) => (
-                <FriendCard key={friend.id} user={friend} isRemoving={removingIds.includes(friend.id)} onRemove={() => handleRemoveFriend(friend.id)} />
-              ))
+              filteredFriends.length === 0 ? (
+                <EmptyState icon={Users} title="No friends yet" subtitle="Search for users above to connect." />
+              ) : (
+                filteredFriends.map((friend) => (
+                  <FriendCard key={friend.id} user={friend} isRemoving={removingIds.includes(friend.id)} onRemove={() => handleRemoveFriend(friend.id)} />
+                ))
+              )
             )
           )}
 
           {/* Received Tab */}
           {activeTab === 'received' && (
-            receivedRequests.length === 0 ? (
-              <EmptyState icon={UserPlus} title="No pending requests" subtitle="Incoming friend requests will appear here." />
+            useQueryBoundary ? (
+              <QueryBoundary query={requestsQuery}>
+                {() => (
+                  receivedRequests.length === 0 ? (
+                    <EmptyState icon={UserPlus} title="No pending requests" subtitle="Incoming friend requests will appear here." />
+                  ) : (
+                    receivedRequests.map((req) => (
+                      <ReceivedRequestCard key={req.id} req={req} processingIds={processingIds} handleAccept={handleAccept} handleReject={handleReject} />
+                    ))
+                  )
+                )}
+              </QueryBoundary>
             ) : (
-              receivedRequests.map((req) => (
-                <div key={req.id} className="rounded-xl bg-surface-container-low border border-glass-stroke p-4">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-container to-secondary-container flex items-center justify-center text-white font-semibold shrink-0">
-                      {(req.requesterName?.[0] || req.firstName?.[0] || 'U').toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-on-surface truncate">{req.requesterName || `${req.firstName || ''} ${req.lastName || ''}`.trim() || 'Unknown'}</p>
-                      <p className="text-xs text-on-surface-variant truncate">{req.email || ''}</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleAccept(req.id)}
-                      disabled={processingIds.includes(req.id)}
-                      className="flex-1 py-2.5 rounded-lg bg-green-500/10 text-green-400 border border-green-500/20 text-sm font-medium flex items-center justify-center gap-1.5 disabled:opacity-50"
-                    >
-                      <Check size={14} /> Accept
-                    </button>
-                    <button
-                      onClick={() => handleReject(req.id)}
-                      disabled={processingIds.includes(req.id)}
-                      className="flex-1 py-2.5 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 text-sm font-medium flex items-center justify-center gap-1.5 disabled:opacity-50"
-                    >
-                      <X size={14} /> Decline
-                    </button>
-                  </div>
-                </div>
-              ))
+              receivedRequests.length === 0 ? (
+                <EmptyState icon={UserPlus} title="No pending requests" subtitle="Incoming friend requests will appear here." />
+              ) : (
+                receivedRequests.map((req) => (
+                  <ReceivedRequestCard key={req.id} req={req} processingIds={processingIds} handleAccept={handleAccept} handleReject={handleReject} />
+                ))
+              )
             )
           )}
 
           {/* Sent Tab */}
           {activeTab === 'sent' && (
-            sentRequests.length === 0 ? (
-              <EmptyState icon={Clock3} title="No sent requests" subtitle="Friend requests you send will appear here." />
+            useQueryBoundary ? (
+              <QueryBoundary query={sentQuery}>
+                {() => (
+                  sentRequests.length === 0 ? (
+                    <EmptyState icon={Clock3} title="No sent requests" subtitle="Friend requests you send will appear here." />
+                  ) : (
+                    sentRequests.map((req) => (
+                      <SentRequestCard key={req.id} req={req} />
+                    ))
+                  )
+                )}
+              </QueryBoundary>
             ) : (
-              sentRequests.map((req) => (
-                <div key={req.id} className="flex items-center gap-3 rounded-xl bg-surface-container-low border border-glass-stroke p-4">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-container to-secondary-container flex items-center justify-center text-white font-semibold shrink-0">
-                    {(req.addresseeName?.[0] || req.firstName?.[0] || 'U').toUpperCase()}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-on-surface truncate">{req.addresseeName || `${req.firstName || ''} ${req.lastName || ''}`.trim() || 'Unknown'}</p>
-                    <p className="text-xs text-on-surface-variant truncate">{req.email || ''}</p>
-                  </div>
-                  <div className="px-3 py-1.5 rounded-full bg-yellow-500/10 text-yellow-400 text-xs border border-yellow-500/20 flex items-center gap-1.5 shrink-0">
-                    <Clock3 size={12} /> Pending
-                  </div>
-                </div>
-              ))
+              sentRequests.length === 0 ? (
+                <EmptyState icon={Clock3} title="No sent requests" subtitle="Friend requests you send will appear here." />
+              ) : (
+                sentRequests.map((req) => (
+                  <SentRequestCard key={req.id} req={req} />
+                ))
+              )
             )
           )}
         </div>
@@ -274,6 +435,53 @@ const FriendsPage = () => {
     </div>
   );
 };
+
+// ─── Received Request Card ──────────────────────────────────────────────────
+const ReceivedRequestCard = ({ req, processingIds, handleAccept, handleReject }) => (
+  <div className="rounded-xl bg-surface-container-low border border-glass-stroke p-4">
+    <div className="flex items-center gap-3 mb-3">
+      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-container to-secondary-container flex items-center justify-center text-white font-semibold shrink-0">
+        {(req.requesterName?.[0] || req.firstName?.[0] || 'U').toUpperCase()}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-on-surface truncate">{req.requesterName || `${req.firstName || ''} ${req.lastName || ''}`.trim() || 'Unknown'}</p>
+        <p className="text-xs text-on-surface-variant truncate">{req.email || ''}</p>
+      </div>
+    </div>
+    <div className="flex gap-2">
+      <button
+        onClick={() => handleAccept(req.id)}
+        disabled={processingIds.includes(req.id)}
+        className="flex-1 py-2.5 rounded-lg bg-green-500/10 text-green-400 border border-green-500/20 text-sm font-medium flex items-center justify-center gap-1.5 disabled:opacity-50"
+      >
+        <Check size={14} /> Accept
+      </button>
+      <button
+        onClick={() => handleReject(req.id)}
+        disabled={processingIds.includes(req.id)}
+        className="flex-1 py-2.5 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 text-sm font-medium flex items-center justify-center gap-1.5 disabled:opacity-50"
+      >
+        <X size={14} /> Decline
+      </button>
+    </div>
+  </div>
+);
+
+// ─── Sent Request Card ──────────────────────────────────────────────────────
+const SentRequestCard = ({ req }) => (
+  <div className="flex items-center gap-3 rounded-xl bg-surface-container-low border border-glass-stroke p-4">
+    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-container to-secondary-container flex items-center justify-center text-white font-semibold shrink-0">
+      {(req.addresseeName?.[0] || req.firstName?.[0] || 'U').toUpperCase()}
+    </div>
+    <div className="flex-1 min-w-0">
+      <p className="text-sm font-semibold text-on-surface truncate">{req.addresseeName || `${req.firstName || ''} ${req.lastName || ''}`.trim() || 'Unknown'}</p>
+      <p className="text-xs text-on-surface-variant truncate">{req.email || ''}</p>
+    </div>
+    <div className="px-3 py-1.5 rounded-full bg-yellow-500/10 text-yellow-400 text-xs border border-yellow-500/20 flex items-center gap-1.5 shrink-0">
+      <Clock3 size={12} /> Pending
+    </div>
+  </div>
+);
 
 // Swipe-to-remove friend card
 const FriendCard = ({ user, isRemoving, onRemove }) => {

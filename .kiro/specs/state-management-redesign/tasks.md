@@ -122,25 +122,25 @@ Migrate OnlySplit from fragmented Zustand-based server-state management to a uni
 - [x] 4. Checkpoint — Phase 2 Validation
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 5. Phase 3: Migrate FriendsPage + activityStore to TanStack Query
-  - [~] 5.1 Refactor friendshipService and activityService to remove side effects
+- [x] 5. Phase 3: Migrate FriendsPage + activityStore to TanStack Query
+  - [x] 5.1 Refactor friendshipService and activityService to remove side effects
     - Modify `src/services/friendshipService.js`: remove `import toast`, remove `handleApiError`, throw structured errors, return raw data
     - Modify `src/services/activityService.js`: remove `handleApiError`, throw structured errors, return raw data
     - _Requirements: 11.1, 11.2, 11.4, 11.5, 11.6_
 
-  - [~] 5.2 Create friends and activity query hooks
+  - [x] 5.2 Create friends and activity query hooks
     - Create `src/queries/hooks/useFriends.js` — exports `useFriends()` (staleTime 5min), `useFriendRequests()` (staleTime 5min), `useSentRequests()` (staleTime 5min)
     - Create `src/queries/hooks/useActivities.js` — exports `useActivities()` with staleTime 60s
     - _Requirements: 6.1, 6.2, 12.3_
 
-  - [~] 5.3 Create friends mutation hooks
+  - [x] 5.3 Create friends mutation hooks
     - Create `src/queries/mutations/useSendFriendRequest.js` with optimistic add to sent list, rollback, toast, invalidation
     - Create `src/queries/mutations/useAcceptFriendRequest.js` with optimistic remove from requests, rollback, toast, invalidation of `friends.all()`, `friends.requests()`, `activities.all()`
     - Create `src/queries/mutations/useRejectFriendRequest.js` with invalidation of `friends.requests()`
     - Create `src/queries/mutations/useRemoveFriend.js` with optimistic removal from friends list, rollback, toast, invalidation of `friends.all()`
     - _Requirements: 2.9, 2.10, 2.11, 2.12, 4.5, 6.3, 6.4, 6.5, 6.6_
 
-  - [~] 5.4 Rewrite FriendsPage to use query hooks
+  - [x] 5.4 Rewrite FriendsPage to use query hooks
     - Modify `src/pages/FriendsPage.jsx`: remove all `useState` for `friends`, `receivedRequests`, `sentRequests`, `loading`
     - Use `useFriends()`, `useFriendRequests()`, `useSentRequests()` query hooks for data
     - Keep local state only for: `searchInput`, `activeTab`, `sendingIds`, `removingIds`, `processingIds`, `searchResults`
@@ -155,7 +155,7 @@ Migrate OnlySplit from fragmented Zustand-based server-state management to a uni
     - Test that `useRemoveFriend` optimistically removes from friends list
     - _Requirements: 6.3, 6.4, 6.5, 6.6_
 
-- [~] 6. Checkpoint — Phase 3 Validation
+- [x] 6. Checkpoint — Phase 3 Validation
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 7. Phase 4: Migrate groupInvitationStore + implement SignalR Bridge
