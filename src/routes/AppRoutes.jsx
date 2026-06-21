@@ -41,6 +41,8 @@ const FriendsPage = lazy(() => import('../pages/FriendsPage'));
 
 const DownloadPage = lazy(() => import('../pages/DownloadPage'));
 
+const NotFoundPage = lazy(() => import('../pages/NotFoundPage'));
+
 // ─────────────────────────────────────────────────────────────
 // Lazy Loaded Modals
 // ─────────────────────────────────────────────────────────────
@@ -216,6 +218,15 @@ const AppRoutes = () => {
             }
           />
         </Route>
+
+        {/* ───────────────────────────────────────────── */}
+        {/* 404 CATCH-ALL */}
+        {/* ───────────────────────────────────────────── */}
+
+        <Route
+          path="*"
+          element={<NotFoundPage />}
+        />
       </Routes>
     </Suspense>
   );

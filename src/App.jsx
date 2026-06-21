@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { HashRouter } from 'react-router-dom';
+import PlatformRouter from './components/PlatformRouter';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 
@@ -174,17 +174,17 @@ function App() {
   ) {
     return (
       <QueryProvider>
-        <HashRouter>
+        <PlatformRouter>
           <CommonToaster />
           <OfflineScreen onRetry={handleRetry} />
-        </HashRouter>
+        </PlatformRouter>
       </QueryProvider>
     );
   }
 
   return (
     <QueryProvider>
-      <HashRouter>
+      <PlatformRouter>
         <CommonToaster />
 
         {/* Mandatory update blocks the app — only when logged in */}
@@ -221,7 +221,7 @@ function App() {
               )}
           </>
         )}
-      </HashRouter>
+      </PlatformRouter>
     </QueryProvider>
   );
 }
