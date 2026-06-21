@@ -158,24 +158,24 @@ Migrate OnlySplit from fragmented Zustand-based server-state management to a uni
 - [x] 6. Checkpoint — Phase 3 Validation
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 7. Phase 4: Migrate groupInvitationStore + implement SignalR Bridge
-  - [~] 7.1 Refactor groupInviteService to remove side effects
+- [x] 7. Phase 4: Migrate groupInvitationStore + implement SignalR Bridge
+  - [x] 7.1 Refactor groupInviteService to remove side effects
     - Modify `src/services/groupInviteService.js`: remove `import toast`, remove `handleApiError`, throw structured errors, return raw data
     - _Requirements: 11.1, 11.2, 11.4, 11.5, 11.6_
 
-  - [~] 7.2 Create invitation and notification query hooks
+  - [x] 7.2 Create invitation and notification query hooks
     - Create `src/queries/hooks/useInvitations.js` — exports `useInvitations()` and `useGroupInvites(groupId)` with staleTime 60s
     - Create `src/queries/hooks/useNotifications.js` — exports `useNotifications()` with staleTime 60s
     - _Requirements: 1.1, 12.2_
 
-  - [~] 7.3 Create invitation mutation hooks
+  - [x] 7.3 Create invitation mutation hooks
     - Create `src/queries/mutations/useAcceptInvitation.js` with optimistic remove from invitations, rollback, toast, invalidation of `groups.all()`, `invitations.all()`, `dashboard.summary()`
     - Create `src/queries/mutations/useRejectInvitation.js` with invalidation of `invitations.all()`
     - Create `src/queries/mutations/useInviteToGroup.js` with invalidation of `invitations.group(groupId)`
     - Create `src/queries/mutations/useMarkNotificationsRead.js` with optimistic cache update, invalidation of `notifications.all()`
     - _Requirements: 2.13_
 
-  - [~] 7.4 Implement SignalR Bridge for global cache invalidation
+  - [x] 7.4 Implement SignalR Bridge for global cache invalidation
     - Create `src/queries/signalrBridge.js` implementing `setupSignalRBridge(queryClient, { groupHub, activityHub, paymentHub })`
     - Map all group hub events (ExpenseAdded, ExpenseUpdated, ExpenseDeleted, BalanceUpdated, GroupUpdated, MemberJoined, MemberRemoved, SettlementUpdated) to query key invalidations per the design matrix
     - Map all activity hub events (FriendRequestReceived, FriendRequestAccepted, GroupInvitationReceived, GroupInvitationAccepted) to invalidations
@@ -184,7 +184,7 @@ Migrate OnlySplit from fragmented Zustand-based server-state management to a uni
     - Add DEV-only console logging for each event received (hub, event name, invalidated keys)
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 5.10, 14.2_
 
-  - [~] 7.5 Integrate SignalR Bridge into app lifecycle
+  - [x] 7.5 Integrate SignalR Bridge into app lifecycle
     - Modify `src/hooks/useSignalR.js`: after `connectAll()`, call `setupSignalRBridge(queryClient, { groupHub: getGroupHub(), activityHub: getActivityHub(), paymentHub: getPaymentHub() })`
     - Import `queryClient` from `src/queries/queryClient.js`
     - Remove per-page SignalR event handlers from `GroupDetailsPage.jsx` (the `useGroupSignalR` call and its handlers)
@@ -196,7 +196,7 @@ Migrate OnlySplit from fragmented Zustand-based server-state management to a uni
     - **Property 3: SignalR Event-to-Key Mapping Correctness** — For random event types and group IDs, verify the bridge produces exactly the specified set of query keys, all valid factory outputs
     - **Validates: Requirements 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8**
 
-- [~] 8. Checkpoint — Phase 4 Validation
+- [x] 8. Checkpoint — Phase 4 Validation
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 9. Phase 5: Implement Offline Queue + final cleanup

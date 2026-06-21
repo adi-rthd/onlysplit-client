@@ -34,6 +34,7 @@ import EditGroupModal from '../components/modals/EditGroupModal';
 import EditExpenseModal from '../components/modals/EditExpenseModal';
 import { AnimatePresence } from 'framer-motion';
 import { useGroupSignalR } from '../hooks/useSignalR';
+import { joinGroup, leaveGroup } from '../socket/signalrClient';
 
 
 const GroupDetailsPage = () => {
@@ -125,7 +126,22 @@ const GroupDetailsPage = () => {
   }, [groupId, useQuery, useQueryGroups]);
 
   // ─── Real-time updates via SignalR ─────────────────────────────────
-  useGroupSignalR(groupId, {
+  // When all query flags are on, the global SignalR bridge handles cache
+  // invalidations, so we skip per-page handlers. We still need joinGroup/leaveGroup
+  // for group-specific channel subscriptions.
+  const useBridge = featureFlags.useQueryExpenses && featureFlags.useQueryGroups && featureFlags.useQueryInvitations;
+
+  // Channel subscription (needed even when bridge is active)
+  useEffect(() => {
+    if (!groupId || !useBridge) return;
+    joinGroup(groupId);
+    return () => {
+      leaveGroup(groupId);
+    };
+  }, [groupId, useBridge]);
+
+  // Legacy per-page SignalR handlers (only when bridge is NOT active)
+  useGroupSignalR(useBridge ? null : groupId, {
     ExpenseAdded: () => {
       if (useQuery) {
         queryClient.invalidateQueries({ queryKey: queryKeys.groups.expenses(groupId) });
