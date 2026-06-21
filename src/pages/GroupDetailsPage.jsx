@@ -73,17 +73,17 @@ const GroupDetailsPage = () => {
 
   // ─── Real-time updates via SignalR ─────────────────────────────────
   useGroupSignalR(groupId, {
-    onExpenseAdded: () => fetchExpenses(groupId),
-    onExpenseUpdated: () => fetchExpenses(groupId),
-    onExpenseDeleted: () => fetchExpenses(groupId),
-    onBalanceUpdated: ({ balances: newBal, settlements: newSet }) => {
+    ExpenseAdded: () => fetchExpenses(groupId),
+    ExpenseUpdated: () => fetchExpenses(groupId),
+    ExpenseDeleted: () => fetchExpenses(groupId),
+    BalanceUpdated: () => {
       fetchBalances(groupId);
       fetchSettlements(groupId);
     },
-    onMemberJoined: () => fetchGroupById(groupId),
-    onMemberRemoved: () => fetchGroupById(groupId),
-    onGroupUpdated: () => fetchGroupById(groupId),
-    onSettlementUpdated: () => fetchSettlements(groupId),
+    MemberJoined: () => fetchGroupById(groupId),
+    MemberRemoved: () => fetchGroupById(groupId),
+    GroupUpdated: () => fetchGroupById(groupId),
+    SettlementUpdated: () => fetchSettlements(groupId),
   });
 
   const currency = currentGroup?.currency || storeCurrency || 'INR';

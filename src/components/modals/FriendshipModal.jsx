@@ -10,6 +10,7 @@ import FriendshipStore from '../../services/friendshipService';
 import {
   motion,
   AnimatePresence,
+  useAnimation,
 } from 'framer-motion';
 
 import {
@@ -340,9 +341,15 @@ const FriendshipModal = () => {
   const FriendCard = ({ user }) => {
     const isRemoving =
       removingIds.includes(user.id);
+    const [showConfirm, setShowConfirm] = useState(false);
+    const controls = useAnimation();
 
     const name =
       `${user.firstName || ''} ${user.lastName || ''}`;
+
+    const resetPosition = () => {
+      controls.start({ x: 0, transition: { type: 'spring', stiffness: 400, damping: 30 } });
+    };
 
     return (
       <div className="relative overflow-hidden rounded-2xl">
@@ -361,17 +368,20 @@ const FriendshipModal = () => {
             right: 0,
           }}
           dragElastic={0.08}
+          dragMomentum={false}
           whileTap={{
             scale: 0.99,
           }}
+          animate={controls}
           onDragEnd={(_, info) => {
             if (
-              info.offset.x < -100 &&
+              info.offset.x < -80 &&
               !isRemoving
             ) {
-              handleRemoveFriend(
-                user.id
-              );
+              setShowConfirm(true);
+              resetPosition();
+            } else {
+              resetPosition();
             }
           }}
           className="relative z-10 rounded-2xl border border-white/5 bg-surface-charcoal p-4 cursor-grab active:cursor-grabbing"
@@ -395,13 +405,27 @@ const FriendshipModal = () => {
                 className="animate-spin text-red-400"
               />
             ) : (
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 text-green-400 text-xs border border-green-500/20">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 text-green-400 text-xs border border-green-500/20">
                 <Check size={14} />
                 Friend
               </div>
             )}
           </div>
         </motion.div>
+
+        {/* Confirm remove popup */}
+        {showConfirm && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={(e) => { if (e.target === e.currentTarget) setShowConfirm(false); }}>
+            <div className="bg-surface-container rounded-2xl border border-glass-stroke p-6 w-full max-w-xs text-center">
+              <h3 className="text-lg font-bold text-on-surface mb-2">Remove Friend?</h3>
+              <p className="text-sm text-on-surface-variant mb-5">Remove {name} from your friends list?</p>
+              <div className="flex gap-3">
+                <button onClick={() => setShowConfirm(false)} className="flex-1 py-2.5 rounded-xl border border-glass-stroke text-on-surface-variant text-sm font-medium">Cancel</button>
+                <button onClick={() => { setShowConfirm(false); handleRemoveFriend(user.id); }} className="flex-1 py-2.5 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400 text-sm font-semibold">Remove</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -446,17 +470,40 @@ const FriendshipModal = () => {
         user.id
       );
 
+    const name =
+      user?.requesterName ||
+      `${user.firstName || ''} ${user.lastName || ''}`;
+
+    const initial =
+      user?.firstName?.[0] ||
+      user?.requesterName?.[0] ||
+      'U';
+
     return (
-      <UserCard user={user}>
-        <div className="flex flex-wrap gap-2">
+      <div className="rounded-2xl border border-glass-stroke bg-surface-container-low p-4">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-11 h-11 rounded-full bg-primary/20 text-primary flex items-center justify-center font-semibold shrink-0">
+            {initial.toUpperCase()}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-base font-semibold text-on-surface">
+              {name}
+            </p>
+            <p className="truncate text-sm text-on-surface-variant">
+              {user.email}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex gap-2">
           <button
             disabled={loading}
             onClick={() =>
               handleAccept(user.id)
             }
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/20 transition-all"
+            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/20 transition-all text-sm font-medium disabled:opacity-50"
           >
-            <Check size={16} />
+            {loading ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
             Accept
           </button>
 
@@ -465,13 +512,13 @@ const FriendshipModal = () => {
             onClick={() =>
               handleReject(user.id)
             }
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-all"
+            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-all text-sm font-medium disabled:opacity-50"
           >
-            <X size={16} />
+            <X size={14} />
             Reject
           </button>
         </div>
-      </UserCard>
+      </div>
     );
   };
 
@@ -545,22 +592,30 @@ const FriendshipModal = () => {
 
           {/* TABS — underline style */}
           <div className="flex items-center gap-6 mt-3 border-b border-glass-stroke -mx-5 px-5">
-            {tabs.map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`relative pb-3 text-sm font-medium capitalize transition-all ${
-                  activeTab === tab
-                    ? 'text-on-surface'
-                    : 'text-on-surface-variant hover:text-on-surface'
-                }`}
-              >
-                {tab === 'friends' ? 'Friends' : tab === 'received' ? 'Received' : 'Sent'}
-                {activeTab === tab && (
-                  <span className="absolute left-0 bottom-0 w-full h-[2px] bg-primary rounded-full" />
-                )}
-              </button>
-            ))}
+            {tabs.map((tab) => {
+              const count = tab === 'received' ? receivedRequests.length : tab === 'sent' ? sentRequests.length : 0;
+              return (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`relative pb-3 text-sm font-medium capitalize transition-all flex items-center gap-1.5 ${
+                    activeTab === tab
+                      ? 'text-on-surface'
+                      : 'text-on-surface-variant hover:text-on-surface'
+                  }`}
+                >
+                  {tab === 'friends' ? 'Friends' : tab === 'received' ? 'Received' : 'Sent'}
+                  {count > 0 && (
+                    <span className="min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-primary text-white text-[10px] font-bold px-1">
+                      {count}
+                    </span>
+                  )}
+                  {activeTab === tab && (
+                    <span className="absolute left-0 bottom-0 w-full h-[2px] bg-primary rounded-full" />
+                  )}
+                </button>
+              );
+            })}
           </div>
         </header>
 

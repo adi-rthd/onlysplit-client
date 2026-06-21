@@ -6,7 +6,7 @@ const FriendshipStore = {
   searchUsers: async (query) => {
     try {
       const { data } = await client.get(
-        `/auth/search?q=${query}`
+        `/friends/search?q=${query}`
       );
 
       return data?.data ?? [];
