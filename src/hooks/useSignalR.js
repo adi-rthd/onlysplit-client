@@ -17,6 +17,12 @@ import {
   joinGroup,
   leaveGroup,
 } from '../socket/signalrClient';
+import { featureFlags } from '../utils/featureFlags';
+import { queryClient } from '../queries/queryClient';
+import { setupSignalRBridge } from '../queries/signalrBridge';
+
+// Module-level guard to prevent double initialization of the bridge
+let bridgeInitialized = false;
 
 /**
  * Manages SignalR connection lifecycle tied to auth.
@@ -28,13 +34,26 @@ export function useSignalR() {
 
   useEffect(() => {
     if (isAuthenticated && token) {
-      connectAll().catch(console.error);
+      connectAll().then(() => {
+        // Initialize global SignalR bridge when invitation feature flag is on
+        if (featureFlags.useQueryInvitations && !bridgeInitialized) {
+          const groupHub = getGroupHub();
+          const activityHub = getActivityHub();
+          const paymentHub = getPaymentHub();
+          if (groupHub && activityHub && paymentHub) {
+            setupSignalRBridge(queryClient, { groupHub, activityHub, paymentHub });
+            bridgeInitialized = true;
+          }
+        }
+      }).catch(console.error);
     } else {
       disconnectAll().catch(console.error);
+      bridgeInitialized = false;
     }
 
     return () => {
       disconnectAll().catch(console.error);
+      bridgeInitialized = false;
     };
   }, [isAuthenticated, token]);
 }

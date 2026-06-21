@@ -1,171 +1,54 @@
 import client from '../api/client';
 
-import toast from 'react-hot-toast';
-
-import { handleApiError } from '../utils/apiErrorHandler';
-
+/**
+ * Invitation service — group invitations and notifications.
+ * Designed for the ASP.NET Core backend API.
+ *
+ * All methods return raw data on success and let errors propagate.
+ * Callers (mutation hooks, stores) are responsible for error handling and toasts.
+ */
 const invitationService = {
-  inviteToGroup: async (
-    groupId,
-    invitedUserId
-  ) => {
-    try {
-      const { data } =
-        await client.post(
-          '/group-invitations/invite',
-          {
-            groupId,
-            invitedUserId,
-          }
-        );
-
-      toast.success(
-        data?.message ||
-        'Invitation sent.'
-      );
-
-      return data?.data || true;
-    } catch (error) {
-      handleApiError(
-        error,
-        'Failed to invite user.'
-      );
-
-      return null;
-    }
+  inviteToGroup: async (groupId, invitedUserId) => {
+    const { data } = await client.post('/group-invitations/invite', {
+      groupId,
+      invitedUserId,
+    });
+    return data?.data || data;
   },
 
-  getGroupInvites: async (
-    groupId
-  ) => {
-    try {
-      const { data } =
-        await client.get(
-          `/group-invitations/${groupId}/invited`
-        );
-
-      return data?.data || [];
-    } catch (error) {
-      handleApiError(
-        error,
-        'Failed to load invited users.'
-      );
-
-      return [];
-    }
+  getGroupInvites: async (groupId) => {
+    const { data } = await client.get(`/group-invitations/${groupId}/invited`);
+    return data?.data || [];
   },
 
   getMyInvites: async () => {
-    try {
-      const { data } =
-        await client.get(
-          '/group-invitations/mine'
-        );
-
-      return data?.data || [];
-    } catch (error) {
-      handleApiError(
-        error,
-        'Failed to load invitations.'
-      );
-
-      return [];
-    }
+    const { data } = await client.get('/group-invitations/mine');
+    return data?.data || [];
   },
 
-  getMyNotifications:
-    async () => {
-      try {
-        const { data } =
-          await client.get(
-            '/notifications'
-          );
-
-        return data?.data || [];
-      } catch (error) {
-        handleApiError(
-          error,
-          'Failed to load notifications.'
-        );
-
-        return [];
-      }
-    },
-
-  acceptInvite: async (
-    invitationId
-  ) => {
-    try {
-      const { data } =
-        await client.post(
-          `/group-invitations/${invitationId}/accept`
-        );
-
-      return data?.data || true;
-    } catch (error) {
-      handleApiError(
-        error,
-        'Failed to accept invitation.'
-      );
-
-      return null;
-    }
+  getMyNotifications: async () => {
+    const { data } = await client.get('/notifications');
+    return data?.data || [];
   },
 
-  rejectInvite: async (
-    invitationId
-  ) => {
-    try {
-      const { data } =
-        await client.post(
-          `/group-invitations/${invitationId}/reject`
-        );
-
-      return data?.data || true;
-    } catch (error) {
-      handleApiError(
-        error,
-        'Failed to reject invitation.'
-      );
-
-      return null;
-    }
+  acceptInvite: async (invitationId) => {
+    const { data } = await client.post(`/group-invitations/${invitationId}/accept`);
+    return data?.data || true;
   },
 
-  markNotificationAsRead:
-    async (
-      notificationId
-    ) => {
-      try {
-        await client.put(
-          `/notifications/${notificationId}/read`
-        );
+  rejectInvite: async (invitationId) => {
+    const { data } = await client.post(`/group-invitations/${invitationId}/reject`);
+    return data?.data || true;
+  },
 
-        return true;
-      } catch (error) {
-        handleApiError(
-          error,
-          'Failed to mark notification as read.'
-        );
+  markNotificationAsRead: async (notificationId) => {
+    await client.put(`/notifications/${notificationId}/read`);
+    return true;
+  },
 
-        return false;
-      }
-    },
   markAllNotificationsAsRead: async () => {
-    try {
-      await client.put(
-        '/notifications/read-all'
-      );
-
-      return true;
-    } catch (error) {
-      handleApiError(
-        error,
-        'Failed to mark notifications as read.'
-      );
-
-      return false;
-    }
+    await client.put('/notifications/read-all');
+    return true;
   },
 };
 
