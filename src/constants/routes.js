@@ -32,6 +32,8 @@ export const ROUTES = {
 
   SETTLEMENTS: '/settlements',
 
+  FRIENDS: '/friends',
+
   ADD_EXPENSE: '/add-expense/:id',
 
   CREATE_GROUP: '/create-group',

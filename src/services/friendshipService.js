@@ -54,6 +54,23 @@ const FriendshipStore = {
     }
   },
 
+  getSent: async () => {
+    try {
+      const { data } = await client.get(
+        '/friends/sent'
+      );
+
+      return data?.data ?? [];
+    } catch (error) {
+      handleApiError(
+        error,
+        'Failed to load sent requests.'
+      );
+
+      return [];
+    }
+  },
+
   sendRequest: async (addresseeId) => {
     try {
       const { data } = await client.post(
