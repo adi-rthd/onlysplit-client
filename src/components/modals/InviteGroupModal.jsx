@@ -290,7 +290,7 @@ const InviteGroupModal = () => {
                           {invite.groupName || 'Unknown Group'}
                         </p>
                         <p className="text-xs text-on-surface-variant mt-0.5">
-                          Invited by {invite.inviterName || 'someone'}
+                          Invited by {invite.inviterName || invite.senderName || invite.invitedByName || invite.sender?.firstName || 'a group member'}
                         </p>
                       </div>
                     </div>

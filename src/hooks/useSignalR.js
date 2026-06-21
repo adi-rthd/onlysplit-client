@@ -1,91 +1,136 @@
 /**
- * useSignalR — hook to manage SignalR lifecycle tied to auth state.
- * Starts connections when authenticated, stops on logout.
+ * SignalR React hooks.
  *
- * Usage: Call once in App.jsx or a top-level layout component.
+ * useSignalR()         — Connect/disconnect based on auth state (call in App.jsx)
+ * useActivityEvents()  — Listen for activity hub events (notifications)
+ * useGroupEvents()     — Listen for group hub events (expenses, balances)
+ * usePaymentEvents()   — Listen for payment hub events
  */
 import { useEffect } from 'react';
-import { signalR } from '../socket/signalrClient';
 import { useAuthStore } from '../store/authStore';
+import {
+  connectAll,
+  disconnectAll,
+  getActivityHub,
+  getGroupHub,
+  getPaymentHub,
+  joinGroup,
+  leaveGroup,
+} from '../socket/signalrClient';
 
+/**
+ * Manages SignalR connection lifecycle tied to auth.
+ * Call once in App.jsx.
+ */
 export function useSignalR() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const token = useAuthStore((s) => s.token);
 
   useEffect(() => {
     if (isAuthenticated && token) {
-      signalR.start();
+      connectAll().catch(console.error);
     } else {
-      signalR.stop();
+      disconnectAll().catch(console.error);
     }
 
     return () => {
-      signalR.stop();
+      disconnectAll().catch(console.error);
     };
   }, [isAuthenticated, token]);
 }
 
 /**
- * useGroupSignalR — hook for group-specific real-time events.
- * Joins/leaves the group channel and registers event listeners.
- *
- * Usage: Call in GroupDetailsPage with the groupId.
+ * Listen for activity hub events (friend requests, group invitations).
+ * @param {Record<string, Function>} handlers - Event name → callback map
  */
-export function useGroupSignalR(groupId, handlers = {}) {
+export function useActivityEvents(handlers) {
+  useEffect(() => {
+    const hub = getActivityHub();
+    if (!hub) return;
+
+    const entries = Object.entries(handlers);
+    entries.forEach(([event, handler]) => {
+      hub.on(event, handler);
+    });
+
+    return () => {
+      entries.forEach(([event, handler]) => {
+        hub.off(event, handler);
+      });
+    };
+  }, [handlers]);
+}
+
+/**
+ * Listen for group hub events (expenses, balances, members, settlements).
+ * @param {Record<string, Function>} handlers - Event name → callback map
+ */
+export function useGroupEvents(handlers) {
+  useEffect(() => {
+    const hub = getGroupHub();
+    if (!hub) return;
+
+    const entries = Object.entries(handlers);
+    entries.forEach(([event, handler]) => {
+      hub.on(event, handler);
+    });
+
+    return () => {
+      entries.forEach(([event, handler]) => {
+        hub.off(event, handler);
+      });
+    };
+  }, [handlers]);
+}
+
+/**
+ * Listen for payment hub events.
+ * @param {Record<string, Function>} handlers - Event name → callback map
+ */
+export function usePaymentEvents(handlers) {
+  useEffect(() => {
+    const hub = getPaymentHub();
+    if (!hub) return;
+
+    const entries = Object.entries(handlers);
+    entries.forEach(([event, handler]) => {
+      hub.on(event, handler);
+    });
+
+    return () => {
+      entries.forEach(([event, handler]) => {
+        hub.off(event, handler);
+      });
+    };
+  }, [handlers]);
+}
+
+/**
+ * Join/leave a group channel + listen for group events.
+ * Call in GroupDetailsPage.
+ */
+export function useGroupSignalR(groupId, handlers) {
   useEffect(() => {
     if (!groupId) return;
 
-    // Join the group channel
-    signalR.joinGroup(groupId);
+    joinGroup(groupId);
 
-    // Register listeners
-    if (handlers.onExpenseAdded) signalR.onExpenseAdded(handlers.onExpenseAdded);
-    if (handlers.onExpenseUpdated) signalR.onExpenseUpdated(handlers.onExpenseUpdated);
-    if (handlers.onExpenseDeleted) signalR.onExpenseDeleted(handlers.onExpenseDeleted);
-    if (handlers.onBalanceUpdated) signalR.onBalanceUpdated(handlers.onBalanceUpdated);
-    if (handlers.onMemberJoined) signalR.onMemberJoined(handlers.onMemberJoined);
-    if (handlers.onMemberRemoved) signalR.onMemberRemoved(handlers.onMemberRemoved);
-    if (handlers.onGroupUpdated) signalR.onGroupUpdated(handlers.onGroupUpdated);
-    if (handlers.onSettlementUpdated) signalR.onSettlementUpdated(handlers.onSettlementUpdated);
+    const hub = getGroupHub();
+    if (hub) {
+      const entries = Object.entries(handlers);
+      entries.forEach(([event, handler]) => {
+        hub.on(event, handler);
+      });
+    }
 
     return () => {
-      signalR.leaveGroup(groupId);
-      signalR.offGroupEvents();
+      leaveGroup(groupId);
+      const hub = getGroupHub();
+      if (hub) {
+        Object.keys(handlers).forEach((event) => {
+          hub.off(event);
+        });
+      }
     };
   }, [groupId]);
-}
-
-/**
- * useActivitySignalR — hook for notification events.
- *
- * Usage: Call in a layout or notification component.
- */
-export function useActivitySignalR(handlers = {}) {
-  useEffect(() => {
-    if (handlers.onFriendRequestReceived) signalR.onFriendRequestReceived(handlers.onFriendRequestReceived);
-    if (handlers.onFriendRequestAccepted) signalR.onFriendRequestAccepted(handlers.onFriendRequestAccepted);
-    if (handlers.onFriendRequestRejected) signalR.onFriendRequestRejected(handlers.onFriendRequestRejected);
-    if (handlers.onGroupInvitationReceived) signalR.onGroupInvitationReceived(handlers.onGroupInvitationReceived);
-    if (handlers.onGroupInvitationAccepted) signalR.onGroupInvitationAccepted(handlers.onGroupInvitationAccepted);
-    if (handlers.onGroupInvitationRejected) signalR.onGroupInvitationRejected(handlers.onGroupInvitationRejected);
-
-    return () => {
-      signalR.offActivityEvents();
-    };
-  }, []);
-}
-
-/**
- * usePaymentSignalR — hook for payment status events.
- */
-export function usePaymentSignalR(handlers = {}) {
-  useEffect(() => {
-    if (handlers.onPaymentCompleted) signalR.onPaymentCompleted(handlers.onPaymentCompleted);
-    if (handlers.onPaymentFailed) signalR.onPaymentFailed(handlers.onPaymentFailed);
-    if (handlers.onPaymentRefunded) signalR.onPaymentRefunded(handlers.onPaymentRefunded);
-
-    return () => {
-      signalR.offPaymentEvents();
-    };
-  }, []);
 }

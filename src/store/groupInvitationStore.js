@@ -182,18 +182,11 @@ export const useInvitationStore = create(
                             invitationId
                         );
 
-                    if (!result) {
-                        set({
-                            isLoading: false,
-                        });
-
-                        return false;
-                    }
-
+                    // Remove from UI regardless — if already processed, still clear it
                     if (notificationId) {
                         await invitationService.markNotificationAsRead(
                             notificationId
-                        );
+                        ).catch(() => {});
                     }
 
                     set((state) => ({
@@ -202,6 +195,8 @@ export const useInvitationStore = create(
                                 (
                                     invitation
                                 ) =>
+                                    invitation.invitationId !==
+                                    invitationId &&
                                     invitation.id !==
                                     invitationId
                             ),
