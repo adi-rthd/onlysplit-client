@@ -9,15 +9,22 @@ import { X, Loader2, Pencil } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useGroupStore } from '../../store/groupStore';
 import { getCurrencies } from '../../services/currencyService';
+import { featureFlags } from '../../utils/featureFlags';
+import { useUpdateGroup } from '../../queries/mutations/useUpdateGroup';
 
 const EditGroupModal = ({ group, onClose, onUpdated }) => {
   const { updateGroup } = useGroupStore();
+
+  const useQueryGroups = featureFlags.useQueryGroups;
+  const updateGroupMutation = useUpdateGroup();
 
   const [name, setName] = useState(group?.name || '');
   const [description, setDescription] = useState(group?.description || '');
   const [currency, setCurrency] = useState(group?.currency || 'INR');
   const [currencies, setCurrencies] = useState([]);
   const [saving, setSaving] = useState(false);
+
+  const isSaving = useQueryGroups ? updateGroupMutation.isPending : saving;
 
   useEffect(() => {
     getCurrencies().then((data) => {
@@ -61,15 +68,26 @@ const EditGroupModal = ({ group, onClose, onUpdated }) => {
       return;
     }
 
-    setSaving(true);
-    try {
-      await updateGroup(group.id, updates);
-      onUpdated?.();
-      onClose();
-    } catch (err) {
-      // Error toast handled by groupService/apiErrorHandler
-    } finally {
-      setSaving(false);
+    if (useQueryGroups) {
+      updateGroupMutation.mutate(
+        { groupId: group.id, groupData: updates },
+        {
+          onSuccess: () => {
+            onClose();
+          },
+        }
+      );
+    } else {
+      setSaving(true);
+      try {
+        await updateGroup(group.id, updates);
+        onUpdated?.();
+        onClose();
+      } catch (err) {
+        // Error toast handled by groupService/apiErrorHandler
+      } finally {
+        setSaving(false);
+      }
     }
   };
 
@@ -170,17 +188,17 @@ const EditGroupModal = ({ group, onClose, onUpdated }) => {
         <div className="px-5 py-4 border-t border-glass-stroke flex gap-3 shrink-0">
           <button
             onClick={onClose}
-            disabled={saving}
+            disabled={isSaving}
             className="flex-1 py-3 rounded-xl border border-glass-stroke text-on-surface-variant text-sm font-medium hover:bg-white/5 transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            disabled={saving || !name.trim()}
+            disabled={isSaving || !name.trim()}
             className="flex-1 py-3 rounded-xl bg-primary text-white text-sm font-semibold flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {saving ? <Loader2 size={16} className="animate-spin" /> : 'Save Changes'}
+            {isSaving ? <Loader2 size={16} className="animate-spin" /> : 'Save Changes'}
           </button>
         </div>
       </motion.div>

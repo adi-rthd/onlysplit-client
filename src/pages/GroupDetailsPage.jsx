@@ -13,6 +13,7 @@ import { featureFlags } from '../utils/featureFlags';
 import { useGroupExpenses } from '../queries/hooks/useGroupExpenses';
 import { useGroupBalances } from '../queries/hooks/useGroupBalances';
 import { useGroupSettlements } from '../queries/hooks/useGroupSettlements';
+import { useGroupDetail } from '../queries/hooks/useGroups';
 import { useRegenerateSettlements } from '../queries/mutations/useRegenerateSettlements';
 import { useDeleteExpense } from '../queries/mutations/useDeleteExpense';
 import { QueryBoundary } from '../components/ui/QueryBoundary';
@@ -40,9 +41,16 @@ const GroupDetailsPage = () => {
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const { currency: storeCurrency, locale } = useCurrencyStore();
-  const { currentGroup, fetchGroupById, isLoading: isGroupLoading } = useGroupStore();
+  const { currentGroup: legacyCurrentGroup, fetchGroupById, isLoading: isGroupLoading } = useGroupStore();
 
   const useQuery = featureFlags.useQueryExpenses;
+  const useQueryGroups = featureFlags.useQueryGroups;
+
+  // ─── Group detail query hook (only active when group flag is on) ───
+  const groupDetailQuery = useGroupDetail(groupId, { enabled: useQueryGroups && !!groupId });
+
+  // Resolved group data (respects feature flag)
+  const currentGroup = useQueryGroups ? (groupDetailQuery.data || legacyCurrentGroup) : legacyCurrentGroup;
 
   // ─── Query hooks (only active when feature flag is on) ─────────────
   const expensesQuery = useGroupExpenses(groupId, { enabled: useQuery && !!groupId });
@@ -101,8 +109,10 @@ const GroupDetailsPage = () => {
   useEffect(() => {
     if (!groupId) return;
 
-    // Always fetch group (still on groupStore until Phase 2)
-    fetchGroupById(groupId);
+    // Fetch group from legacy store only when group query flag is off
+    if (!useQueryGroups) {
+      fetchGroupById(groupId);
+    }
 
     // Legacy stores: fetch expenses/balances/settlements manually
     if (!useQuery) {
@@ -112,7 +122,7 @@ const GroupDetailsPage = () => {
         fetchSettlements(groupId),
       ]);
     }
-  }, [groupId, useQuery]);
+  }, [groupId, useQuery, useQueryGroups]);
 
   // ─── Real-time updates via SignalR ─────────────────────────────────
   useGroupSignalR(groupId, {
@@ -152,9 +162,30 @@ const GroupDetailsPage = () => {
         fetchSettlements(groupId);
       }
     },
-    MemberJoined: () => fetchGroupById(groupId),
-    MemberRemoved: () => fetchGroupById(groupId),
-    GroupUpdated: () => fetchGroupById(groupId),
+    MemberJoined: () => {
+      if (useQueryGroups) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.groups.detail(groupId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.groups.balances(groupId) });
+      } else {
+        fetchGroupById(groupId);
+      }
+    },
+    MemberRemoved: () => {
+      if (useQueryGroups) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.groups.detail(groupId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.groups.balances(groupId) });
+      } else {
+        fetchGroupById(groupId);
+      }
+    },
+    GroupUpdated: () => {
+      if (useQueryGroups) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.groups.detail(groupId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.groups.all() });
+      } else {
+        fetchGroupById(groupId);
+      }
+    },
     SettlementUpdated: () => {
       if (useQuery) {
         queryClient.invalidateQueries({ queryKey: queryKeys.groups.settlements(groupId) });
@@ -246,7 +277,7 @@ const GroupDetailsPage = () => {
     ? regenerateSettlementsMutation.isPending
     : isRecalculating;
 
-  if (isGroupLoading && !currentGroup) {
+  if ((isGroupLoading || (useQueryGroups && groupDetailQuery.isLoading)) && !currentGroup) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
@@ -656,7 +687,7 @@ const GroupDetailsPage = () => {
         <EditGroupModal
           group={currentGroup}
           onClose={() => setShowEditModal(false)}
-          onUpdated={() => fetchGroupById(groupId)}
+          onUpdated={useQueryGroups ? undefined : () => fetchGroupById(groupId)}
         />
       )}
 

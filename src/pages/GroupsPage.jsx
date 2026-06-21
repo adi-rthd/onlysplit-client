@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ROUTES } from '../constants/routes';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Users, Utensils, UserPlus, Mail, ChevronRight, Search, SortAsc, X, Trash2 } from 'lucide-react';
+import { Plus, Users, Utensils, UserPlus, Mail, Search, SortAsc, X, Trash2 } from 'lucide-react';
 import { motion, useAnimation } from 'framer-motion';
 
 import { useGroupStore } from '../store/groupStore';
@@ -10,6 +10,9 @@ import { useInvitationStore } from '../store/groupInvitationStore';
 import groupService from '../services/groupService';
 import useCurrencyStore from '../store/useCurrencyStore';
 import ConfirmModal from '../components/modals/ConfirmModal';
+import { featureFlags } from '../utils/featureFlags';
+import { useGroups } from '../queries/hooks/useGroups';
+import { useDeleteGroup } from '../queries/mutations/useDeleteGroup';
 
 const SORT_OPTIONS = [
   { value: 'name', label: 'Name' },
@@ -21,8 +24,18 @@ const SORT_OPTIONS = [
 const GroupsPage = () => {
   const navigate = useNavigate();
   const { currency, locale } = useCurrencyStore();
-  const { groups, isLoading, fetchGroups } = useGroupStore();
+  const { groups: legacyGroups, isLoading: legacyLoading, fetchGroups } = useGroupStore();
   const { invitations, fetchMyInvitations } = useInvitationStore();
+
+  const useQueryGroups = featureFlags.useQueryGroups;
+
+  // Query hooks (only active when feature flag is on)
+  const groupsQuery = useGroups({ enabled: useQueryGroups });
+  const deleteGroupMutation = useDeleteGroup();
+
+  // Resolved data (respects feature flag)
+  const groups = useQueryGroups ? (groupsQuery.data || []) : legacyGroups;
+  const isLoading = useQueryGroups ? (groupsQuery.isLoading && !groupsQuery.data) : legacyLoading;
 
   const [search, setSearch] = useState('');
   const [showSearch, setShowSearch] = useState(false);
@@ -33,20 +46,26 @@ const GroupsPage = () => {
 
   useEffect(() => {
     const init = async () => {
-      await Promise.all([
-        fetchGroups(),
-        fetchMyInvitations(),
-      ]);
+      const promises = [fetchMyInvitations()];
+      // Only fetch from legacy store when flag is off (queries auto-fetch)
+      if (!useQueryGroups) {
+        promises.push(fetchGroups());
+      }
+      await Promise.all(promises);
     };
     init();
-  }, []);
+  }, [useQueryGroups]);
 
   const handleDeleteGroup = async (groupId) => {
-    try {
-      await groupService.deleteGroup(groupId);
-      await fetchGroups();
-    } catch (err) {
-      console.error('Failed to delete group');
+    if (useQueryGroups) {
+      deleteGroupMutation.mutate(groupId);
+    } else {
+      try {
+        await groupService.deleteGroup(groupId);
+        await fetchGroups();
+      } catch (err) {
+        console.error('Failed to delete group');
+      }
     }
   };
 

@@ -17,7 +17,14 @@ import { getExpenseIcon } from '../utils/expenseIcons';
 import { GlassPanel } from '../components/ui/GlassCard';
 import { useGroupStore } from '../store/groupStore';
 import { useDashboardStore } from '../store/DashboardStore';
-import { formatCurrency } from '../services/currencyService'
+import { formatCurrency } from '../services/currencyService';
+
+// TanStack Query imports
+import { featureFlags } from '../utils/featureFlags';
+import { useDashboardSummary } from '../queries/hooks/useDashboardSummary';
+import { useGroups } from '../queries/hooks/useGroups';
+import { useDeleteGroup } from '../queries/mutations/useDeleteGroup';
+import toast from 'react-hot-toast';
 
 const DashboardSkeleton = () => (
   <>
@@ -108,41 +115,53 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [graphView, setGraphView] = useState('monthly');
 
-  const groups = useGroupStore(
-    (state) => state.groups
-  );
-  const fetchGroups = useGroupStore(
-    (state) => state.fetchGroups
-  );
-  const summary = useDashboardStore(
-    (state) => state.summary
-  );
+  // Feature flag for query mode
+  const useQueryMode = featureFlags.useQueryGroups;
 
-  const isLoading = useDashboardStore(
-    (state) => state.isLoading
-  );
+  // --- Zustand stores (legacy path) ---
+  const zustandGroups = useGroupStore((state) => state.groups);
+  const fetchGroups = useGroupStore((state) => state.fetchGroups);
+  const zustandSummary = useDashboardStore((state) => state.summary);
+  const zustandIsLoading = useDashboardStore((state) => state.isLoading);
+  const fetchSummary = useDashboardStore((state) => state.fetchSummary);
 
-  const fetchSummary = useDashboardStore(
-    (state) => state.fetchSummary
-  );
+  // --- TanStack Query hooks (new path) ---
+  const summaryQuery = useDashboardSummary({ enabled: useQueryMode });
+  const groupsQuery = useGroups({ enabled: useQueryMode });
+  const deleteGroupMutation = useDeleteGroup();
 
+  // --- Resolve data based on feature flag ---
+  const summary = useQueryMode ? summaryQuery.data : zustandSummary;
+  const groups = useQueryMode ? (groupsQuery.data || []) : zustandGroups;
+  const isLoading = useQueryMode
+    ? (summaryQuery.isLoading && !summaryQuery.data)
+    : zustandIsLoading;
+
+  // --- Delete group handler ---
   const handleDeleteGroup = async (groupId) => {
-    try {
-      await groupService.deleteGroup(groupId);
-
-      await fetchGroups();
-    } catch (err) {
-      toast.error('Failed to delete group');
+    if (useQueryMode) {
+      deleteGroupMutation.mutate(groupId);
+    } else {
+      try {
+        await groupService.deleteGroup(groupId);
+        await fetchGroups();
+      } catch (err) {
+        toast.error('Failed to delete group');
+      }
     }
   };
+
+  // --- Legacy useEffect (only runs when flag is OFF) ---
   useEffect(() => {
+    if (useQueryMode) return;
+
     const loadData = async () => {
       await fetchGroups();
       await fetchSummary();
     };
 
     loadData();
-  }, []);
+  }, [useQueryMode]);
 
   const renderCurrencyTotals = (key, colorClass = 'text-on-surface') => {
     if (isLoading || !summary) return <div className={`text-[28px] md:text-[32px] font-bold ${colorClass} mb-1`}>--</div>;
@@ -244,15 +263,6 @@ const Dashboard = () => {
   }, [groups, summary]);
 
   const chartData = graphView === 'monthly' ? monthlyChart : groupChart;
-
-  // const getActivityIcon = (title) => {
-  //   const lower = (title || '').toLowerCase();
-  //   if (lower.includes('food') || lower.includes('lunch') || lower.includes('dinner') || lower.includes('breakfast')) return Utensils;
-  //   if (lower.includes('travel') || lower.includes('uber') || lower.includes('cab') || lower.includes('fuel')) return Car;
-  //   if (lower.includes('shopping') || lower.includes('grocery')) return ShoppingCart;
-  //   if (lower.includes('pay') || lower.includes('recharge') || lower.includes('bill')) return CreditCard;
-  //   return Receipt;
-  // };
 
   if (isLoading && !summary) {
     return <DashboardSkeleton />;

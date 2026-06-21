@@ -81,24 +81,24 @@ Migrate OnlySplit from fragmented Zustand-based server-state management to a uni
 - [x] 2. Checkpoint — Phase 1 Validation
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 3. Phase 2: Migrate groupStore + DashboardStore to TanStack Query
-  - [~] 3.1 Refactor groupService and dashboardService to remove side effects
+- [x] 3. Phase 2: Migrate groupStore + DashboardStore to TanStack Query
+  - [x] 3.1 Refactor groupService and dashboardService to remove side effects
     - Modify `src/services/groupService.js`: remove `import toast`, remove `handleApiError`, throw structured errors, return raw data
     - Modify `src/services/dashboardService.js`: remove `handleApiError`, throw structured errors, return raw data
     - _Requirements: 11.1, 11.2, 11.4, 11.5, 11.6_
 
-  - [~] 3.2 Create group and dashboard query hooks
+  - [x] 3.2 Create group and dashboard query hooks
     - Create `src/queries/hooks/useGroups.js` — exports `useGroups()` (list, staleTime 60s) and `useGroupDetail(groupId)` (detail)
     - Create `src/queries/hooks/useDashboardSummary.js` — exports `useDashboardSummary()` with staleTime 60s
     - _Requirements: 1.1, 7.1, 12.2_
 
-  - [~] 3.3 Create group mutation hooks
+  - [x] 3.3 Create group mutation hooks
     - Create `src/queries/mutations/useCreateGroup.js` with optimistic insert into groups list, rollback, toast, invalidation per invalidationMap
     - Create `src/queries/mutations/useUpdateGroup.js` with optimistic detail update, rollback, toast, invalidation
     - Create `src/queries/mutations/useDeleteGroup.js` with `removeQueries` for prefix `['groups', groupId]` plus invalidation of `groups.all()` and `dashboard.summary()`
     - _Requirements: 2.4, 2.5, 2.6, 2.7, 3.2, 4.4_
 
-  - [~] 3.4 Migrate Dashboard page to use query hooks
+  - [x] 3.4 Migrate Dashboard page to use query hooks
     - Modify `src/pages/Dashboard.jsx`: replace `useDashboardStore` with `useDashboardSummary()` hook
     - Replace `useGroupStore().groups` / `fetchGroups` with `useGroups()` hook
     - Remove `useEffect` that calls `fetchGroups()` and `fetchSummary()` on mount
@@ -106,7 +106,7 @@ Migrate OnlySplit from fragmented Zustand-based server-state management to a uni
     - Guard behind `flags.useQueryGroups`
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
 
-  - [~] 3.5 Migrate GroupsPage and group modals to use query hooks
+  - [x] 3.5 Migrate GroupsPage and group modals to use query hooks
     - Modify `src/pages/GroupsPage.jsx` (or equivalent): replace `useGroupStore().groups` / `fetchGroups` with `useGroups()` hook
     - Migrate `CreateGroupModal` to use `useCreateGroup()` mutation hook
     - Migrate `EditGroupModal` to use `useUpdateGroup()` mutation hook
@@ -119,7 +119,7 @@ Migrate OnlySplit from fragmented Zustand-based server-state management to a uni
     - Test error state renders retry button via QueryBoundary
     - _Requirements: 7.1, 7.4, 7.5_
 
-- [~] 4. Checkpoint — Phase 2 Validation
+- [x] 4. Checkpoint — Phase 2 Validation
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 5. Phase 3: Migrate FriendsPage + activityStore to TanStack Query
