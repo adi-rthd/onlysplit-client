@@ -57,7 +57,17 @@ client.interceptors.response.use(
       originalRequest?.url?.includes('/auth/logout');
 
     if (error.response?.status !== 401 || originalRequest._retry || isAuthRoute) {
-      return Promise.reject(error);
+      // Structure the error so mutation hooks receive a consistent { status, message, data } object
+      if (error.response) {
+        const structured = {
+          status: error.response.status,
+          message: error.response.data?.message || error.response.data?.error || error.message,
+          data: error.response.data,
+        };
+        return Promise.reject(structured);
+      }
+      // Network error — no response received
+      return Promise.reject({ status: 0, message: 'Network unavailable' });
     }
 
     // If already refreshing, queue this request

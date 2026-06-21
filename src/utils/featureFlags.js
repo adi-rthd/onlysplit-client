@@ -1,14 +1,13 @@
 /**
- * Feature flags for incremental TanStack Query migration.
- * Each flag controls whether a specific domain uses the new query hooks
- * or falls back to the legacy Zustand stores.
+ * Feature flags for TanStack Query migration.
  *
- * Toggle via environment variables (VITE_USE_QUERY_*) or hardcode here during development.
- * Set to `true` to enable the query-based implementation for that domain.
+ * All flags are now permanently enabled — the new query layer is the active path.
+ * Legacy Zustand stores remain in the codebase as dead code until a separate
+ * cleanup PR removes them after production stability is confirmed.
  */
 export const featureFlags = {
-  useQueryExpenses: import.meta.env.VITE_USE_QUERY_EXPENSES === 'true',
-  useQueryGroups: import.meta.env.VITE_USE_QUERY_GROUPS === 'true',
-  useQueryFriends: import.meta.env.VITE_USE_QUERY_FRIENDS === 'true',
-  useQueryInvitations: import.meta.env.VITE_USE_QUERY_INVITATIONS === 'true',
+  useQueryExpenses: true,
+  useQueryGroups: true,
+  useQueryFriends: true,
+  useQueryInvitations: true,
 };

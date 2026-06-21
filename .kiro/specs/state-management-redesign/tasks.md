@@ -199,8 +199,8 @@ Migrate OnlySplit from fragmented Zustand-based server-state management to a uni
 - [x] 8. Checkpoint — Phase 4 Validation
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 9. Phase 5: Implement Offline Queue + final cleanup
-  - [~] 9.1 Implement Offline Queue with Capacitor Filesystem persistence
+- [x] 9. Phase 5: Implement Offline Queue + final cleanup
+  - [x] 9.1 Implement Offline Queue with Capacitor Filesystem persistence
     - Create `src/queries/offlineQueue.js` implementing the `OfflineQueue` class
     - Support `init()`, `enqueue(mutation)`, `processQueue()`, `subscribe(listener)`, `pendingCount` getter
     - Persist queue to Capacitor Filesystem `offline-mutation-queue.json` in Data directory
@@ -210,35 +210,35 @@ Migrate OnlySplit from fragmented Zustand-based server-state management to a uni
     - Handle 409 conflicts: skip after 3 retries, notify user, continue with remaining queue
     - _Requirements: 8.1, 8.2, 8.3, 8.5, 8.7_
 
-  - [~] 9.2 Create useOfflineQueue hook and OfflineIndicator component
+  - [x] 9.2 Create useOfflineQueue hook and OfflineIndicator component
     - Create `src/hooks/useOfflineQueue.js` — React hook that subscribes to queue pending count, returns `{ pendingCount, isOffline }`
     - Create `src/components/ui/OfflineIndicator.jsx` — persistent badge showing pending mutation count when > 0
     - Add OfflineIndicator to the app layout (visible on all pages when queue has pending items)
     - _Requirements: 8.4, 8.6_
 
-  - [~] 9.3 Wire offline detection into mutation pipeline
+  - [x] 9.3 Wire offline detection into mutation pipeline
     - Modify expense mutation hooks (`useCreateExpense`, `useUpdateExpense`) to check network status before calling service
     - When offline: enqueue mutation payload via `offlineQueue.enqueue()`, apply optimistic update, show "saved locally" toast
     - When online and queue processes: trigger invalidation per invalidationMap after each successful replay
     - _Requirements: 8.1, 8.2, 8.4_
 
-  - [~] 9.4 Modify Axios interceptor for structured error handling
+  - [x] 9.4 Modify Axios interceptor for structured error handling
     - Modify `src/api/client.js` response interceptor: for non-401 errors, reject with `{ status, message, data }` structure
     - For network errors (no response): reject with `{ status: 0, message: 'Network unavailable' }`
     - _Requirements: 11.5, 11.6, 11.7_
 
-  - [~] 9.5 Create global error boundary component
+  - [x] 9.5 Create global error boundary component
     - Create `src/components/ui/GlobalErrorBoundary.jsx` — class component wrapping top-level route content
     - Catches unhandled rendering errors, displays recovery screen with error description and "Reload" button that re-renders the route (not a full page refresh)
     - Wrap route content in `AppRoutes` with this error boundary
     - _Requirements: 13.6_
 
-  - [~] 9.6 Create uiStore for consolidated transient UI state
+  - [x] 9.6 Create uiStore for consolidated transient UI state
     - Create `src/store/uiStore.js` with modal states, active tabs per page, and filter/search state
     - Export `useUIStore` with `openModal`, `closeModal`, `setTab`, `setFilter` actions
     - _Requirements: 1.6, 1.7_
 
-  - [~] 9.7 Remove deprecated stores and feature flags (final cleanup)
+  - [x] 9.7 Remove deprecated stores and feature flags (final cleanup)
     - Remove feature flag checks from all components (make query hooks the only code path)
     - Delete `src/store/expenseStore.js`, `src/store/settlementStore.js`, `src/store/groupStore.js`, `src/store/DashboardStore.js`, `src/store/activityStore.js`, `src/store/groupInvitationStore.js`
     - Delete `src/utils/featureFlags.js`
@@ -256,7 +256,7 @@ Migrate OnlySplit from fragmented Zustand-based server-state management to a uni
     - **Property 4: Optimistic Update Rollback Round-Trip** — For random expense arrays and insert/remove operations, verify onError rollback restores original cache state exactly
     - **Validates: Requirements 4.3, 4.6**
 
-- [~] 10. Final Checkpoint — Full Migration Validation
+- [x] 10. Final Checkpoint — Full Migration Validation
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
