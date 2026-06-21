@@ -27,9 +27,20 @@ function App() {
   // Start/stop SignalR connections based on auth state
   useSignalR();
 
-  // Restore auth session
+  // Restore auth session — wait for Zustand persist hydration first
   useEffect(() => {
-    authService.restoreSession();
+    // If already hydrated (e.g., synchronous sessionStorage on web), run immediately
+    if (useAuthStore.persist.hasHydrated()) {
+      authService.restoreSession();
+      return;
+    }
+
+    // Otherwise wait for async hydration (Capacitor Preferences) to complete
+    const unsub = useAuthStore.persist.onFinishHydration(() => {
+      authService.restoreSession();
+    });
+
+    return () => unsub();
   }, []);
 
   // Native network monitoring
