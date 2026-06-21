@@ -1,10 +1,9 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   X,
-  IndianRupee,
   Users,
   ChevronsUpDown,
   Loader2,
@@ -17,6 +16,8 @@ import { getCurrencies } from '../../services/currencyService';
 import { getExpenseCategory } from '../../utils/expenseIcons';
 import { useAuthStore } from '../../store/authStore';
 import useCurrencyStore from '../../store/useCurrencyStore';
+import { useCreateExpense } from '../../queries/mutations/useCreateExpense';
+import { featureFlags } from '../../utils/featureFlags';
 
 const AddExpenseModal = () => {
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ const AddExpenseModal = () => {
   const { user } = useAuthStore();
   const { currency: storeCurrency } = useCurrencyStore();
   const { groups, fetchGroups } = useGroupStore();
-  const { createExpense, isLoading: isSubmitting } = useExpenseStore();
+  const { createExpense, isLoading: storeIsSubmitting } = useExpenseStore();
   const backdropRef = useRef(null);
   const amountRef = useRef(null);
 
@@ -37,6 +38,14 @@ const AddExpenseModal = () => {
   const [splitMethod, setSplitMethod] = useState('equal');
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [splitValues, setSplitValues] = useState({});
+
+  // TanStack Query mutation (used when feature flag is enabled)
+  const createExpenseMutation = useCreateExpense(selectedGroupId);
+
+  // Determine loading state based on feature flag
+  const isSubmitting = featureFlags.useQueryExpenses
+    ? createExpenseMutation.isPending
+    : storeIsSubmitting;
 
   const isGroupContext = Boolean(groupId);
 
@@ -154,19 +163,32 @@ const AddExpenseModal = () => {
       toast.error(`Total percentage is ${totalPercentage}%. It must equal 100%.`);
       return;
     }
-    try {
-      await createExpense({
-        groupId: selectedGroupId,
-        title: title,
-        description: description,
-        amount: parseFloat(amount),
-        category: getExpenseCategory(title),
-        splitType: splitMethod,
-        splits: generateSplits(),
+
+    const expenseData = {
+      groupId: selectedGroupId,
+      title: title,
+      description: description,
+      amount: parseFloat(amount),
+      category: getExpenseCategory(title),
+      splitType: splitMethod,
+      splits: generateSplits(),
+    };
+
+    if (featureFlags.useQueryExpenses) {
+      // Use TanStack Query mutation — toasts handled by the hook
+      createExpenseMutation.mutate(expenseData, {
+        onSuccess: () => {
+          navigate(-1);
+        },
       });
-      navigate(-1);
-    } catch (error) {
-      console.error(error);
+    } else {
+      // Legacy Zustand store behavior
+      try {
+        await createExpense(expenseData);
+        navigate(-1);
+      } catch (error) {
+        console.error(error);
+      }
     }
   };
 

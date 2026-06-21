@@ -3,6 +3,7 @@ import { HashRouter } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 
+import QueryProvider from './providers/QueryProvider';
 import AppRoutes from './routes/AppRoutes';
 import authService from './services/authService';
 import CommonToaster from './components/ui/CommonToaster';
@@ -159,48 +160,52 @@ function App() {
     isOffline
   ) {
     return (
-      <HashRouter>
-        <CommonToaster />
-        <OfflineScreen onRetry={handleRetry} />
-      </HashRouter>
+      <QueryProvider>
+        <HashRouter>
+          <CommonToaster />
+          <OfflineScreen onRetry={handleRetry} />
+        </HashRouter>
+      </QueryProvider>
     );
   }
 
   return (
-    <HashRouter>
-      <CommonToaster />
+    <QueryProvider>
+      <HashRouter>
+        <CommonToaster />
 
-      {/* Mandatory update blocks the app — only when logged in */}
-      {updateInfo?.mandatory && isAuthenticated ? (
-        <MandatoryUpdateScreen
-          updateInfo={updateInfo}
-        />
-      ) : (
-        <>
-          <AppRoutes />
+        {/* Mandatory update blocks the app — only when logged in */}
+        {updateInfo?.mandatory && isAuthenticated ? (
+          <MandatoryUpdateScreen
+            updateInfo={updateInfo}
+          />
+        ) : (
+          <>
+            <AppRoutes />
 
-          {/* Global real-time listeners — only when logged in */}
-          {isAuthenticated && (
-            <>
-              <NotificationListener />
-              <PaymentListener />
-            </>
-          )}
-
-          {/* Optional update — only when logged in */}
-          {updateInfo &&
-            !updateDismissed &&
-            isAuthenticated && (
-              <UpdateModal
-                updateInfo={updateInfo}
-                onDismiss={() =>
-                  setUpdateDismissed(true)
-                }
-              />
+            {/* Global real-time listeners — only when logged in */}
+            {isAuthenticated && (
+              <>
+                <NotificationListener />
+                <PaymentListener />
+              </>
             )}
-        </>
-      )}
-    </HashRouter>
+
+            {/* Optional update — only when logged in */}
+            {updateInfo &&
+              !updateDismissed &&
+              isAuthenticated && (
+                <UpdateModal
+                  updateInfo={updateInfo}
+                  onDismiss={() =>
+                    setUpdateDismissed(true)
+                  }
+                />
+              )}
+          </>
+        )}
+      </HashRouter>
+    </QueryProvider>
   );
 }
 

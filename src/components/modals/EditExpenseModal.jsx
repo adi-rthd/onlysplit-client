@@ -14,12 +14,17 @@ import { useAuthStore } from '../../store/authStore';
 import { getCurrencies } from '../../services/currencyService';
 import { getExpenseCategory } from '../../utils/expenseIcons';
 import useCurrencyStore from '../../store/useCurrencyStore';
+import { useUpdateExpense } from '../../queries/mutations/useUpdateExpense';
+import { featureFlags } from '../../utils/featureFlags';
 
 const EditExpenseModal = ({ expense, groupId, onClose, onUpdated }) => {
   const { updateExpense } = useExpenseStore();
   const { currentGroup } = useGroupStore();
   const { user } = useAuthStore();
   const { currency: storeCurrency } = useCurrencyStore();
+
+  // TanStack Query mutation (used when feature flag is enabled)
+  const updateExpenseMutation = useUpdateExpense(groupId);
 
   const [amount, setAmount] = useState(String(expense?.amount || ''));
   const [title, setTitle] = useState(expense?.title || '');
@@ -29,8 +34,13 @@ const EditExpenseModal = ({ expense, groupId, onClose, onUpdated }) => {
     expense?.splits?.map((s) => s.userId) || []
   );
   const [splitValues, setSplitValues] = useState({});
-  const [saving, setSaving] = useState(false);
+  const [storeSaving, setStoreSaving] = useState(false);
   const [currencies, setCurrencies] = useState([]);
+
+  // Determine saving state based on feature flag
+  const saving = featureFlags.useQueryExpenses
+    ? updateExpenseMutation.isPending
+    : storeSaving;
 
   const members = useMemo(() => currentGroup?.members || [], [currentGroup]);
 
@@ -114,22 +124,37 @@ const EditExpenseModal = ({ expense, groupId, onClose, onUpdated }) => {
       return;
     }
 
-    setSaving(true);
-    try {
-      await updateExpense(expense.id, {
-        title,
-        description,
-        amount: parseFloat(amount),
-        category: getExpenseCategory(title),
-        splitType: splitMethod,
-        splits: generateSplits(),
-      });
-      onUpdated?.();
-      onClose();
-    } catch (err) {
-      // Error toast handled by service
-    } finally {
-      setSaving(false);
+    const expenseData = {
+      title,
+      description,
+      amount: parseFloat(amount),
+      category: getExpenseCategory(title),
+      splitType: splitMethod,
+      splits: generateSplits(),
+    };
+
+    if (featureFlags.useQueryExpenses) {
+      // Use TanStack Query mutation — toasts and invalidation handled by the hook
+      updateExpenseMutation.mutate(
+        { expenseId: expense.id, expenseData },
+        {
+          onSuccess: () => {
+            onClose();
+          },
+        }
+      );
+    } else {
+      // Legacy Zustand store behavior
+      setStoreSaving(true);
+      try {
+        await updateExpense(expense.id, expenseData);
+        onUpdated?.();
+        onClose();
+      } catch (err) {
+        // Error toast handled by service
+      } finally {
+        setStoreSaving(false);
+      }
     }
   };
 
