@@ -140,27 +140,27 @@ const GroupCard = ({
         >
           {/* HEADER */}
           <div className="flex items-start justify-between mb-6">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 min-w-0">
               {/* AVATAR */}
-              <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-primary-container to-inverse-primary flex items-center justify-center text-white font-bold text-2xl shadow-lg">
+              <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-primary-container to-inverse-primary flex items-center justify-center text-white font-bold text-2xl shadow-lg shrink-0">
                 {group?.name
                   ?.slice(0, 2)
                   ?.toUpperCase()}
               </div>
 
               {/* INFO */}
-              <div>
+              <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-2xl font-bold text-on-surface group-hover:text-primary transition-colors">
+                  <h3 className="text-2xl font-bold text-on-surface group-hover:text-primary transition-colors truncate">
                     {group.name}
                   </h3>
 
-                  <span className="px-2 py-0.5 text-[10px] rounded-md bg-surface-container-high text-on-surface-variant font-medium">
+                  <span className="px-2 py-0.5 text-[10px] rounded-md bg-surface-container-high text-on-surface-variant font-medium shrink-0">
                     {group.currency || currency}
                   </span>
                 </div>
 
-                <p className="text-on-surface-variant text-sm">
+                <p className="text-on-surface-variant text-sm truncate">
                   {group.description ||
                     'No description'}
                 </p>
