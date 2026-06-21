@@ -188,7 +188,7 @@ const AddExpenseModal = () => {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 40 }}
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        className="w-full max-w-md glass-card rounded-2xl shadow-2xl flex flex-col max-h-[92vh] md:max-h-[85vh]"
+        className="w-full max-w-md glass-card rounded-2xl shadow-2xl flex flex-col max-h-[80vh] md:max-h-[85vh]"
       >
         {/* HEADER */}
         <div className="flex items-center justify-between px-5 py-4 shrink-0">
