@@ -1,5 +1,7 @@
 import axios from 'axios';
+import { Capacitor } from '@capacitor/core';
 import { useAuthStore } from '../store/authStore';
+import { refreshTokenStorage } from '../utils/storage';
 
 // API base URL resolution order:
 //   1. VITE_API_BASE_URL (set per-environment via .env / .env.production)
@@ -84,10 +86,21 @@ client.interceptors.response.use(
     isRefreshing = true;
 
     try {
+      const isNative = Capacitor.isNativePlatform();
+      let requestBody = {};
+
+      // On native, include refresh token in body (cookie fallback)
+      if (isNative) {
+        const storedRefreshToken = await refreshTokenStorage.get();
+        if (storedRefreshToken) {
+          requestBody = { refreshToken: storedRefreshToken };
+        }
+      }
+
       // Use raw axios (not intercepted client) to avoid loops
       const response = await axios.post(
         `${client.defaults.baseURL}/auth/refresh`,
-        {},
+        requestBody,
         { withCredentials: true }
       );
 
@@ -110,6 +123,11 @@ client.interceptors.response.use(
         authStore.setUser(responseData.user);
       }
 
+      // On native, persist the new refresh token if returned
+      if (isNative && responseData.refreshToken) {
+        await refreshTokenStorage.set(responseData.refreshToken);
+      }
+
       // Process queued requests with new token
       processQueue(null, newAccessToken);
 
@@ -120,6 +138,11 @@ client.interceptors.response.use(
     } catch (refreshError) {
       // Refresh failed — reject all queued requests
       processQueue(refreshError, null);
+
+      // Clear stored refresh token on native (it's invalid)
+      if (Capacitor.isNativePlatform()) {
+        await refreshTokenStorage.remove();
+      }
 
       useAuthStore.getState().logout();
 

@@ -1,8 +1,10 @@
 // src/services/authService.js
 
 import axios from 'axios';
+import { Capacitor } from '@capacitor/core';
 import client from '../api/client';
 import { useAuthStore } from '../store/authStore';
+import { refreshTokenStorage } from '../utils/storage';
 import { handleApiError } from '../utils/apiErrorHandler';
 import toast from 'react-hot-toast';
 
@@ -38,6 +40,11 @@ const authService = {
         user,
         token,
       });
+
+      // On native, store refresh token for Capacitor WebView fallback
+      if (Capacitor.isNativePlatform() && data.refreshToken) {
+        await refreshTokenStorage.set(data.refreshToken);
+      }
 
       toast.success(
         `Welcome back, ${user?.firstName || 'there'
@@ -117,11 +124,12 @@ const authService = {
     } catch (error) {
       console.error(error);
     } finally {
+      // Clear native refresh token storage
+      if (Capacitor.isNativePlatform()) {
+        await refreshTokenStorage.remove();
+      }
       useAuthStore.getState().logout();
-
-      toast.success(
-        'Logged out successfully.'
-      );
+      toast.success('Logged out successfully.');
     }
   },
 
@@ -148,40 +156,50 @@ const authService = {
    * Restore session on app startup
    *
    * Flow:
-   * 1. Try refresh endpoint
-   * 2. Backend validates cookie session
-   * 3. Receive fresh access token
-   * 4. Load current user
+   * 1. Check if persisted token exists from Zustand hydration
+   * 2. If token exists, attempt /auth/me to validate
+   * 3. If validation fails, attempt refresh (cookie on web, body on native)
+   * 4. Only set isLoading: false after all validation completes
    */
   restoreSession: async () => {
     try {
+      // Step 1: Check if persisted token exists from Zustand hydration
+      const persistedToken = useAuthStore.getState().token;
+
+      if (persistedToken) {
+        // Step 2: Validate persisted token by calling /auth/me
+        try {
+          const user = await authService.getCurrentUser();
+          if (user) {
+            // Token is still valid — session restored
+            useAuthStore.getState().setAuth({ user, token: persistedToken });
+            return true;
+          }
+        } catch (error) {
+          // Token invalid (401) — will try refresh below
+          // Any other error means we can't validate — try refresh
+        }
+      }
+
+      // Step 3: Attempt refresh (cookie on web, body on native)
       const token = await authService.refreshToken();
       if (!token) {
         useAuthStore.getState().setLoaded();
-
         return false;
       }
 
-      const user =
-        await authService.getCurrentUser();
-
+      // Step 4: Load current user with new token
+      const user = await authService.getCurrentUser();
       if (!user) {
         useAuthStore.getState().logout();
-
         return false;
       }
 
-      useAuthStore.getState().setAuth({
-        user,
-        token,
-      });
-
+      useAuthStore.getState().setAuth({ user, token });
       return true;
     } catch (error) {
-      console.error(error);
-
+      console.error('restoreSession error:', error);
       useAuthStore.getState().logout();
-
       return false;
     } finally {
       useAuthStore.getState().setLoaded();
@@ -189,16 +207,29 @@ const authService = {
   },
 
   /**
-   * Silent refresh
+   * Silent refresh — platform-aware
    *
-   * Refresh token automatically sent via httpOnly cookie
+   * Web: refresh token sent via httpOnly cookie (withCredentials)
+   * Native: refresh token retrieved from Capacitor Preferences and sent in body
    */
   refreshToken: async () => {
     try {
+      const isNative = Capacitor.isNativePlatform();
+
+      let requestBody = {};
+
+      // On native, include refresh token in body (cookie fallback)
+      if (isNative) {
+        const storedRefreshToken = await refreshTokenStorage.get();
+        if (storedRefreshToken) {
+          requestBody = { refreshToken: storedRefreshToken };
+        }
+      }
+
       // Use raw axios (not intercepted client) to avoid interceptor loops
       const { data } = await axios.post(
         `${client.defaults.baseURL}/auth/refresh`,
-        {},
+        requestBody,
         { withCredentials: true }
       );
 
@@ -219,12 +250,15 @@ const authService = {
         useAuthStore.getState().setUser(response.user);
       }
 
+      // On native, persist the new refresh token if returned
+      if (isNative && response.refreshToken) {
+        await refreshTokenStorage.set(response.refreshToken);
+      }
+
       return token;
     } catch (error) {
-      console.error(error);
-
-      useAuthStore.getState().logout();
-
+      console.error('refreshToken error:', error);
+      // Don't call logout here — let the caller decide
       return null;
     }
   },
