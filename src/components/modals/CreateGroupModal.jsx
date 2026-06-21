@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { X, Users, Loader2, ChevronDown, Check } from 'lucide-react';
@@ -7,6 +7,8 @@ import { useGroupStore } from '../../store/groupStore';
 import toast from 'react-hot-toast';
 import { getCurrencies } from '../../services/currencyService';
 import useCurrencyStore from '../../store/useCurrencyStore';
+import { featureFlags } from '../../utils/featureFlags';
+import { useCreateGroup } from '../../queries/mutations/useCreateGroup';
 
 const CreateGroupModal = () => {
   const navigate = useNavigate();
@@ -15,10 +17,15 @@ const CreateGroupModal = () => {
 
   const [name, setName] = useState('');
   const { currency: defaultCurrency } = useCurrencyStore();
-  const { createGroup, isLoading } = useGroupStore();
+  const { createGroup, isLoading: legacyLoading } = useGroupStore();
   const [currencies, setCurrencies] = useState([]);
   const [description, setDescription] = useState('');
   const [currency, setCurrency] = useState(defaultCurrency || 'INR');
+
+  const useQueryGroups = featureFlags.useQueryGroups;
+  const createGroupMutation = useCreateGroup();
+
+  const isLoading = useQueryGroups ? createGroupMutation.isPending : legacyLoading;
 
   // Escape key
   useEffect(() => {
@@ -54,21 +61,36 @@ const CreateGroupModal = () => {
       toast.error('Group name is required');
       return;
     }
-    try {
-      const newGroup = await createGroup({
-        name,
-        description,
-        currency,
-        memberEmails: [],
+
+    const groupData = {
+      name,
+      description,
+      currency,
+      memberEmails: [],
+    };
+
+    if (useQueryGroups) {
+      createGroupMutation.mutate(groupData, {
+        onSuccess: (data) => {
+          if (data) {
+            navigate(`/groups/${data.id || data.groupId || ''}`);
+          } else {
+            navigate('/groups');
+          }
+        },
       });
-      if (newGroup) {
-        navigate(`/groups/${newGroup.id || newGroup.groupId || ''}`);
-      } else {
-        navigate('/groups');
+    } else {
+      try {
+        const newGroup = await createGroup(groupData);
+        if (newGroup) {
+          navigate(`/groups/${newGroup.id || newGroup.groupId || ''}`);
+        } else {
+          navigate('/groups');
+        }
+      } catch (error) {
+        console.error(error);
+        toast.error('Failed to create group');
       }
-    } catch (error) {
-      console.error(error);
-      toast.error('Failed to create group');
     }
   };
 

@@ -1,104 +1,57 @@
 import client from '../api/client';
-import { handleApiError } from '../utils/apiErrorHandler';
-import toast from 'react-hot-toast';
 
+/**
+ * Group service — CRUD operations for groups and membership.
+ * Designed for the ASP.NET Core backend API.
+ *
+ * All methods return raw data on success and let errors propagate.
+ * Callers (mutation hooks, stores) are responsible for error handling and toasts.
+ */
 const groupService = {
   getGroups: async () => {
-    try {
-      const { data } = await client.get('/groups');
-      return data;
-    } catch (error) {
-      handleApiError(error, 'Failed to load groups.');
-      return null;
-    }
+    const { data } = await client.get('/groups');
+    return data?.data || data;
   },
 
   getGroupById: async (groupId) => {
-    try {
-      const { data } = await client.get(`/groups/${groupId}`);
-      return data;
-    } catch (error) {
-      handleApiError(error, 'Failed to load group details.');
-      return null;
-    }
+    const { data } = await client.get(`/groups/${groupId}`);
+    return data?.data || data;
   },
 
   createGroup: async (groupData) => {
-    try {
-      const { data } = await client.post('/groups', groupData);
-      toast.success('Group created successfully!');
-      return data;
-    } catch (error) {
-      handleApiError(error, 'Failed to create group.');
-      return null;
-    }
+    const { data } = await client.post('/groups', groupData);
+    return data?.data || data;
   },
 
   updateGroup: async (groupId, groupData) => {
-    try {
-      const { data } = await client.put(`/groups/${groupId}`, groupData);
-      toast.success('Group updated.');
-      return data;
-    } catch (error) {
-      handleApiError(error, 'Failed to update group.');
-      return null;
-    }
+    const { data } = await client.put(`/groups/${groupId}`, groupData);
+    return data?.data || data;
   },
 
   deleteGroup: async (groupId) => {
-    try {
-      await client.delete(`/groups/${groupId}/delete`);
-      toast.success('Group deleted.');
-      return true;
-    } catch (error) {
-      handleApiError(error, 'Failed to delete group.');
-      return false;
-    }
+    await client.delete(`/groups/${groupId}/delete`);
+    return true;
   },
 
   addMember: async (groupId, memberData) => {
-    try {
-      const { data } = await client.post(`/groups/${groupId}/members`, memberData);
-      toast.success('Member added.');
-      return data;
-    } catch (error) {
-      handleApiError(error, 'Failed to add member.');
-      return null;
-    }
+    const { data } = await client.post(`/groups/${groupId}/members`, memberData);
+    return data?.data || data;
   },
 
   removeMember: async (groupId, memberId) => {
-    try {
-      await client.delete(`/groups/${groupId}/member/${memberId}`);
-      toast.success('Member removed.');
-      return true;
-    } catch (error) {
-      handleApiError(error, 'Failed to remove member.');
-      return false;
-    }
+    await client.delete(`/groups/${groupId}/member/${memberId}`);
+    return true;
   },
 
   invite: async (groupId, inviteData) => {
-    try {
-      const { data } = await client.post(`/groups/${groupId}/invite`, inviteData);
-      toast.success('Invitations sent.');
-      return data;
-    } catch (error) {
-      handleApiError(error, 'Failed to send invitations.');
-      return null;
-    }
+    const { data } = await client.post(`/groups/${groupId}/invite`, inviteData);
+    return data?.data || data;
   },
 
   joinGroup: async (joinData) => {
-    try {
-      const { data } = await client.post(`/groups/join`, joinData);
-      toast.success('Joined group successfully.');
-      return data;
-    } catch (error) {
-      handleApiError(error, 'Failed to join group.');
-      return null;
-    }
-  }
+    const { data } = await client.post(`/groups/join`, joinData);
+    return data?.data || data;
+  },
 };
 
 export default groupService;
