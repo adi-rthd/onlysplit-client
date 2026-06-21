@@ -41,7 +41,20 @@ const GroupDetailsPage = () => {
   const [showEditModal, setShowEditModal] = useState(false);
 
   // Check if current user is the group owner
-  const isOwner = currentGroup?.createdBy === user?.id;
+  const isOwner = currentGroup?.createdBy === user?.id || currentGroup?.createdById === user?.id || currentGroup?.ownerId === user?.id;
+
+  // Debug: check in console what values are being compared
+  useEffect(() => {
+    if (currentGroup && user) {
+      console.log('[GroupDetails] Owner check:', {
+        'currentGroup.createdBy': currentGroup.createdBy,
+        'currentGroup.createdById': currentGroup.createdById,
+        'currentGroup.ownerId': currentGroup.ownerId,
+        'user.id': user.id,
+        isOwner,
+      });
+    }
+  }, [currentGroup, user, isOwner]);
 
   useEffect(() => {
     if (!groupId) return;
