@@ -11,6 +11,13 @@ export const ROUTES = {
   LOGIN: '/login',
   SIGNUP: '/signup',
   DOWNLOAD: '/download',
+  FEATURES: '/features',
+  HOW_IT_WORKS: '/how-it-works',
+  SPLITWISE_ALTERNATIVE: '/splitwise-alternative',
+  BLOG: '/blog',
+  CONTACT: '/contact',
+  PRIVACY_POLICY: '/privacy-policy',
+  TERMS: '/terms',
 
   // ─────────────────────────────────────────────
   // PROTECTED
@@ -61,6 +68,20 @@ export const PROTECTED_ROUTES = [
   ROUTES.CREATE_GROUP,
   ROUTES.FRIEND_MODAL,
   ROUTES.INVITE_MODAL
+];
+
+// Public routes accessible without authentication (included in sitemap)
+
+export const PUBLIC_ROUTES = [
+  ROUTES.LANDING,
+  ROUTES.FEATURES,
+  ROUTES.HOW_IT_WORKS,
+  ROUTES.SPLITWISE_ALTERNATIVE,
+  ROUTES.BLOG,
+  ROUTES.CONTACT,
+  ROUTES.PRIVACY_POLICY,
+  ROUTES.TERMS,
+  ROUTES.DOWNLOAD,
 ];
 
 // Routes that should redirect authenticated users

@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+
+Disallow: /dashboard
+Disallow: /groups
+Disallow: /activity
+Disallow: /analytics
+Disallow: /settings
+Disallow: /profile
+Disallow: /payments
+Disallow: /settlements
+Disallow: /friends
+Disallow: /add-expense
+Disallow: /create-group
+Disallow: /friends-group
+Disallow: /invite-group
+
+Sitemap: https://onlysplit.in/sitemap.xml
