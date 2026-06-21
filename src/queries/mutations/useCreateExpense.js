@@ -1,14 +1,41 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Network } from '@capacitor/network';
 import { queryKeys } from '../queryKeys';
 import { invalidationMap } from '../invalidationMap';
 import expenseService from '../../services/expenseService';
+import { getOfflineQueue } from '../../hooks/useOfflineQueue';
 import toast from 'react-hot-toast';
 
 export function useCreateExpense(groupId) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (expenseData) => expenseService.createExpense(expenseData),
+    mutationFn: async (expenseData) => {
+      // Check network status
+      let isOnline = true;
+      try {
+        const status = await Network.getStatus();
+        isOnline = status.connected;
+      } catch {
+        // If Network plugin unavailable, assume online
+        isOnline = true;
+      }
+
+      if (!isOnline) {
+        // Queue the mutation for later replay
+        const queue = getOfflineQueue();
+        await queue.enqueue({
+          type: 'createExpense',
+          payload: expenseData,
+          groupId: expenseData.groupId || groupId,
+        });
+        // Return a fake response for the optimistic update to work
+        return { ...expenseData, id: `offline-${Date.now()}`, _isPending: true };
+      }
+
+      // Online: proceed normally
+      return expenseService.createExpense(expenseData);
+    },
 
     onMutate: async (newExpense) => {
       // Cancel outgoing refetches
@@ -43,11 +70,20 @@ export function useCreateExpense(groupId) {
       toast.error(`Failed to create expense: ${err.message}`);
     },
 
-    onSuccess: () => {
-      toast.success('Expense added!');
+    onSuccess: (data) => {
+      if (data?._isPending) {
+        toast.success('Saved locally — will sync when online');
+      } else {
+        toast.success('Expense added!');
+      }
     },
 
-    onSettled: () => {
+    onSettled: (data) => {
+      // Skip invalidation for offline-queued mutations (no server truth to refetch)
+      if (data?._isPending) {
+        return;
+      }
+
       // Always refetch to ensure server truth
       const keys = invalidationMap.createExpense(groupId);
       keys.forEach((key) => queryClient.invalidateQueries({ queryKey: key }));

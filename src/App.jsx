@@ -10,6 +10,8 @@ import CommonToaster from './components/ui/CommonToaster';
 import UpdateModal from './components/modals/UpdateModal';
 import MandatoryUpdateScreen from './components/modals/MandatoryUpdateScreen';
 import OfflineScreen from './components/ui/OfflineScreen';
+import GlobalErrorBoundary from './components/ui/GlobalErrorBoundary';
+import OfflineIndicator from './components/ui/OfflineIndicator';
 import { checkForUpdate } from './services/updateService';
 import { useSignalR } from './hooks/useSignalR';
 import { useAuthStore } from './store/authStore';
@@ -181,7 +183,11 @@ function App() {
           />
         ) : (
           <>
-            <AppRoutes />
+            <GlobalErrorBoundary>
+              <AppRoutes />
+            </GlobalErrorBoundary>
+
+            <OfflineIndicator />
 
             {/* Global real-time listeners — only when logged in */}
             {isAuthenticated && (
