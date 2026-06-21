@@ -1,17 +1,17 @@
-import { LayoutDashboard, Users, Clock, Settings, PieChart } from 'lucide-react';
+import { LayoutDashboard, Users, Clock, Settings, PieChart, UserPlus } from 'lucide-react';
 
 export const NAVIGATION_ITEMS = [
   { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { path: '/groups', icon: Users, label: 'Groups' },
-  // { path: '/activity', icon: Clock, label: 'Recent Activity' },
+  { path: '/friends', icon: UserPlus, label: 'Friends' },
   { path: '/settlements', icon: Clock, label: 'Settlements' },
   { path: '/analytics', icon: PieChart, label: 'Analytics' },
 ];
 
 export const BOTTOM_NAV_ITEMS = [
-  { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { path: '/dashboard', icon: LayoutDashboard, label: 'Home' },
   { path: '/groups', icon: Users, label: 'Groups' },
-  { path: '/analytics', icon: PieChart, label: 'Analytics' },
-  { path: '/settlements', icon: Clock, label: 'Settlements' },
+  { path: '/friends', icon: UserPlus, label: 'Friends' },
+  { path: '/settlements', icon: Clock, label: 'Settle' },
   { path: '/settings', icon: Settings, label: 'Profile' },
 ];

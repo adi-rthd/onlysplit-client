@@ -84,30 +84,17 @@ const FriendshipModal = () => {
 
       const [
         friendsData,
-        requestsData,
+        receivedData,
+        sentData,
       ] = await Promise.all([
         FriendshipStore.getFriends(),
         FriendshipStore.getRequests(),
+        FriendshipStore.getSent(),
       ]);
 
       setFriends(friendsData || []);
-
-      const sent =
-        requestsData?.filter(
-          (r) =>
-            r.status === 'Pending' &&
-            r.isSender
-        ) || [];
-
-      const received =
-        requestsData?.filter(
-          (r) =>
-            r.status === 'Pending' &&
-            !r.isSender
-        ) || [];
-
-      setSentRequests(sent);
-      setReceivedRequests(received);
+      setReceivedRequests(receivedData || []);
+      setSentRequests(sentData || []);
     } finally {
       setLoading(false);
     }

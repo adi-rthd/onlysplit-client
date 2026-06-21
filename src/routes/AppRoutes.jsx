@@ -37,6 +37,8 @@ const SettingsPage = lazy(() => import('../pages/SettingsPage'));
 
 const SettlementsPage = lazy(() => import('../pages/SettlementsPage'));
 
+const FriendsPage = lazy(() => import('../pages/FriendsPage'));
+
 // ─────────────────────────────────────────────────────────────
 // Lazy Loaded Modals
 // ─────────────────────────────────────────────────────────────
@@ -137,6 +139,12 @@ const AppRoutes = () => {
           <Route
             path={ROUTES.SETTLEMENTS}
             element={<SettlementsPage />}
+          />
+
+          {/* Friends */}
+          <Route
+            path={ROUTES.FRIENDS}
+            element={<FriendsPage />}
           />
 
           {/* Analytics */}
