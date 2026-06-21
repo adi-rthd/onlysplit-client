@@ -9,8 +9,6 @@ import { ROUTES } from '../constants/routes';
 import { Capacitor } from '@capacitor/core';
 import { checkForUpdate, downloadApk, installApk } from '../services/updateService';
 
-const LATEST_JSON_URL = 'https://api-split.onlylabs.in/downloads/latest.json';
-
 const SettingsPage = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
@@ -60,16 +58,7 @@ const SettingsPage = () => {
         if (info) setUpdateAvailable(info);
       });
     } else {
-      // Web: fetch APK URL for download button
-      fetch(LATEST_JSON_URL, { cache: 'no-store' })
-        .then((res) => {
-          if (!res.ok) throw new Error();
-          return res.json();
-        })
-        .then((data) => {
-          if (data?.apkUrl) setApkUrl(data.apkUrl);
-        })
-        .catch(() => {});
+      // Web: download page handles APK URL fetching
     }
   }, []);
 
@@ -755,10 +744,8 @@ const SettingsPage = () => {
                 </p>
               </div>
 
-              <a
-                href={apkUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={() => navigate(ROUTES.DOWNLOAD)}
                 className="
                   px-6 py-3
                   rounded-2xl
@@ -775,7 +762,7 @@ const SettingsPage = () => {
               >
                 <Smartphone size={18} />
                 Download APK
-              </a>
+              </button>
             </div>
           </GlassPanel>
         )}

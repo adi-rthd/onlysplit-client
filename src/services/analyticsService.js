@@ -63,7 +63,29 @@ const analyticsService = {
       handleApiError(error, 'Failed to load group breakdown.');
       return null;
     }
-  }
+  },
+
+  /**
+   * Track download-related events (fire-and-forget).
+   *
+   * @param {string} eventName - Event name (e.g., 'download_page_loaded', 'inapp_browser_detected')
+   * @param {Record<string, any>} [metadata] - Optional metadata
+   */
+  trackDownloadEvent: (eventName, metadata = {}) => {
+    try {
+      console.log(`[Analytics:Download] ${eventName}`, metadata);
+      // Fire-and-forget POST to analytics endpoint
+      client.post('/analytics/download-event', {
+        event: eventName,
+        metadata,
+        timestamp: new Date().toISOString(),
+      }).catch(() => {
+        // Silently ignore analytics failures
+      });
+    } catch {
+      // Never let analytics break the user flow
+    }
+  },
 };
 
 export default analyticsService;

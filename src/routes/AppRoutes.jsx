@@ -39,6 +39,8 @@ const SettlementsPage = lazy(() => import('../pages/SettlementsPage'));
 
 const FriendsPage = lazy(() => import('../pages/FriendsPage'));
 
+const DownloadPage = lazy(() => import('../pages/DownloadPage'));
+
 // ─────────────────────────────────────────────────────────────
 // Lazy Loaded Modals
 // ─────────────────────────────────────────────────────────────
@@ -77,6 +79,11 @@ const AppRoutes = () => {
                   <LandingPage />
                 )
           }
+        />
+
+        <Route
+          path={ROUTES.DOWNLOAD}
+          element={<DownloadPage />}
         />
         {/* ───────────────────────────────────────────── */}
         {/* AUTH ROUTES */}

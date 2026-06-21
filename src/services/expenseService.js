@@ -30,11 +30,20 @@ const expenseService = {
 
   updateExpense: async (id, expenseData) => {
     const { data } = await client.put(`/expenses/${id}`, expenseData);
-    return data?.data || data;
+    const result = data?.data || data;
+    // Backend may return 200 with { success: false, message: "..." }
+    if (result && result.success === false) {
+      throw { status: 403, message: result.message || 'Permission denied' };
+    }
+    return result;
   },
 
   deleteExpense: async (id) => {
-    await client.delete(`/expenses/${id}`);
+    const { data } = await client.delete(`/expenses/${id}`);
+    // Backend may return 200 with { success: false, message: "..." }
+    if (data && data.success === false) {
+      throw { status: 403, message: data.message || 'Permission denied' };
+    }
     return true;
   },
 
