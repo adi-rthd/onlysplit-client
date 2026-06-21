@@ -10,11 +10,15 @@ import UpdateModal from './components/modals/UpdateModal';
 import MandatoryUpdateScreen from './components/modals/MandatoryUpdateScreen';
 import OfflineScreen from './components/ui/OfflineScreen';
 import { checkForUpdate } from './services/updateService';
+import { useSignalR } from './hooks/useSignalR';
 
 function App() {
   const [updateInfo, setUpdateInfo] = useState(null);
   const [updateDismissed, setUpdateDismissed] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
+
+  // Start/stop SignalR connections based on auth state
+  useSignalR();
 
   // Restore auth session
   useEffect(() => {

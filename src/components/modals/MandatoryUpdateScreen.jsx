@@ -1,53 +1,55 @@
 /**
- * Mandatory update full-screen blocker.
- * Shown when a mandatory update is available.
- * User cannot dismiss — they must update to continue.
+ * Mandatory update full-screen blocker with in-app download.
+ * User cannot dismiss — must update to continue.
  */
-
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
-import { ShieldAlert, Download, RefreshCw } from 'lucide-react';
+import { ShieldAlert, Download, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
-import { downloadUpdate } from '../../services/updateService';
+import { downloadApk, installApk } from '../../services/updateService';
 
 const MandatoryUpdateScreen = ({ updateInfo }) => {
-  const [downloading, setDownloading] = useState(false);
+  const [state, setState] = useState('idle'); // idle | downloading | complete | installing | error
+  const [progress, setProgress] = useState(0);
+  const [error, setError] = useState('');
 
-  // Disable Android back button while this screen is active
+  // Disable Android back button
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
 
     let listener;
-
     import('@capacitor/app').then(({ App }) => {
-      listener = App.addListener('backButton', () => {
-        // Block back navigation
-      });
+      listener = App.addListener('backButton', () => {});
     });
 
     return () => {
-      if (listener) {
-        listener.then((l) => l.remove());
-      }
+      if (listener) listener.then((l) => l.remove());
     };
   }, []);
 
   if (!updateInfo) return null;
 
   const handleUpdate = async () => {
+    setState('downloading');
+    setProgress(0);
+
     try {
-      setDownloading(true);
+      const fileUri = await downloadApk(updateInfo.apkUrl, (p) => {
+        setProgress(p);
+      });
 
-      await downloadUpdate(updateInfo.apkUrl);
+      setState('complete');
 
-      // User may come back without installing
-      setTimeout(() => {
-        setDownloading(false);
-      }, 5000);
-    } catch (error) {
-      console.error('Failed to start update:', error);
-      setDownloading(false);
+      setTimeout(async () => {
+        setState('installing');
+        await installApk(fileUri);
+        // If user comes back without installing, show button again
+        setTimeout(() => setState('idle'), 5000);
+      }, 800);
+    } catch (err) {
+      setError(err.message || 'Download failed');
+      setState('error');
     }
   };
 
@@ -55,187 +57,118 @@ const MandatoryUpdateScreen = ({ updateInfo }) => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 9999,
-
-        width: '100%',
-        maxWidth: '100vw',
-        height: '100dvh',
-
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-
-        boxSizing: 'border-box',
-
-        padding:
-          'max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom))',
-
-        overflow: 'hidden',
-        overflowX: 'hidden',
-
-        backgroundColor: 'var(--surface-charcoal)',
-      }}
+      className="fixed inset-0 z-[300] flex flex-col items-center justify-center bg-surface-charcoal p-6"
+      style={{ margin: 0 }}
     >
-      {/* Responsive glow */}
-      <div
-        className="bg-primary/10"
-        style={{
-          position: 'absolute',
-          top: '35%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
+      {/* Glow */}
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
 
-          width: 'min(70vw, 320px)',
-          height: 'min(70vw, 320px)',
-
-          borderRadius: '9999px',
-          filter: 'blur(80px)',
-
-          pointerEvents: 'none',
-        }}
-      />
-
-      {/* Content */}
-      <div
-        className="relative z-10"
-        style={{
-          width: '100%',
-          maxWidth: 360,
-
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-
-          textAlign: 'center',
-        }}
-      >
+      <div className="relative z-10 flex flex-col items-center text-center max-w-sm w-full">
         {/* Icon */}
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{
-            delay: 0.2,
-            type: 'spring',
-            damping: 15,
-          }}
+          transition={{ delay: 0.2, type: 'spring', damping: 15 }}
           className="w-20 h-20 rounded-3xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-8"
         >
-          <ShieldAlert
-            size={36}
-            className="text-primary"
-          />
+          {state === 'complete' || state === 'installing' ? (
+            <CheckCircle2 size={36} className="text-neon-lime" />
+          ) : (
+            <ShieldAlert size={36} className="text-primary" />
+          )}
         </motion.div>
 
         {/* Title */}
-        <motion.h1
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="text-2xl font-bold text-on-surface mb-3"
-          style={{
-            wordBreak: 'break-word',
-          }}
-        >
-          Update Required
-        </motion.h1>
+        <h1 className="text-2xl font-bold text-on-surface mb-3">
+          {state === 'complete' ? 'Download Complete' :
+           state === 'installing' ? 'Installing Update' :
+           'Update Required'}
+        </h1>
 
         {/* Subtitle */}
-        <motion.p
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="text-on-surface-variant mb-6"
-          style={{
-            lineHeight: 1.6,
-            wordBreak: 'break-word',
-          }}
-        >
-          A critical update is required to continue using
-          OnlySplit. Please update to v
-          {updateInfo.version}.
-        </motion.p>
+        <p className="text-on-surface-variant mb-6">
+          {state === 'downloading' ? `Downloading v${updateInfo.version}...` :
+           state === 'complete' ? 'Preparing to install...' :
+           state === 'installing' ? 'Opening installer...' :
+           `A critical update to v${updateInfo.version} is required.`}
+        </p>
 
-        {/* Release Notes */}
-        {updateInfo.releaseNotes?.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="w-full bg-surface-container-low rounded-xl border border-glass-stroke p-4 mb-8 text-left overflow-hidden"
-            style={{
-              wordBreak: 'break-word',
-            }}
-          >
+        {/* Release notes (idle state) */}
+        {state === 'idle' && updateInfo.releaseNotes?.length > 0 && (
+          <div className="w-full bg-surface-container-low rounded-xl border border-glass-stroke p-4 mb-8 text-left">
             <p className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-2">
               What's New
             </p>
-
-            <ul className="space-y-2">
-              {updateInfo.releaseNotes.map(
-                (note, index) => (
-                  <li
-                    key={index}
-                    className="flex items-start gap-2 text-sm text-on-surface"
-                    style={{
-                      wordBreak: 'break-word',
-                    }}
-                  >
-                    <span className="text-primary mt-0.5">
-                      •
-                    </span>
-
-                    <span>{note}</span>
-                  </li>
-                )
-              )}
+            <ul className="space-y-1.5">
+              {updateInfo.releaseNotes.map((note, i) => (
+                <li key={i} className="flex items-start gap-2 text-sm text-on-surface">
+                  <span className="text-primary mt-0.5">✓</span>
+                  {note}
+                </li>
+              ))}
             </ul>
-          </motion.div>
+          </div>
         )}
 
-        {/* Update Button */}
-        <motion.button
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          onClick={handleUpdate}
-          disabled={downloading}
-          className="w-full rounded-2xl bg-primary text-white font-semibold flex items-center justify-center gap-2.5 hover:bg-primary/90 transition-all shadow-[0_8px_30px_rgba(124,108,255,0.3)] disabled:opacity-60"
-          style={{
-            minHeight: 56,
-            padding: '16px 24px',
-            touchAction: 'manipulation',
-            WebkitTapHighlightColor: 'transparent',
-          }}
-        >
-          {downloading ? (
-            <>
-              <RefreshCw
-                size={18}
-                className="animate-spin"
+        {/* Progress bar */}
+        {(state === 'downloading' || state === 'complete') && (
+          <div className="w-full mb-8">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-on-surface-variant">
+                {state === 'complete' ? 'Complete' : 'Downloading'}
+              </span>
+              <span className="text-sm font-semibold text-on-surface tabular-nums">{progress}%</span>
+            </div>
+            <div className="h-2.5 rounded-full bg-surface-container-low overflow-hidden">
+              <motion.div
+                className="h-full rounded-full bg-gradient-to-r from-primary to-secondary-container"
+                initial={{ width: 0 }}
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: 0.3 }}
               />
-              Preparing update...
-            </>
-          ) : (
-            <>
-              <Download size={18} />
-              Update Now
-            </>
-          )}
-        </motion.button>
+            </div>
+          </div>
+        )}
+
+        {/* Installing spinner */}
+        {state === 'installing' && (
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+            <span className="text-sm text-on-surface-variant">Opening installer...</span>
+          </div>
+        )}
+
+        {/* Error */}
+        {state === 'error' && (
+          <div className="w-full bg-error/10 border border-error/20 rounded-xl p-4 mb-6">
+            <p className="text-sm text-error">{error}</p>
+          </div>
+        )}
+
+        {/* Button */}
+        {(state === 'idle' || state === 'error') && (
+          <button
+            onClick={handleUpdate}
+            className="w-full py-4 rounded-2xl bg-primary text-white font-semibold flex items-center justify-center gap-2.5 hover:bg-primary/90 transition-all shadow-[0_8px_30px_rgba(124,108,255,0.3)]"
+          >
+            {state === 'error' ? (
+              <>
+                <RefreshCw size={18} />
+                Retry Download
+              </>
+            ) : (
+              <>
+                <Download size={18} />
+                Update Now
+              </>
+            )}
+          </button>
+        )}
 
         {/* Version */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.7 }}
-          className="text-xs text-on-surface-variant/50 mt-6"
-        >
-          v{updateInfo.version} • Build{' '}
-          {updateInfo.versionCode}
-        </motion.p>
+        <p className="text-xs text-on-surface-variant/50 mt-8">
+          v{updateInfo.version} • Build {updateInfo.versionCode}
+        </p>
       </div>
     </motion.div>,
     document.body

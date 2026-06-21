@@ -7,7 +7,7 @@ import { useAuthStore } from '../store/authStore';
 import authService from '../services/authService';
 import { ROUTES } from '../constants/routes';
 import { Capacitor } from '@capacitor/core';
-import { checkForUpdate, downloadUpdate } from '../services/updateService';
+import { checkForUpdate, downloadApk, installApk } from '../services/updateService';
 
 const LATEST_JSON_URL = 'https://api-split.onlylabs.in/downloads/latest.json';
 
@@ -711,7 +711,12 @@ const SettingsPage = () => {
                   <button
                     onClick={async () => {
                       setUpdating(true);
-                      await downloadUpdate(updateAvailable.apkUrl);
+                      try {
+                        const fileUri = await downloadApk(updateAvailable.apkUrl, () => {});
+                        await installApk(fileUri);
+                      } catch (err) {
+                        console.error(err);
+                      }
                       setTimeout(() => setUpdating(false), 3000);
                     }}
                     disabled={updating}

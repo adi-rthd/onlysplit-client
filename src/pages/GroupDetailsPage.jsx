@@ -18,6 +18,7 @@ import ExpenseDetailsModal from '../components/modals/ExpenseDetailsModal';
 import EditGroupModal from '../components/modals/EditGroupModal';
 import EditExpenseModal from '../components/modals/EditExpenseModal';
 import { AnimatePresence } from 'framer-motion';
+import { useGroupSignalR } from '../hooks/useSignalR';
 
 
 
@@ -56,6 +57,21 @@ const GroupDetailsPage = () => {
 
     loadData();
   }, [groupId]);
+
+  // ─── Real-time updates via SignalR ─────────────────────────────────
+  useGroupSignalR(groupId, {
+    onExpenseAdded: () => fetchExpenses(groupId),
+    onExpenseUpdated: () => fetchExpenses(groupId),
+    onExpenseDeleted: () => fetchExpenses(groupId),
+    onBalanceUpdated: ({ balances: newBal, settlements: newSet }) => {
+      fetchBalances(groupId);
+      fetchSettlements(groupId);
+    },
+    onMemberJoined: () => fetchGroupById(groupId),
+    onMemberRemoved: () => fetchGroupById(groupId),
+    onGroupUpdated: () => fetchGroupById(groupId),
+    onSettlementUpdated: () => fetchSettlements(groupId),
+  });
 
   const currency = currentGroup?.currency || storeCurrency || 'INR';
 
