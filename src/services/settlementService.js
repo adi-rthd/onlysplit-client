@@ -1,46 +1,51 @@
 import client from '../api/client';
-import { handleApiError } from '../utils/apiErrorHandler';
-import toast from 'react-hot-toast';
 
 const settlementService = {
-  getPendingSettlements: async groupId => {
+  getPendingSettlements: async (groupId) => {
     try {
       const { data } = await client.get(
         `/settlements/group/${groupId}`
       );
-
       return data.data;
     } catch (error) {
-      handleApiError(error, 'Failed to load settlements.');
-      return [];
+      const status = error.response?.status || 0;
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        'Failed to load settlements.';
+      throw { status, message };
     }
   },
 
-  getBalances: async groupId => {
+  getBalances: async (groupId) => {
     try {
       const { data } = await client.get(
         `/settlements/group/${groupId}/balances`
       );
-
       return data.data;
     } catch (error) {
-      handleApiError(error, 'Failed to load balances.');
-      return [];
+      const status = error.response?.status || 0;
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        'Failed to load balances.';
+      throw { status, message };
     }
   },
 
-  regenerateSettlements: async groupId => {
+  regenerateSettlements: async (groupId) => {
     try {
       const { data } = await client.post(
         `/settlements/group/${groupId}/regenerate`
       );
-
-      toast.success('Settlements regenerated successfully!');
-
       return data.data;
     } catch (error) {
-      handleApiError(error, 'Failed to regenerate settlements.');
-      return [];
+      const status = error.response?.status || 0;
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        'Failed to regenerate settlements.';
+      throw { status, message };
     }
   },
 };

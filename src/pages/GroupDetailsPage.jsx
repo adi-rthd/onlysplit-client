@@ -1,14 +1,28 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { ROUTES } from '../constants/routes';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Users, Receipt, Sparkles, Wallet, UserPlus, Search, SortAsc, X, RefreshCw, Pencil } from 'lucide-react';
+import { ArrowLeft, Plus, Users, Receipt, Wallet, UserPlus, Search, SortAsc, X, RefreshCw, Pencil } from 'lucide-react';
 
 import { GlassPanel } from '../components/ui/GlassCard';
 import { useGroupStore } from '../store/groupStore';
-import { useExpenseStore } from '../store/expenseStore';
-import { useSettlementStore } from '../store/settlementStore';
 import { formatCurrency } from '../services/currencyService';
 import { useAuthStore } from '../store/authStore';
+import { featureFlags } from '../utils/featureFlags';
+
+// Query hooks (used when feature flag is on)
+import { useGroupExpenses } from '../queries/hooks/useGroupExpenses';
+import { useGroupBalances } from '../queries/hooks/useGroupBalances';
+import { useGroupSettlements } from '../queries/hooks/useGroupSettlements';
+import { useRegenerateSettlements } from '../queries/mutations/useRegenerateSettlements';
+import { useDeleteExpense } from '../queries/mutations/useDeleteExpense';
+import { QueryBoundary } from '../components/ui/QueryBoundary';
+import { PendingBadge } from '../components/ui/PendingBadge';
+import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '../queries/queryKeys';
+
+// Legacy stores (used when feature flag is off)
+import { useExpenseStore } from '../store/expenseStore';
+import { useSettlementStore } from '../store/settlementStore';
 
 import ExpenseCard from '../components/ui/ExpenseCard';
 import SettlementCard from '../components/ui/SettlementCard';
@@ -21,16 +35,43 @@ import { AnimatePresence } from 'framer-motion';
 import { useGroupSignalR } from '../hooks/useSignalR';
 
 
-
 const GroupDetailsPage = () => {
   const { id: groupId } = useParams();
   const { user } = useAuthStore();
-
   const navigate = useNavigate();
   const { currency: storeCurrency, locale } = useCurrencyStore();
   const { currentGroup, fetchGroupById, isLoading: isGroupLoading } = useGroupStore();
-  const { expenses, fetchExpenses, isLoading: isExpensesLoading } = useExpenseStore();
-  const { balances, settlements, fetchBalances, fetchSettlements, regenerateSettlements, isLoading: isSettlementsLoading } = useSettlementStore();
+
+  const useQuery = featureFlags.useQueryExpenses;
+
+  // ─── Query hooks (only active when feature flag is on) ─────────────
+  const expensesQuery = useGroupExpenses(groupId, { enabled: useQuery && !!groupId });
+  const balancesQuery = useGroupBalances(groupId, { enabled: useQuery && !!groupId });
+  const settlementsQuery = useGroupSettlements(groupId, { enabled: useQuery && !!groupId });
+  const regenerateSettlementsMutation = useRegenerateSettlements(groupId);
+  const deleteExpenseMutation = useDeleteExpense(groupId);
+  const queryClient = useQueryClient();
+
+  // ─── Legacy stores (only active when feature flag is off) ──────────
+  const {
+    expenses: legacyExpenses,
+    fetchExpenses,
+    isLoading: isExpensesLoading,
+  } = useExpenseStore();
+  const {
+    balances: legacyBalances,
+    settlements: legacySettlements,
+    fetchBalances,
+    fetchSettlements,
+    regenerateSettlements,
+    isLoading: isSettlementsLoading,
+  } = useSettlementStore();
+
+  // ─── Resolved data (respects feature flag) ─────────────────────────
+  const expenses = useQuery ? (expensesQuery.data || []) : legacyExpenses;
+  const balances = useQuery ? (balancesQuery.data || []) : legacyBalances;
+  const settlements = useQuery ? (settlementsQuery.data || []) : legacySettlements;
+
   const [activeTab, setActiveTab] = useState('expenses');
   const [selectedExpense, setSelectedExpense] = useState(null);
   const [editingExpense, setEditingExpense] = useState(null);
@@ -56,34 +97,72 @@ const GroupDetailsPage = () => {
     }
   }, [currentGroup, user, isOwner]);
 
+  // ─── Data fetching (legacy path only) ──────────────────────────────
   useEffect(() => {
     if (!groupId) return;
 
-    const loadData = async () => {
-      await Promise.all([
-        fetchGroupById(groupId),
+    // Always fetch group (still on groupStore until Phase 2)
+    fetchGroupById(groupId);
+
+    // Legacy stores: fetch expenses/balances/settlements manually
+    if (!useQuery) {
+      Promise.all([
         fetchExpenses(groupId),
         fetchBalances(groupId),
         fetchSettlements(groupId),
       ]);
-    };
-
-    loadData();
-  }, [groupId]);
+    }
+  }, [groupId, useQuery]);
 
   // ─── Real-time updates via SignalR ─────────────────────────────────
   useGroupSignalR(groupId, {
-    ExpenseAdded: () => fetchExpenses(groupId),
-    ExpenseUpdated: () => fetchExpenses(groupId),
-    ExpenseDeleted: () => fetchExpenses(groupId),
+    ExpenseAdded: () => {
+      if (useQuery) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.groups.expenses(groupId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.groups.balances(groupId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.groups.settlements(groupId) });
+      } else {
+        fetchExpenses(groupId);
+      }
+    },
+    ExpenseUpdated: () => {
+      if (useQuery) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.groups.expenses(groupId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.groups.balances(groupId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.groups.settlements(groupId) });
+      } else {
+        fetchExpenses(groupId);
+      }
+    },
+    ExpenseDeleted: () => {
+      if (useQuery) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.groups.expenses(groupId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.groups.balances(groupId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.groups.settlements(groupId) });
+      } else {
+        fetchExpenses(groupId);
+      }
+    },
     BalanceUpdated: () => {
-      fetchBalances(groupId);
-      fetchSettlements(groupId);
+      if (useQuery) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.groups.balances(groupId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.groups.settlements(groupId) });
+      } else {
+        fetchBalances(groupId);
+        fetchSettlements(groupId);
+      }
     },
     MemberJoined: () => fetchGroupById(groupId),
     MemberRemoved: () => fetchGroupById(groupId),
     GroupUpdated: () => fetchGroupById(groupId),
-    SettlementUpdated: () => fetchSettlements(groupId),
+    SettlementUpdated: () => {
+      if (useQuery) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.groups.settlements(groupId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.groups.balances(groupId) });
+      } else {
+        fetchSettlements(groupId);
+      }
+    },
   });
 
   const currency = currentGroup?.currency || storeCurrency || 'INR';
@@ -91,8 +170,7 @@ const GroupDetailsPage = () => {
   const totals = useMemo(() => {
     const totalSpent =
       expenses?.reduce(
-        (sum, expense) =>
-          sum + Number(expense.amount || 0),
+        (sum, expense) => sum + Number(expense.amount || 0),
         0
       ) || 0;
 
@@ -116,7 +194,7 @@ const GroupDetailsPage = () => {
       youOwe,
       youAreOwed,
     };
-  }, [expenses, balances]);
+  }, [expenses, balances, user]);
 
   const [isRecalculating, setIsRecalculating] = useState(false);
 
@@ -150,18 +228,23 @@ const GroupDetailsPage = () => {
   }, [expenses, expenseSearch, expenseSort]);
 
   const handleRecalculate = async () => {
-    try {
-      setIsRecalculating(true);
-
-      await regenerateSettlements(groupId);
-
-      await fetchBalances(groupId);
-
-      await fetchSettlements(groupId);
-    } finally {
-      setIsRecalculating(false);
+    if (useQuery) {
+      regenerateSettlementsMutation.mutate();
+    } else {
+      try {
+        setIsRecalculating(true);
+        await regenerateSettlements(groupId);
+        await fetchBalances(groupId);
+        await fetchSettlements(groupId);
+      } finally {
+        setIsRecalculating(false);
+      }
     }
   };
+
+  const recalculateInProgress = useQuery
+    ? regenerateSettlementsMutation.isPending
+    : isRecalculating;
 
   if (isGroupLoading && !currentGroup) {
     return (
@@ -179,9 +262,7 @@ const GroupDetailsPage = () => {
         </h2>
 
         <button
-          onClick={() =>
-            navigate(ROUTES.GROUPS)
-          }
+          onClick={() => navigate(ROUTES.GROUPS)}
           className="text-primary hover:underline"
         >
           Back
@@ -189,6 +270,171 @@ const GroupDetailsPage = () => {
       </div>
     );
   }
+
+  // ─── Expense list rendering (query vs legacy) ──────────────────────
+  const renderExpenseList = () => {
+    if (useQuery) {
+      return (
+        <QueryBoundary query={expensesQuery}>
+          {(data) => {
+            // Apply filtering/sorting to query data
+            let result = data || [];
+
+            if (expenseSearch.trim()) {
+              const term = expenseSearch.toLowerCase();
+              result = result.filter(
+                (e) =>
+                  e.title?.toLowerCase().includes(term) ||
+                  e.description?.toLowerCase().includes(term) ||
+                  e.paidByName?.toLowerCase().includes(term)
+              );
+            }
+
+            result = [...result].sort((a, b) => {
+              switch (expenseSort) {
+                case 'amount':
+                  return Number(b.amount || 0) - Number(a.amount || 0);
+                case 'name':
+                  return (a.title || '').localeCompare(b.title || '');
+                case 'recent':
+                default:
+                  return new Date(b.expenseDate || b.createdAt || 0) - new Date(a.expenseDate || a.createdAt || 0);
+              }
+            });
+
+            if (result.length > 0) {
+              return (
+                <div className="space-y-4">
+                  {result.map(expense => (
+                    <div key={expense.id} className="relative">
+                      <ExpenseCard
+                        onClick={() => setSelectedExpense(expense)}
+                        expense={expense}
+                      />
+                      {expense._isPending && (
+                        <PendingBadge className="absolute top-2 right-2" />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              );
+            }
+
+            if (data?.length > 0 && expenseSearch) {
+              return (
+                <div className="py-10 text-center text-sm text-on-surface-variant">
+                  No expenses match &quot;{expenseSearch}&quot;
+                </div>
+              );
+            }
+
+            return (
+              <GlassPanel className="rounded-3xl border border-dashed border-white/10 py-16 text-center">
+                <Receipt size={40} className="mx-auto mb-4 text-on-surface-variant" />
+                <h3 className="text-lg font-bold text-on-surface">No expenses yet</h3>
+                <p className="mt-2 text-sm text-on-surface-variant">Add your first expense.</p>
+              </GlassPanel>
+            );
+          }}
+        </QueryBoundary>
+      );
+    }
+
+    // Legacy rendering path
+    if (isExpensesLoading) {
+      return (
+        <div className="flex justify-center py-16">
+          <div className="h-7 w-7 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+        </div>
+      );
+    }
+
+    if (filteredExpenses?.length > 0) {
+      return (
+        <div className="space-y-4">
+          {filteredExpenses.map(expense => (
+            <ExpenseCard
+              onClick={() => setSelectedExpense(expense)}
+              key={expense.id}
+              expense={expense}
+            />
+          ))}
+        </div>
+      );
+    }
+
+    if (expenses?.length > 0 && expenseSearch) {
+      return (
+        <div className="py-10 text-center text-sm text-on-surface-variant">
+          No expenses match &quot;{expenseSearch}&quot;
+        </div>
+      );
+    }
+
+    return (
+      <GlassPanel className="rounded-3xl border border-dashed border-white/10 py-16 text-center">
+        <Receipt size={40} className="mx-auto mb-4 text-on-surface-variant" />
+        <h3 className="text-lg font-bold text-on-surface">No expenses yet</h3>
+        <p className="mt-2 text-sm text-on-surface-variant">Add your first expense.</p>
+      </GlassPanel>
+    );
+  };
+
+  // ─── Settlements list rendering (query vs legacy) ──────────────────
+  const renderSettlementsList = () => {
+    if (useQuery) {
+      return (
+        <QueryBoundary query={settlementsQuery}>
+          {(data) => {
+            if (data?.length > 0) {
+              return (
+                <div className="space-y-5">
+                  {data.map(settlement => (
+                    <SettlementCard key={settlement.id} settlement={settlement} />
+                  ))}
+                </div>
+              );
+            }
+
+            return (
+              <GlassPanel className="rounded-3xl border border-dashed border-white/10 py-16 text-center">
+                <Wallet size={40} className="mx-auto mb-4 text-on-surface-variant" />
+                <h3 className="text-lg font-bold text-on-surface">No pending settlements</h3>
+                <p className="mt-2 text-sm text-on-surface-variant">Everyone is settled up.</p>
+              </GlassPanel>
+            );
+          }}
+        </QueryBoundary>
+      );
+    }
+
+    // Legacy rendering path
+    if (isSettlementsLoading) {
+      return (
+        <div className="flex justify-center py-16">
+          <div className="h-7 w-7 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+        </div>
+      );
+    }
+
+    if (settlements?.length > 0) {
+      return (
+        <div className="space-y-5">
+          {settlements.map(settlement => (
+            <SettlementCard key={settlement.id} settlement={settlement} />
+          ))}
+        </div>
+      );
+    }
+
+    return (
+      <GlassPanel className="rounded-3xl border border-dashed border-white/10 py-16 text-center">
+        <Wallet size={40} className="mx-auto mb-4 text-on-surface-variant" />
+        <h3 className="text-lg font-bold text-on-surface">No pending settlements</h3>
+        <p className="mt-2 text-sm text-on-surface-variant">Everyone is settled up.</p>
+      </GlassPanel>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -217,10 +463,10 @@ const GroupDetailsPage = () => {
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={handleRecalculate}
-              disabled={isRecalculating}
+              disabled={recalculateInProgress}
               className="w-9 h-9 md:w-auto md:h-auto md:px-3 md:py-2 rounded-xl glass-button text-on-surface flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              <RefreshCw size={16} className={`text-primary ${isRecalculating ? 'animate-spin' : ''}`} />
+              <RefreshCw size={16} className={`text-primary ${recalculateInProgress ? 'animate-spin' : ''}`} />
               <span className="hidden md:inline text-xs font-medium">Recalculate</span>
             </button>
 
@@ -386,84 +632,13 @@ const GroupDetailsPage = () => {
             )}
           </AnimatePresence>
 
-          {activeTab === 'expenses' && (
-            <div className="space-y-4">
-              {isExpensesLoading ? (
-                <div className="flex justify-center py-16">
-                  <div className="h-7 w-7 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-                </div>
-              ) : filteredExpenses?.length > 0 ? (
-                filteredExpenses.map(expense => (
-                  <ExpenseCard
-                    onClick={() => setSelectedExpense(expense)}
-                    key={expense.id}
-                    expense={expense}
-                  />
-                ))
-              ) : expenses?.length > 0 && expenseSearch ? (
-                <div className="py-10 text-center text-sm text-on-surface-variant">
-                  No expenses match "{expenseSearch}"
-                </div>
-              ) : (
-                <GlassPanel className="rounded-3xl border border-dashed border-white/10 py-16 text-center">
-                  <Receipt
-                    size={40}
-                    className="mx-auto mb-4 text-on-surface-variant"
-                  />
-
-                  <h3 className="text-lg font-bold text-on-surface">
-                    No expenses yet
-                  </h3>
-
-                  <p className="mt-2 text-sm text-on-surface-variant">
-                    Add your first expense.
-                  </p>
-                </GlassPanel>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'settlements' && (
-            <div className="space-y-5">
-              {isSettlementsLoading ? (
-                <div className="flex justify-center py-16">
-                  <div className="h-7 w-7 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-                </div>
-              ) : settlements?.length > 0 ? (
-                settlements.map(
-                  settlement => (
-                    <SettlementCard
-                      key={settlement.id}
-                      settlement={
-                        settlement
-                      }
-                    />
-                  )
-                )
-              ) : (
-                <GlassPanel className="rounded-3xl border border-dashed border-white/10 py-16 text-center">
-                  <Wallet
-                    size={40}
-                    className="mx-auto mb-4 text-on-surface-variant"
-                  />
-
-                  <h3 className="text-lg font-bold text-on-surface">
-                    No pending settlements
-                  </h3>
-
-                  <p className="mt-2 text-sm text-on-surface-variant">
-                    Everyone is settled up.
-                  </p>
-                </GlassPanel>
-              )}
-            </div>
-          )}
+          {activeTab === 'expenses' && renderExpenseList()}
+          {activeTab === 'settlements' && renderSettlementsList()}
         </div>
 
         <div>
           <h3 className="mb-4 flex items-center gap-2 text-xl font-bold">
             <Users size={18} />
-
             Group Balances
           </h3>
 
@@ -492,9 +667,16 @@ const GroupDetailsPage = () => {
           groupId={groupId}
           onClose={() => setEditingExpense(null)}
           onUpdated={() => {
-            fetchExpenses(groupId);
-            fetchBalances(groupId);
-            fetchSettlements(groupId);
+            if (useQuery) {
+              // Query invalidation handles refetching automatically via mutation hooks
+              queryClient.invalidateQueries({ queryKey: queryKeys.groups.expenses(groupId) });
+              queryClient.invalidateQueries({ queryKey: queryKeys.groups.balances(groupId) });
+              queryClient.invalidateQueries({ queryKey: queryKeys.groups.settlements(groupId) });
+            } else {
+              fetchExpenses(groupId);
+              fetchBalances(groupId);
+              fetchSettlements(groupId);
+            }
           }}
         />
       )}
