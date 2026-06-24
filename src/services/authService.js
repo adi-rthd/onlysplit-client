@@ -116,6 +116,35 @@ const authService = {
   },
 
   /**
+   * Request password reset email
+   */
+  forgotPassword: async (email) => {
+    try {
+      await client.post('/auth/forgot-password', { email });
+      return true;
+    } catch (error) {
+      // Always return true — don't reveal whether email exists
+      return true;
+    }
+  },
+
+  /**
+   * Reset password with token
+   */
+  resetPassword: async (token, newPassword) => {
+    try {
+      await client.post('/auth/reset-password', { token, newPassword });
+      toast.success('Password reset successfully.');
+      return { success: true };
+    } catch (error) {
+      const message =
+        error?.message || error?.data?.message || 'Reset failed. The link may have expired.';
+      toast.error(message);
+      return { success: false, message };
+    }
+  },
+
+  /**
    * Logout user
    */
   logout: async () => {

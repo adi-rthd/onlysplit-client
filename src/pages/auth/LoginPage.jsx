@@ -159,6 +159,16 @@ const LoginPage = () => {
                 )}
               </button>
             </div>
+
+            {/* Forgot Password Link */}
+            <div className="mt-2 text-right">
+              <Link
+                to={ROUTES.FORGOT_PASSWORD}
+                className="text-primary text-[13px] hover:text-on-surface transition-colors font-medium"
+              >
+                Forgot password?
+              </Link>
+            </div>
           </div>
 
           {/* Button */}
