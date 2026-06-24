@@ -10,6 +10,8 @@ export const ROUTES = {
   LANDING: '/',
   LOGIN: '/login',
   SIGNUP: '/signup',
+  FORGOT_PASSWORD: '/forgot-password',
+  RESET_PASSWORD: '/reset-password',
   DOWNLOAD: '/download',
   FEATURES: '/features',
   HOW_IT_WORKS: '/how-it-works',
@@ -89,4 +91,6 @@ export const PUBLIC_ROUTES = [
 export const AUTH_ROUTES = [
   ROUTES.LOGIN,
   ROUTES.SIGNUP,
+  ROUTES.FORGOT_PASSWORD,
+  ROUTES.RESET_PASSWORD,
 ];
