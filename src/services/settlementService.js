@@ -2,7 +2,6 @@ import client from '../api/client';
 
 const settlementService = {
   getPendingSettlements: async (groupId) => {
-  getPendingSettlements: async (groupId) => {
     try {
       const { data } = await client.get(`/settlements/group/${groupId}`);
       return data.data;
@@ -14,7 +13,6 @@ const settlementService = {
   },
 
   getBalances: async (groupId) => {
-  getBalances: async (groupId) => {
     try {
       const { data } = await client.get(`/settlements/group/${groupId}/balances`);
       return data.data;
@@ -25,7 +23,6 @@ const settlementService = {
     }
   },
 
-  regenerateSettlements: async (groupId) => {
   regenerateSettlements: async (groupId) => {
     try {
       const { data } = await client.post(`/settlements/group/${groupId}/regenerate`);

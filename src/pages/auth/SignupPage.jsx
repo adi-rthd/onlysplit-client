@@ -1,281 +1,172 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+// src/components/navigation/SideNavBar.jsx
+
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Plus, Settings, HelpCircle, LogOut } from 'lucide-react';
 import { motion } from 'framer-motion';
-
-import {
-  Mail,
-  Lock,
-  User,
-  ArrowRight,
-  ArrowLeft,
-  Eye,
-  EyeOff,
-} from 'lucide-react';
-
-import authService from '../../services/authService';
-import { useAuthStore } from '../../store/authStore';
 import { ROUTES } from '../../constants/routes';
-import { Spinner } from '../../components/ui/PageLoader';
 
-const SignupPage = () => {
+import { NAVIGATION_ITEMS } from '../../constants/navigation';
+import { getProfile } from '../../services/settingsService';
+import authService from '../../services/authService';
+
+const SideNavBar = () => {
+  const location = useLocation();
+
   const navigate = useNavigate();
 
-  const { isAuthenticating } = useAuthStore();
+  const [profile, setProfile] = useState({
+    firstName: 'Aditya',
+    lastName: 'Rathod',
+    avatarUrl: ''
+  });
 
-  const [firstName, setFirstName] = useState('');
+  useEffect(() => {
+    fetchProfile();
+  }, []);
 
-  const [lastName, setLastName] = useState('');
+  const fetchProfile = async () => {
+    try {
+      const user = await getProfile();
 
-  const [email, setEmail] = useState('');
+      setProfile({
+        firstName: user?.firstName,
 
-  const [password, setPassword] = useState('');
+        lastName: user?.lastName,
 
-  const [showPassword, setShowPassword] = useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const result =
-      await authService.signup({
-        firstName,
-        lastName,
-        email,
-        password,
+        avatarUrl:
+          user?.avatarUrl ||
+          `https://ui-avatars.com/api/?background=6366f1&color=fff&name=${user?.firstName}+${user?.lastName}`
       });
-
-    if (result) {
-      navigate(ROUTES.DASHBOARD, {
-        replace: true,
-      });
+    } catch (error) {
+      console.error(error);
     }
   };
 
+  const isActive = (path) =>
+    location.pathname === path;
+
+  const handleLogout = async () => {
+    await authService.logout();
+    navigate(ROUTES.LANDING);
+  };
+
   return (
-    <div className="min-h-screen bg-surface-charcoal flex items-center justify-center px-5 relative overflow-hidden">
-    <div className="min-h-screen bg-surface-charcoal flex items-center justify-center px-5 relative overflow-hidden">
-      {/* Background */}
-      <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,rgba(91,77,255,0.16)_0%,transparent_70%)] pointer-events-none" />
-      <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,rgba(91,77,255,0.16)_0%,transparent_70%)] pointer-events-none" />
-
-      <div className="absolute bottom-[-15%] right-[-8%] w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle,rgba(79,140,255,0.08)_0%,transparent_70%)] pointer-events-none" />
-      <div className="absolute bottom-[-15%] right-[-8%] w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle,rgba(79,140,255,0.08)_0%,transparent_70%)] pointer-events-none" />
-
-      {/* Back Button */}
-      <button
-        onClick={() => navigate(ROUTES.LANDING)}
-        className="absolute top-6 left-6 flex items-center gap-2 text-on-surface-variant hover:text-on-surface transition-colors text-sm z-20"
-        className="absolute top-6 left-6 flex items-center gap-2 text-on-surface-variant hover:text-on-surface transition-colors text-sm z-20"
-      >
-        <ArrowLeft size={16} />
-        <span>Back</span>
-      </button>
-
-      <div className="w-full max-w-[420px] relative z-10">
-        {/* Logo */}
-        <div className="flex flex-col items-center mb-2">
-          <div className="relative">
-            {/* <div className="absolute inset-0 w-12 h-12 rounded-full bg-primary-container/40 blur-2xl scale-150" /> */}
-
-            {/* <div className=" relative w-12 h-12 flex items-center justify-center rounded-2xl overflow-hidden" > */}
-              <img
-                src="/logo.png"
-                alt="OnlySplit"
-                className="w-12 h -12 object-contain drop-shadow-[0_8px_25px_rgba(94,92,230,0.35)]"
-              />
-            {/* </div> */}
+    <aside className="hidden md:flex fixed left-0 top-0 h-screen w-50 border-r border-glass-stroke bg-surface-charcoal/90 backdrop-blur-2xl z-40 flex-col py-6">
+      {/* TOP PROFILE */}
+      <div className="px-4 mb-8">
+        <div className="flex flex-col items-center text-center gap-3">
+          {/* AVATAR */}
+          <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-primary/30 shrink-0 shadow-[0_0_20px_rgba(124,108,255,0.15)]">
+            <img
+              src={profile.avatarUrl}
+              alt="Profile"
+              className="w-full h-full object-cover"
+            />
           </div>
 
-          <h1 className="text-[34px] font-bold text-on-surface tracking-tight">
-          <h1 className="text-[34px] font-bold text-on-surface tracking-tight">
-            Create your account
-          </h1>
-
-          <p className="text-on-surface-variant text-[15px] mt-2">
-          <p className="text-on-surface-variant text-[15px] mt-2">
-            Start splitting expenses with
-            OnlySplit
-          </p>
+          {/* INFO */}
+          <div className="w-full overflow-hidden">
+            <h2 className="font-display-lg text-[15px] font-bold text-primary truncate text-center">
+              {profile.firstName} {profile.lastName}
+            </h2>
+            <p className="text-on-surface-variant text-center text-[11px] mt-0.5">
+              🇮🇳 India • ₹ INR
+            </p>
+          </div>
         </div>
-
-        {/* Form */}
-        <motion.form
-          onSubmit={handleSubmit}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45 }}
-          className="auth-card backdrop-blur-2xl rounded-3xl p-7"
-          className="auth-card backdrop-blur-2xl rounded-3xl p-7"
-        >
-          {/* Names */}
-          <div className="grid grid-cols-2 gap-4 mb-2">
-            <div>
-              <label className="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-[0.18em] mb-2">
-              <label className="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-[0.18em] mb-2">
-                First Name
-              </label>
-
-              <div className="auth-input flex items-center h-[58px] px-4">
-              <div className="auth-input flex items-center h-[58px] px-4">
-                <User
-                  size={18}
-                  className="text-on-surface-variant mr-3"
-                  className="text-on-surface-variant mr-3"
-                />
-
-                <input
-                  type="text"
-                  required
-                  value={firstName}
-                  onChange={(e) =>
-                    setFirstName(
-                      e.target.value
-                    )
-                  }
-                  placeholder="John"
-                  className="w-full bg-transparent border-none outline-none ring-0 text-on-surface placeholder:text-on-surface-variant/50"
-                  className="w-full bg-transparent border-none outline-none ring-0 text-on-surface placeholder:text-on-surface-variant/50"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-[0.18em] mb-2">
-              <label className="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-[0.18em] mb-2">
-                Last Name
-              </label>
-
-              <div className="auth-input flex items-center h-[58px] px-4">
-              <div className="auth-input flex items-center h-[58px] px-4">
-                <input
-                  type="text"
-                  required
-                  value={lastName}
-                  onChange={(e) =>
-                    setLastName(
-                      e.target.value
-                    )
-                  }
-                  placeholder="Doe"
-                  className="w-full bg-transparent border-none outline-none ring-0 text-on-surface placeholder:text-on-surface-variant/50"
-                  className="w-full bg-transparent border-none outline-none ring-0 text-on-surface placeholder:text-on-surface-variant/50"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Email */}
-          <div className="mb-5">
-            <label className="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-[0.18em] mb-2">
-            <label className="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-[0.18em] mb-2">
-              Email
-            </label>
-
-            <div className="auth-input flex items-center h-[58px] px-4">
-            <div className="auth-input flex items-center h-[58px] px-4">
-              <Mail
-                size={18}
-                className="text-on-surface-variant mr-3"
-                className="text-on-surface-variant mr-3"
-              />
-
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) =>
-                  setEmail(e.target.value)
-                }
-                placeholder="you@example.com"
-                className="w-full bg-transparent border-none outline-none ring-0 text-on-surface placeholder:text-on-surface-variant/50"
-                className="w-full bg-transparent border-none outline-none ring-0 text-on-surface placeholder:text-on-surface-variant/50"
-              />
-            </div>
-          </div>
-
-          {/* Password */}
-          <div className="mb-6">
-            <label className="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-[0.18em] mb-2">
-            <label className="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-[0.18em] mb-2">
-              Password
-            </label>
-
-            <div className="auth-input flex items-center h-[58px] px-4">
-            <div className="auth-input flex items-center h-[58px] px-4">
-              <Lock
-                size={18}
-                className="text-on-surface-variant mr-3"
-                className="text-on-surface-variant mr-3"
-              />
-
-              <input
-                type={
-                  showPassword
-                    ? 'text'
-                    : 'password'
-                }
-                required
-                minLength={8}
-                value={password}
-                onChange={(e) =>
-                  setPassword(e.target.value)
-                }
-                placeholder="Minimum 8 characters"
-                className="w-full bg-transparent border-none outline-none ring-0 text-on-surface placeholder:text-on-surface-variant/50"
-                className="w-full bg-transparent border-none outline-none ring-0 text-on-surface placeholder:text-on-surface-variant/50"
-              />
-
-              <button
-                type="button"
-                onClick={() =>
-                  setShowPassword(
-                    !showPassword
-                  )
-                }
-                className="text-on-surface-variant hover:text-on-surface transition-colors"
-                className="text-on-surface-variant hover:text-on-surface transition-colors"
-              >
-                {showPassword ? (
-                  <EyeOff size={18} />
-                ) : (
-                  <Eye size={18} />
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* Button */}
-          <button
-            type="submit"
-            disabled={isAuthenticating}
-            className="w-full h-[58px] rounded-2xl bg-gradient-to-r from-primary-container to-secondary-container text-white font-semibold text-[15px] flex items-center justify-center gap-2 hover:opacity-95 transition-all auth-cta"
-            className="w-full h-[58px] rounded-2xl bg-gradient-to-r from-primary-container to-secondary-container text-white font-semibold text-[15px] flex items-center justify-center gap-2 hover:opacity-95 transition-all auth-cta"
-          >
-            {isAuthenticating ? (
-              <Spinner size={20} />
-            ) : (
-              <>
-                Create Account
-                <ArrowRight size={18} />
-              </>
-            )}
-          </button>
-        </motion.form>
-
-        {/* Footer */}
-        <p className="text-center text-on-surface-variant text-[14px] mt-2">
-          Already have an account?{' '}
-          <Link
-            to={ROUTES.LOGIN}
-            className="text-primary hover:text-on-surface transition-colors font-medium"
-            className="text-primary hover:text-on-surface transition-colors font-medium"
-          >
-            Sign in
-          </Link>
-        </p>
       </div>
-    </div>
+
+      {/* ACTION BUTTONS */}
+      {/* <div className="px-4 mb-6 space-y-3">
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={() =>
+            navigate(ROUTES.CREATE_GROUP)
+          }
+          className="w-full bg-surface-container-high border border-glass-stroke text-on-surface rounded-lg py-2.5 px-4 font-medium flex items-center justify-center gap-2 hover:bg-white/5 transition-colors"
+        >
+          <Plus size={18} />
+          Create Group
+        </motion.button>
+
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={() =>
+            navigate(ROUTES.ADD_EXPENSE)
+          }
+          className="w-full bg-gradient-to-r from-primary-container to-secondary-container text-white rounded-lg py-2.5 px-4 font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+        >
+          <Plus size={18} />
+          Add Expense
+        </motion.button>
+      </div> */}
+
+      {/* NAVIGATION */}
+      <nav className="flex-1 px-2 space-y-1">
+        {NAVIGATION_ITEMS.map((item) => {
+          const Icon = item.icon;
+
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`flex items-center gap-3 px-4 py-3 rounded-r-xl transition-all duration-300 hover:translate-x-1 border-l-4 ${isActive(item.path)
+                ? 'bg-primary-container/20 text-primary border-neon-lime'
+                : 'text-on-surface-variant hover:text-on-surface hover:bg-white/5 border-transparent'
+                }`}
+            >
+              <Icon
+                size={20}
+                className={
+                  isActive(item.path)
+                    ? 'fill-primary/20'
+                    : ''
+                }
+              />
+
+              <span className="font-body-md font-medium">
+                {item.label}
+              </span>
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* FOOTER */}
+      <div className="px-2 mt-auto border-t border-glass-stroke pt-4 space-y-1">
+        <Link
+          to={ROUTES.SETTINGS}
+          className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${isActive(ROUTES.SETTINGS)
+            ? 'bg-primary-container/20 text-primary'
+            : 'text-on-surface-variant hover:text-on-surface hover:bg-white/5'
+            }`}
+        >
+          <Settings size={20} />
+
+          <span>Settings</span>
+        </Link>
+
+        {/* <Link
+          to="#"
+          className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all rounded-lg"
+        >
+          <HelpCircle size={20} />
+
+          <span>Support</span>
+        </Link> */}
+
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-error hover:bg-white/5 transition-all rounded-lg"
+        >
+          <LogOut size={20} />
+
+          <span>Log out</span>
+        </button>
+      </div>
+    </aside>
   );
 };
 
-export default SignupPage;
-
+export default SideNavBar;

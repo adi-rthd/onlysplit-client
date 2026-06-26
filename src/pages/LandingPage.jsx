@@ -12,8 +12,7 @@ import {
   Receipt,
   Menu,
   X,
-  Smartphone,
-  Smartphone,
+  Smartphone
 } from 'lucide-react';
 
 import { GlassCard } from '../components/ui/GlassCard';

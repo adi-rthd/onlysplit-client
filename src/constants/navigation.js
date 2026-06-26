@@ -13,5 +13,6 @@ export const BOTTOM_NAV_ITEMS = [
   { path: '/groups', icon: Users, label: 'Groups' },
   { path: '/friends', icon: UserPlus, label: 'Friends' },
   { path: '/settlements', icon: Clock, label: 'Settle' },
+  { path: '/analytics', icon: PieChart, label: 'Analytics' },
   { path: '/settings', icon: Settings, label: 'Profile' },
 ];

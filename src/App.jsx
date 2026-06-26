@@ -4,25 +4,7 @@ import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 
 import QueryProvider from './providers/QueryProvider';
-import React, { useEffect, useState, useCallback } from 'react';
-import PlatformRouter from './components/PlatformRouter';
-import { Capacitor } from '@capacitor/core';
-import { App as CapApp } from '@capacitor/app';
-
-import QueryProvider from './providers/QueryProvider';
 import AppRoutes from './routes/AppRoutes';
-import authService from './services/authService';
-import CommonToaster from './components/ui/CommonToaster';
-import UpdateModal from './components/modals/UpdateModal';
-import MandatoryUpdateScreen from './components/modals/MandatoryUpdateScreen';
-import OfflineScreen from './components/ui/OfflineScreen';
-import GlobalErrorBoundary from './components/ui/GlobalErrorBoundary';
-import OfflineIndicator from './components/ui/OfflineIndicator';
-import { checkForUpdate } from './services/updateService';
-import { useSignalR } from './hooks/useSignalR';
-import { useAuthStore } from './store/authStore';
-import NotificationListener from './components/listeners/NotificationListener';
-import PaymentListener from './components/listeners/PaymentListener';
 import authService from './services/authService';
 import CommonToaster from './components/ui/CommonToaster';
 import UpdateModal from './components/modals/UpdateModal';
