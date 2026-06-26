@@ -12,6 +12,7 @@ export const useSettlementStore = create((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const data = await settlementService.getBalances(groupId);
+
       set({ balances: Array.isArray(data) ? data : [], isLoading: false });
       return data;
     } catch (error) {

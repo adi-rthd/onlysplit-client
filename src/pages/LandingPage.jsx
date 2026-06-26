@@ -13,6 +13,7 @@ import {
   Menu,
   X,
   Smartphone,
+  Smartphone,
 } from 'lucide-react';
 
 import { GlassCard } from '../components/ui/GlassCard';
@@ -146,6 +147,30 @@ const LandingPage = () => {
             </div>
           </div>
 
+          {/* MOBILE LOGIN + MENU */}
+          <div className="md:hidden flex items-center gap-2">
+            <button
+              onClick={() => navigate(ROUTES.LOGIN)}
+              className="px-4 py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.08] text-white text-sm font-medium hover:bg-white/[0.08] transition-all"
+            >
+              Log in
+            </button>
+
+            <button
+              onClick={() =>
+                setMobileMenuOpen(
+                  !mobileMenuOpen
+                )
+              }
+              className="w-11 h-11 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.25)] bg-white/[0.03] flex items-center justify-center text-white"
+            >
+              {mobileMenuOpen ? (
+                <X size={22} />
+              ) : (
+                <Menu size={22} />
+              )}
+            </button>
+          </div>
           {/* MOBILE LOGIN + MENU */}
           <div className="md:hidden flex items-center gap-2">
             <button
