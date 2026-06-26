@@ -4,11 +4,11 @@ import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Plus, Settings, HelpCircle, LogOut } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { ROUTES } from '../../constants/routes';
+import { ROUTES } from '../constants/routes';
 
-import { NAVIGATION_ITEMS } from '../../constants/navigation';
-import { getProfile } from '../../services/settingsService';
-import authService from '../../services/authService';
+import { NAVIGATION_ITEMS } from '../constants/navigation';
+import { getProfile } from '../services/settingsService';
+import authService from '../services/authService';
 
 const SideNavBar = () => {
   const location = useLocation();
