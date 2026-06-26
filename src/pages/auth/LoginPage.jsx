@@ -59,7 +59,14 @@ const LoginPage = () => {
       <div className="w-full max-w-[420px] relative z-10">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <motion.div
+          <div className=" relative w-12 h-12 flex items-center justify-center rounded-2xl overflow-hidden" >
+            <img
+              src="/logo.png"
+              alt="OnlySplit"
+              className="w-full h-full object-contain drop-shadow-[0_8px_25px_rgba(94,92,230,0.35)]"
+            />
+          </div>
+          {/* <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.4 }}
@@ -70,7 +77,7 @@ const LoginPage = () => {
             <div className="relative w-14 h-14 rounded-full bg-gradient-to-br from-primary-container to-secondary-container flex items-center justify-center text-white font-bold text-xl">
               OS
             </div>
-          </motion.div>
+          </motion.div> */}
 
           <h1 className="text-[34px] font-bold text-on-surface tracking-tight">
             Welcome back
@@ -199,7 +206,7 @@ const LoginPage = () => {
           </Link>
         </p>
       </div>
-    </div>
+    </div >
   );
 };
 

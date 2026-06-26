@@ -68,13 +68,17 @@ const SignupPage = () => {
 
       <div className="w-full max-w-[420px] relative z-10">
         {/* Logo */}
-        <div className="flex flex-col items-center mb-8">
-          <div className="relative mb-5">
-            <div className="absolute inset-0 w-14 h-14 rounded-full bg-primary-container/40 blur-2xl scale-150" />
+        <div className="flex flex-col items-center mb-2">
+          <div className="relative">
+            {/* <div className="absolute inset-0 w-12 h-12 rounded-full bg-primary-container/40 blur-2xl scale-150" /> */}
 
-            <div className="relative w-14 h-14 rounded-full bg-gradient-to-br from-primary-container to-secondary-container flex items-center justify-center text-white font-bold text-xl">
-              OS
-            </div>
+            {/* <div className=" relative w-12 h-12 flex items-center justify-center rounded-2xl overflow-hidden" > */}
+              <img
+                src="/logo.png"
+                alt="OnlySplit"
+                className="w-12 h -12 object-contain drop-shadow-[0_8px_25px_rgba(94,92,230,0.35)]"
+              />
+            {/* </div> */}
           </div>
 
           <h1 className="text-[34px] font-bold text-on-surface tracking-tight">
@@ -96,7 +100,7 @@ const SignupPage = () => {
           className="auth-card backdrop-blur-2xl rounded-3xl p-7"
         >
           {/* Names */}
-          <div className="grid grid-cols-2 gap-4 mb-5">
+          <div className="grid grid-cols-2 gap-4 mb-2">
             <div>
               <label className="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-[0.18em] mb-2">
                 First Name
@@ -234,7 +238,7 @@ const SignupPage = () => {
         </motion.form>
 
         {/* Footer */}
-        <p className="text-center text-on-surface-variant text-[14px] mt-7">
+        <p className="text-center text-on-surface-variant text-[14px] mt-2">
           Already have an account?{' '}
           <Link
             to={ROUTES.LOGIN}

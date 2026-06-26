@@ -3,7 +3,8 @@ import settlementService from '../services/settlementService';
 
 export const useSettlementStore = create((set, get) => ({
   balances: [],
-  settlements: [],
+  settlements: [], 
+  globalSettlements: [], 
   isLoading: false,
   error: null,
 
@@ -11,7 +12,6 @@ export const useSettlementStore = create((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const data = await settlementService.getBalances(groupId);
-
       set({ balances: Array.isArray(data) ? data : [], isLoading: false });
       return data;
     } catch (error) {
@@ -32,6 +32,23 @@ export const useSettlementStore = create((set, get) => ({
       return data;
     } catch (error) {
       set({ error: error.message, settlements: [], isLoading: false });
+      return [];
+    }
+  },
+
+  // ✅ NEW: Fetcher for the global dashboard
+  fetchGlobalSettlements: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const data = await settlementService.getGlobalPendingSettlements();
+      const settlementsArray = Array.isArray(data) ? data : data?.data || data?.settlements || [];
+      set({
+        globalSettlements: settlementsArray,
+        isLoading: false
+      });
+      return data;
+    } catch (error) {
+      set({ error: error.message, globalSettlements: [], isLoading: false });
       return [];
     }
   },
@@ -59,12 +76,10 @@ export const useSettlementStore = create((set, get) => ({
     set({
       balances: [],
       settlements: [],
+      globalSettlements: [], 
       error: null
     }),
 
-  /**
-   * CLEAR ERROR
-   */
   clearError: () =>
     set({
       error: null

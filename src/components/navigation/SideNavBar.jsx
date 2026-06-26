@@ -1,8 +1,8 @@
 // src/components/navigation/SideNavBar.jsx
 
 import React, { useEffect, useState } from 'react';
-import { Link, useLocation, useNavigate} from 'react-router-dom';
-import { Plus, Settings, HelpCircle, LogOut} from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Plus, Settings, HelpCircle, LogOut } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { ROUTES } from '../../constants/routes';
 
@@ -147,14 +147,14 @@ const SideNavBar = () => {
           <span>Settings</span>
         </Link>
 
-        <Link
+        {/* <Link
           to="#"
           className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all rounded-lg"
         >
           <HelpCircle size={20} />
 
           <span>Support</span>
-        </Link>
+        </Link> */}
 
         <button
           onClick={handleLogout}

@@ -22,20 +22,21 @@ function App() {
   const [updateInfo, setUpdateInfo] = useState(null);
   const [updateDismissed, setUpdateDismissed] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
+  
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  // ✅ FIX 1: Pull isLoading from the store
+  const isLoading = useAuthStore((s) => s.isLoading); 
 
   // Start/stop SignalR connections based on auth state
   useSignalR();
 
   // Restore auth session — wait for Zustand persist hydration first
   useEffect(() => {
-    // If already hydrated (e.g., synchronous sessionStorage on web), run immediately
     if (useAuthStore.persist.hasHydrated()) {
       authService.restoreSession();
       return;
     }
 
-    // Otherwise wait for async hydration (Capacitor Preferences) to complete
     const unsub = useAuthStore.persist.onFinishHydration(() => {
       authService.restoreSession();
     });
@@ -47,25 +48,22 @@ function App() {
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
 
-    let statusListener;
+    // ✅ FIX 2: Safely track the promise to prevent race conditions during unmount
+    const setupNetwork = async () => {
+      const { Network } = await import('@capacitor/network');
+      
+      const status = await Network.getStatus();
+      setIsOffline(!status.connected);
 
-    import('@capacitor/network').then(({ Network }) => {
-      Network.getStatus().then((status) => {
+      return Network.addListener('networkStatusChange', (status) => {
         setIsOffline(!status.connected);
       });
+    };
 
-      statusListener = Network.addListener(
-        'networkStatusChange',
-        (status) => {
-          setIsOffline(!status.connected);
-        }
-      );
-    });
+    const listenerPromise = setupNetwork();
 
     return () => {
-      if (statusListener) {
-        statusListener.then((listener) => listener.remove());
-      }
+      listenerPromise.then(listener => listener.remove());
     };
   }, []);
 
@@ -93,10 +91,7 @@ function App() {
     try {
       const info = await checkForUpdate();
 
-      if (
-        info &&
-        info.versionCode !== updateInfo?.versionCode
-      ) {
+      if (info && info.versionCode !== updateInfo?.versionCode) {
         setUpdateInfo(info);
       }
     } catch (error) {
@@ -132,46 +127,39 @@ function App() {
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
 
-    const listener = CapApp.addListener(
-      'backButton',
-      ({ canGoBack }) => {
-        // Block back on mandatory update or offline
-        if (updateInfo?.mandatory || isOffline) {
-          return;
-        }
-
-        // Dismiss optional update first
-        if (
-          updateInfo &&
-          !updateInfo.mandatory &&
-          !updateDismissed
-        ) {
-          setUpdateDismissed(true);
-          return;
-        }
-
-        if (canGoBack) {
-          window.history.back();
-        } else {
-          CapApp.minimizeApp();
-        }
+    const listener = CapApp.addListener('backButton', ({ canGoBack }) => {
+      // Block back on mandatory update or offline
+      if (updateInfo?.mandatory || isOffline) {
+        return;
       }
-    );
+
+      // Dismiss optional update first
+      if (updateInfo && !updateInfo.mandatory && !updateDismissed) {
+        setUpdateDismissed(true);
+        return;
+      }
+
+      if (canGoBack) {
+        window.history.back();
+      } else {
+        CapApp.minimizeApp();
+      }
+    });
 
     return () => {
       listener.then((l) => l.remove());
     };
-  }, [
-    updateInfo,
-    updateDismissed,
-    isOffline,
-  ]);
+  }, [updateInfo, updateDismissed, isOffline]);
+
+  // ✅ FIX 1 (Continued): Block the entire UI while restoring the session
+  if (isLoading) {
+    // You can return a generic splash screen component here, 
+    // or return `null` if Capacitor's native Splash Screen is configured to autoHide: false
+    return null; 
+  }
 
   // Offline screen blocks entire app
-  if (
-    Capacitor.isNativePlatform() &&
-    isOffline
-  ) {
+  if (Capacitor.isNativePlatform() && isOffline) {
     return (
       <QueryProvider>
         <PlatformRouter>
@@ -189,9 +177,7 @@ function App() {
 
         {/* Mandatory update blocks the app — only when logged in */}
         {updateInfo?.mandatory && isAuthenticated ? (
-          <MandatoryUpdateScreen
-            updateInfo={updateInfo}
-          />
+          <MandatoryUpdateScreen updateInfo={updateInfo} />
         ) : (
           <>
             <GlobalErrorBoundary>
@@ -209,16 +195,12 @@ function App() {
             )}
 
             {/* Optional update — only when logged in */}
-            {updateInfo &&
-              !updateDismissed &&
-              isAuthenticated && (
-                <UpdateModal
-                  updateInfo={updateInfo}
-                  onDismiss={() =>
-                    setUpdateDismissed(true)
-                  }
-                />
-              )}
+            {updateInfo && !updateDismissed && isAuthenticated && (
+              <UpdateModal
+                updateInfo={updateInfo}
+                onDismiss={() => setUpdateDismissed(true)}
+              />
+            )}
           </>
         )}
       </PlatformRouter>
