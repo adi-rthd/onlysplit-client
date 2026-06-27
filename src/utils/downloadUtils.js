@@ -24,7 +24,6 @@ export async function getApkInfo() {
       cache: 'no-store',
       headers: { Accept: 'application/json' },
     });
-
     if (!response.ok) return null;
 
     const data = await response.json();
@@ -33,7 +32,7 @@ export async function getApkInfo() {
       return data;
     }
     return null;
-  } catch {
+  } catch (error) {
     return null;
   }
 }

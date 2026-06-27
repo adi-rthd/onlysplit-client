@@ -63,12 +63,16 @@ const LandingPage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#05060a] overflow-x-hidden  text-white">
+    <div className="relative min-h-screen overflow-x-hidden bg-[#05060a] text-white">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-5%] left-[-5%] w-[800px] h-[800px] rounded-full bg-[radial-gradient(circle,rgba(94,92,230,0.10)_0%,transparent_90%)] blur-3xl" />
 
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-    <div className="absolute top-[-5%] left-[-5%] w-[800px] h-[800px] rounded-full ... blur-3xl" />
-    <div className="absolute bottom-[-10%] right-[-8%] w-[660px] h-[660px] rounded-full ... blur-3xl" />
-  </div> {/* ================= HEADER ================= */}
+        <div className="absolute bottom-[-10%] right-[-8%] w-[660px] h-[660px] rounded-full bg-[radial-gradient(circle,rgba(62,144,255,0.06)_0%,transparent_90%)] blur-3xl" />
+      </div>
+      {/* <div className="absolute top-[-5%] left-[-5%] w-[800px] h-[800px] rounded-full bg-[radial-gradient(circle,rgba(94,92,230,0.10)_0%,transparent_90%)] blur-3xl pointer-events-none" /> */}
+
+      {/* <div className="absolute bottom-[-10%] right-[-8%] w-[660px] h-[660px] rounded-full bg-[radial-gradient(circle,rgba(62,144,255,0.06)_0%,transparent_90%)] blur-3xl pointer-events-none" /> */}
+      {/* ================= HEADER ================= */}
 
       <header className="sticky top-0 z-50 w-full border-b border-white/[0.04] bg-black/30 backdrop-blur-2xl">
 
@@ -303,7 +307,7 @@ const LandingPage = () => {
             >
               <GradientButton
                 onClick={() =>
-                  navigate(ROUTES.SIGNUP)
+                  navigate(ROUTES.LOGIN)
                 }
                 className="w-full sm:w-auto px-8 py-4 rounded-2xl text-[15px] font-semibold shadow-[0_10px_40px_rgba(94,92,230,0.35)]"
               >
@@ -323,8 +327,8 @@ const LandingPage = () => {
 
               <button
                 onClick={() => navigate(ROUTES.DOWNLOAD)}
-                className="sm:flex w-full sm:w-auto px-8 py-4 rounded-2xl border border-lime-400/20 bg-lime-400/5 backdrop-blur-xl text-lime-400 items-center justify-center gap-2 hover:bg-lime-400/10 transition-all font-medium cursor-pointer"
-              >
+                   className="w-full sm:w-auto px-8 py-4 rounded-2xl border border-lime-400/20 bg-lime-400/5 backdrop-blur-xl text-lime-400 flex items-center justify-center gap-2 hover:bg-white/[0.05] transition-all"
+                           >
                 <Smartphone size={18} />
                 Download for Android
               </button>
@@ -645,7 +649,7 @@ const LandingPage = () => {
               <div className="w-full lg:w-auto mt-10 lg:mt-0 flex flex-col gap-4 min-w-[240px]">
 
                 {[
-                  ['Rahul paid', '$120'],
+                  ['Rahul paid', '₹1200'],
                   ['Split between', '4 members'],
                   ['Pending settlements', '2'],
                 ].map((item, index) => (
