@@ -21,8 +21,11 @@ android {
     }
 
     // ===== Release Signing =====
-    def keystoreFile = System.getenv("KEYSTORE_FILE")
-            ?: rootProject.file("../onlysplit-release-key.jks")
+def keystorePath = System.getenv("KEYSTORE_FILE")
+
+def keystoreFile = keystorePath != null
+        ? file(keystorePath)
+        : rootProject.file("../onlysplit-release-key.jks")
 
     signingConfigs {
         release {
