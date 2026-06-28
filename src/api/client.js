@@ -86,15 +86,12 @@ client.interceptors.response.use(
     isRefreshing = true;
 
     try {
-      const isNative = Capacitor.isNativePlatform();
       let requestBody = {};
 
-      // On native, include refresh token in body (cookie fallback)
-      if (isNative) {
-        const storedRefreshToken = await refreshTokenStorage.get();
-        if (storedRefreshToken) {
-          requestBody = { refreshToken: storedRefreshToken };
-        }
+      // Include refresh token in body if stored (works for both native and web PWA)
+      const storedRefreshToken = await refreshTokenStorage.get();
+      if (storedRefreshToken) {
+        requestBody = { refreshToken: storedRefreshToken };
       }
 
       // Use raw axios (not intercepted client) to avoid loops
@@ -123,8 +120,8 @@ client.interceptors.response.use(
         authStore.setUser(responseData.user);
       }
 
-      // On native, persist the new refresh token if returned
-      if (isNative && responseData.refreshToken) {
+      // Persist the new refresh token if returned
+      if (responseData.refreshToken) {
         await refreshTokenStorage.set(responseData.refreshToken);
       }
 
@@ -139,16 +136,20 @@ client.interceptors.response.use(
       // Refresh failed — reject all queued requests
       processQueue(refreshError, null);
 
-      // Clear stored refresh token on native (it's invalid)
-      if (Capacitor.isNativePlatform()) {
-        await refreshTokenStorage.remove();
-      }
+      // Clear stored refresh token (it's invalid)
+      await refreshTokenStorage.remove();
 
       useAuthStore.getState().logout();
 
-      // Redirect to login (use hash router format)
-      if (!window.location.hash?.includes('/login')) {
-        window.location.hash = '#/login';
+      // Redirect to login (use router-aware formats)
+      if (Capacitor.isNativePlatform()) {
+        if (!window.location.hash?.includes('/login')) {
+          window.location.hash = '#/login';
+        }
+      } else {
+        if (window.location.pathname !== '/login') {
+          window.location.pathname = '/login';
+        }
       }
 
       return Promise.reject(refreshError);

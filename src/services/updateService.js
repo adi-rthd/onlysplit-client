@@ -2,11 +2,9 @@
  * Self-hosted APK update service — in-app download + install.
  *
  * Flow:
- *   1. Check latest.json for new version
+ *   1. Check latest.json for new version comparison
  *   2. Download APK to device storage with progress callback
- *   3. Trigger Android package installer from the downloaded file
- *
- * User never leaves the app during download.
+ *   3. Trigger custom ApkInstaller package installer plugin
  */
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
@@ -41,7 +39,7 @@ export async function checkForUpdate() {
 
     const latest = await response.json();
 
-    // Get installed app version
+    // Get installed native app version code
     const { App } = await import('@capacitor/app');
     const appInfo = await App.getInfo();
     const installedVersionCode = parseInt(appInfo.build, 10) || 0;
@@ -91,14 +89,14 @@ export async function downloadApk(apkUrl, onProgress) {
           reader.onloadend = async () => {
             const base64Data = reader.result.split(',')[1];
 
-            // Write to app cache (FileProvider can serve content:// URIs from cache)
+            // Write to app cache
             await Filesystem.writeFile({
               path: APK_FILENAME,
               data: base64Data,
               directory: Directory.Cache,
             });
 
-            // Get the file URI — on Android, Capacitor returns file:// from cache dir
+            // Get the file URI
             const fileInfo = await Filesystem.getUri({
               path: APK_FILENAME,
               directory: Directory.Cache,
@@ -126,76 +124,35 @@ export async function downloadApk(apkUrl, onProgress) {
 }
 
 /**
- * Open the downloaded APK with the Android package installer.
+ * Activate the downloaded APK via custom ApkInstaller plugin.
  *
- * On Android 7+ (API 24+), file:// URIs cannot be passed to other apps via intents —
- * this throws FileUriExposedException and crashes the app.
- *
- * Solution: Convert the file:// URI to a content:// URI using the app's FileProvider,
- * which is configured in AndroidManifest.xml with file_paths.xml.
- *
- * @param {string} fileUri - file:// URI of the downloaded APK from Filesystem.getUri()
+ * @param {string} fileUri - Local file URI of the APK
  */
 export async function installApk(fileUri) {
   try {
-    const { IntentLauncher } = await import('@capgo/capacitor-intent-launcher');
-    const { App } = await import('@capacitor/app');
-
-    // Get the app's package ID to construct the FileProvider authority
-    const appInfo = await App.getInfo();
-    const authority = `${appInfo.id}.fileprovider`;
-
-    // Convert file:// URI to content:// URI via FileProvider
-    // file_paths.xml has: <cache-path name="my_cache_images" path="." />
-    // This maps the app's cache dir to the "my_cache_images" path segment.
-    //
-    // file:// URI from Capacitor: file:///data/user/0/{package}/cache/onlysplit-update.apk
-    // content:// URI we need:     content://{authority}/my_cache_images/onlysplit-update.apk
-    const contentUri = `content://${authority}/my_cache_images/${APK_FILENAME}`;
-
-    console.log('[UpdateService] Installing APK');
-    console.log('[UpdateService] File URI:', fileUri);
-    console.log('[UpdateService] Content URI:', contentUri);
-
-    await IntentLauncher.launch({
-      action: 'android.intent.action.VIEW',
-      url: contentUri,
-      type: 'application/vnd.android.package-archive',
-      flags: 268435457, // FLAG_ACTIVITY_NEW_TASK (0x10000000) | FLAG_GRANT_READ_URI_PERMISSION (1)
-    });
+    const { registerPlugin } = await import('@capacitor/core');
+    const ApkInstaller = registerPlugin('ApkInstaller');
+    console.log('[UpdateService] Triggering native installer with URI:', fileUri);
+    await ApkInstaller.install({ apkPath: fileUri });
   } catch (error) {
-    console.error('[UpdateService] Install intent failed:', error);
-
-    // Fallback: try direct file URI with INSTALL_PACKAGE action (works on some devices)
-    try {
-      const { IntentLauncher } = await import('@capgo/capacitor-intent-launcher');
-
-      await IntentLauncher.launch({
-        action: 'android.intent.action.INSTALL_PACKAGE',
-        url: fileUri,
-        type: 'application/vnd.android.package-archive',
-        flags: 268435457,
-      });
-    } catch (fallbackError) {
-      console.error('[UpdateService] Fallback install failed:', fallbackError);
-      // Last resort: open in browser
-      try {
-        await Browser.open({ url: fileUri, windowName: '_system' });
-      } catch {
-        window.open(fileUri, '_system');
-      }
-    }
+    console.error('[UpdateService] Install failed:', error);
+    throw error;
   }
 }
 
 /**
- * Legacy: open APK URL in browser (fallback)
+ * Legacy: open remote URL in browser (fallback)
+ * Note: Local file URI is blocked here to prevent FileUriExposedException.
  */
-export async function downloadUpdate(apkUrl) {
+export async function downloadUpdate(url) {
+  if (url.startsWith('file://')) {
+    console.error('[UpdateService] Blocked attempt to open local file URI in Browser plugin');
+    return;
+  }
   try {
-    await Browser.open({ url: apkUrl, windowName: '_system' });
+    await Browser.open({ url, windowName: '_system' });
   } catch {
-    window.open(apkUrl, '_system');
+    window.open(url, '_system');
   }
 }
 

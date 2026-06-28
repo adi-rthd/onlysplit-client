@@ -27,9 +27,9 @@ describe('authStorage - Web platform', () => {
     const storageModule = await import('../storage.js');
     authStorage = storageModule.authStorage;
 
-    // Mock sessionStorage
+    // Mock localStorage
     const store = {};
-    vi.stubGlobal('sessionStorage', {
+    vi.stubGlobal('localStorage', {
       getItem: vi.fn((key) => store[key] ?? null),
       setItem: vi.fn((key, value) => { store[key] = value; }),
       removeItem: vi.fn((key) => { delete store[key]; }),
@@ -40,27 +40,27 @@ describe('authStorage - Web platform', () => {
     vi.unstubAllGlobals();
   });
 
-  it('getItem returns value from sessionStorage', async () => {
-    sessionStorage.getItem.mockReturnValue('{"token":"abc"}');
+  it('getItem returns value from localStorage', async () => {
+    localStorage.getItem.mockReturnValue('{"token":"abc"}');
     const result = await authStorage.getItem('auth-store');
     expect(result).toBe('{"token":"abc"}');
-    expect(sessionStorage.getItem).toHaveBeenCalledWith('auth-store');
+    expect(localStorage.getItem).toHaveBeenCalledWith('auth-store');
   });
 
   it('getItem returns null when key does not exist', async () => {
-    sessionStorage.getItem.mockReturnValue(null);
+    localStorage.getItem.mockReturnValue(null);
     const result = await authStorage.getItem('nonexistent');
     expect(result).toBeNull();
   });
 
-  it('setItem stores value in sessionStorage', async () => {
+  it('setItem stores value in localStorage', async () => {
     await authStorage.setItem('auth-store', '{"token":"xyz"}');
-    expect(sessionStorage.setItem).toHaveBeenCalledWith('auth-store', '{"token":"xyz"}');
+    expect(localStorage.setItem).toHaveBeenCalledWith('auth-store', '{"token":"xyz"}');
   });
 
-  it('removeItem removes key from sessionStorage', async () => {
+  it('removeItem removes key from localStorage', async () => {
     await authStorage.removeItem('auth-store');
-    expect(sessionStorage.removeItem).toHaveBeenCalledWith('auth-store');
+    expect(localStorage.removeItem).toHaveBeenCalledWith('auth-store');
   });
 });
 
@@ -116,21 +116,35 @@ describe('refreshTokenStorage - Web platform', () => {
 
     const storageModule = await import('../storage.js');
     refreshTokenStorage = storageModule.refreshTokenStorage;
+
+    // Mock localStorage
+    const store = {};
+    vi.stubGlobal('localStorage', {
+      getItem: vi.fn((key) => store[key] ?? null),
+      setItem: vi.fn((key, value) => { store[key] = value; }),
+      removeItem: vi.fn((key) => { delete store[key]; }),
+    });
   });
 
-  it('get returns null on web', async () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('get retrieves token from localStorage', async () => {
+    localStorage.getItem.mockReturnValue('rt-abc123');
     const result = await refreshTokenStorage.get();
-    expect(result).toBeNull();
+    expect(result).toBe('rt-abc123');
+    expect(localStorage.getItem).toHaveBeenCalledWith('onlysplit_refresh_token');
   });
 
-  it('set is a no-op on web', async () => {
-    await refreshTokenStorage.set('some-token');
-    // Should not throw
+  it('set stores token in localStorage', async () => {
+    await refreshTokenStorage.set('rt-xyz');
+    expect(localStorage.setItem).toHaveBeenCalledWith('onlysplit_refresh_token', 'rt-xyz');
   });
 
-  it('remove is a no-op on web', async () => {
+  it('remove deletes token from localStorage', async () => {
     await refreshTokenStorage.remove();
-    // Should not throw
+    expect(localStorage.removeItem).toHaveBeenCalledWith('onlysplit_refresh_token');
   });
 });
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Capacitor } from '@capacitor/core';
 
 import {
   Zap,
@@ -22,6 +23,8 @@ import { ROUTES } from '../constants/routes';
 import analyticsService from '../services/analyticsService';
 
 const LandingPage = () => {
+  console.log("Platform:", Capacitor.getPlatform());
+  console.log("Is Native:", Capacitor.isNativePlatform());
   const navigate = useNavigate();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -325,13 +328,13 @@ const LandingPage = () => {
                 View Demo
               </button>
 
-              <button
+              {!Capacitor.isNativePlatform() && <button
                 onClick={() => navigate(ROUTES.DOWNLOAD)}
-                   className="w-full sm:w-auto px-8 py-4 rounded-2xl border border-lime-400/20 bg-lime-400/5 backdrop-blur-xl text-lime-400 flex items-center justify-center gap-2 hover:bg-white/[0.05] transition-all"
-                           >
+                className="w-full sm:w-auto px-8 py-4 rounded-2xl border border-lime-400/20 bg-lime-400/5 backdrop-blur-xl text-lime-400 flex items-center justify-center gap-2 hover:bg-white/[0.05] transition-all"
+              >
                 <Smartphone size={18} />
                 Download for Android
-              </button>
+              </button>}
             </motion.div>
           </div>
         </section>

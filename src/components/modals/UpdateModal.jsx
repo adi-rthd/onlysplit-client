@@ -25,7 +25,7 @@ const UpdateModal = ({ updateInfo, onDismiss }) => {
       const fileUri = await downloadApk(updateInfo.apkUrl, (p) => {
         setProgress(p);
       });
-
+      
       setState('complete');
 
       // Brief pause to show 100%, then trigger install

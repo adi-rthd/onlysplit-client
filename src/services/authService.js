@@ -41,8 +41,8 @@ const authService = {
         token,
       });
 
-      // On native, store refresh token for Capacitor WebView fallback
-      if (Capacitor.isNativePlatform() && data.refreshToken) {
+      // Store refresh token
+      if (data.refreshToken) {
         await refreshTokenStorage.set(data.refreshToken);
       }
 
@@ -153,10 +153,8 @@ const authService = {
     } catch (error) {
       console.error(error);
     } finally {
-      // Clear native refresh token storage
-      if (Capacitor.isNativePlatform()) {
-        await refreshTokenStorage.remove();
-      }
+      // Clear refresh token storage
+      await refreshTokenStorage.remove();
       useAuthStore.getState().logout();
       toast.success('Logged out successfully.');
     }
@@ -243,16 +241,12 @@ const authService = {
    */
   refreshToken: async () => {
     try {
-      const isNative = Capacitor.isNativePlatform();
-
       let requestBody = {};
 
-      // On native, include refresh token in body (cookie fallback)
-      if (isNative) {
-        const storedRefreshToken = await refreshTokenStorage.get();
-        if (storedRefreshToken) {
-          requestBody = { refreshToken: storedRefreshToken };
-        }
+      // Retrieve stored refresh token from preferences or localStorage
+      const storedRefreshToken = await refreshTokenStorage.get();
+      if (storedRefreshToken) {
+        requestBody = { refreshToken: storedRefreshToken };
       }
 
       // Use raw axios (not intercepted client) to avoid interceptor loops
@@ -279,8 +273,8 @@ const authService = {
         useAuthStore.getState().setUser(response.user);
       }
 
-      // On native, persist the new refresh token if returned
-      if (isNative && response.refreshToken) {
+      // Persist the new refresh token if returned
+      if (response.refreshToken) {
         await refreshTokenStorage.set(response.refreshToken);
       }
 
