@@ -15,10 +15,12 @@ import OfflineIndicator from './components/ui/OfflineIndicator';
 import { checkForUpdate } from './services/updateService';
 import { useSignalR } from './hooks/useSignalR';
 import { useAuthStore } from './store/authStore';
+import useDevToolsProtection from "./hooks/useDevToolsProtection";
 import NotificationListener from './components/listeners/NotificationListener';
 import PaymentListener from './components/listeners/PaymentListener';
 
 function App() {
+  useDevToolsProtection();
   const [updateInfo, setUpdateInfo] = useState(null);
   const [updateDismissed, setUpdateDismissed] = useState(false);
   const [isOffline, setIsOffline] = useState(false);

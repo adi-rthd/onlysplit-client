@@ -260,25 +260,6 @@ const FriendsPageLayout = ({
         <p className="text-sm text-on-surface-variant mt-1">Manage your connections</p>
       </div>
 
-      {/* Search — only on Friends tab */}
-      {activeTab === 'friends' && (
-        <div className="flex items-center gap-3 rounded-xl bg-surface-container-low border border-glass-stroke px-4 py-3 focus-within:border-primary/40 transition-colors">
-          <Search size={16} className="text-on-surface-variant shrink-0" />
-          <input
-            type="text"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Search friends or add new..."
-            className="flex-1 bg-transparent border-none outline-none ring-0 focus:ring-0 text-sm text-on-surface placeholder:text-on-surface-variant/50"
-          />
-          {searchInput && (
-            <button onClick={() => { setSearchInput(''); setSearch(''); }}>
-              <X size={14} className="text-on-surface-variant" />
-            </button>
-          )}
-        </div>
-      )}
-
       {/* Tabs — underline style */}
       <div className="flex items-center gap-6 border-b border-glass-stroke">
         {tabs.map((tab) => {
@@ -308,7 +289,24 @@ const FriendsPageLayout = ({
           );
         })}
       </div>
-
+      {/* Search — only on Friends tab */}
+      {activeTab === 'friends' && (
+        <div className="flex items-center gap-3 rounded-xl bg-surface-container-low border border-glass-stroke px-4 py-3 focus-within:border-primary/40 transition-colors">
+          <Search size={16} className="text-on-surface-variant shrink-0" />
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Search friends or add new..."
+            className="flex-1 bg-transparent border-none outline-none ring-0 focus:ring-0 text-sm text-on-surface placeholder:text-on-surface-variant/50"
+          />
+          {searchInput && (
+            <button onClick={() => { setSearchInput(''); setSearch(''); }}>
+              <X size={14} className="text-on-surface-variant" />
+            </button>
+          )}
+        </div>
+      )}
       {/* Content */}
       {!useQueryBoundary && loading ? (
         <div className="flex justify-center py-20">
@@ -358,7 +356,9 @@ const FriendsPageLayout = ({
 
           {/* Friends Tab */}
           {activeTab === 'friends' && (
+            
             useQueryBoundary ? (
+              
               <QueryBoundary query={friendsQuery}>
                 {() => (
                   filteredFriends.length === 0 ? (

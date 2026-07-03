@@ -53,10 +53,12 @@ const authService = {
 
       return data;
     } catch (error) {
-      handleApiError(
-        error,
-        'Login failed. Please check your credentials.'
-      );
+      toast.error(error.message);
+
+      // handleApiError(
+      //   error,
+      //   'Login failed. Please check your credentials.'
+      // );
 
       return null;
     } finally {
@@ -72,7 +74,6 @@ const authService = {
       useAuthStore.getState().setAuthenticating(true);
 
       let { data } = await client.post('/auth/signup', userData);
-
       data = data?.data || data;
 
       const token =
@@ -81,10 +82,7 @@ const authService = {
         data.jwt ||
         null;
 
-      const user =
-        data.user || {
-          ...userData,
-        };
+      const user = data.user || { ...userData };
 
       // Some APIs require login after signup
       if (!token) {
@@ -104,10 +102,13 @@ const authService = {
 
       return data;
     } catch (error) {
-      handleApiError(
-        error,
-        'Signup failed. Please try again.'
-      );
+
+      toast.error(error.data.errors.map(msg => msg).join('\n'));
+
+      // handleApiError(
+      //   error,
+      //   'Signup failed. Please try again.'
+      // );
 
       return null;
     } finally {

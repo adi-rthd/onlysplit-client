@@ -228,7 +228,7 @@ const LandingPage = () => {
 
         {/* ================= HERO ================= */}
 
-        <section className="relative pt-24 md:pt-12 pb-24 md:pb-12 px-4 overflow-hidden flex flex-col items-center text-center">
+        <section className="relative mt-5 md:pt-5 pb-24 md:pb-12 px-4 overflow-hidden flex flex-col items-center text-center">
 
           <div className="absolute top-1/2 left-1/2 w-[1000px] h-[700px] -translate-x-1/2 -translate-y-1/2 bg-primary-container/20 rounded-full blur-[140px] -z-10 pointer-events-none" />
 
