@@ -9,6 +9,8 @@
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Browser } from '@capacitor/browser';
+import { Preferences } from '@capacitor/preferences';
+import { DeviceUtils } from '../plugins/deviceUtils';
 
 const UPDATE_ENDPOINT = 'https://api-split.onlylabs.in/downloads/latest.json';
 const APK_FILENAME = 'onlysplit-update.apk';
@@ -156,4 +158,40 @@ export async function downloadUpdate(url) {
   }
 }
 
-export default { checkForUpdate, downloadApk, installApk, downloadUpdate };
+const SAMSUNG_NOTICE_DISMISSED_KEY = 'samsung_blocker_notice_dismissed';
+
+/**
+ * Check if the Samsung Auto Blocker dialog should be shown.
+ * Returns true only when: native platform, device is Samsung, and
+ * user hasn't dismissed the notice permanently.
+ */
+export async function shouldShowSamsungDialog() {
+  if (!Capacitor.isNativePlatform()) return false;
+
+  try {
+    const { isSamsung } = await DeviceUtils.getDeviceInfo();
+    if (!isSamsung) return false;
+
+    const { value } = await Preferences.get({ key: SAMSUNG_NOTICE_DISMISSED_KEY });
+    return value !== 'true';
+  } catch (error) {
+    console.warn('[SamsungNotice] Failed to check device info:', error);
+    return false;
+  }
+}
+
+/**
+ * Persist the user's choice to not show the Samsung dialog again.
+ */
+export async function dismissSamsungDialog() {
+  try {
+    await Preferences.set({
+      key: SAMSUNG_NOTICE_DISMISSED_KEY,
+      value: 'true',
+    });
+  } catch (error) {
+    console.warn('[SamsungNotice] Failed to persist preference:', error);
+  }
+}
+
+export default { checkForUpdate, downloadApk, installApk, downloadUpdate, shouldShowSamsungDialog, dismissSamsungDialog };
