@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, useAnimation } from 'framer-motion';
-import { Users, Trash2 } from 'lucide-react';
+import { Users, Trash2, CircleCheck, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 
 import { ROUTES } from '../../constants/routes';
 import { GlassPanel } from './GlassCard';
@@ -192,26 +192,61 @@ const GroupCard = ({
               </span>
             </div>
 
-            {/* BALANCE */}
+            {/* STATUS */}
             <div className="flex justify-between items-center">
               <span className="font-label-caps text-[11px] text-on-surface-variant">
-                YOUR BALANCE
+                YOUR STATUS
               </span>
 
-              <span
-                className={`text-lg font-bold ${Number(group.balance || 0) > 0
-                  ? 'text-green-400'
-                  : Number(group.balance || 0) < 0
-                    ? 'text-error'
-                    : 'text-yellow-400'
-                  }`}
-              >
-                {formatCurrency(
-                  Number(group.balance || 0),
-                  group.currency || currency,
-                  locale
-                )}
-              </span>
+              {(() => {
+                const balance = Number(group.balance || 0);
+                if (balance === 0) {
+                  return (
+                    <motion.div
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.15 }}
+                      className="flex items-center gap-1.5"
+                      aria-label="You are settled"
+                    >
+                      <CircleCheck size={16} className="text-green-400" />
+                      <span className="text-sm font-medium text-green-400">You&apos;re Settled</span>
+                    </motion.div>
+                  );
+                }
+                if (balance > 0) {
+                  return (
+                    <motion.div
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.15 }}
+                      className="flex items-center gap-1.5"
+                      aria-label={`You are owed ${formatCurrency(balance, group.currency || currency, locale)}`}
+                    >
+                      <ArrowDownLeft size={16} className="text-green-400" />
+                      <span className="text-sm font-medium text-green-400">You Are Owed</span>
+                      <span className="text-lg font-bold text-green-400">
+                        {formatCurrency(balance, group.currency || currency, locale)}
+                      </span>
+                    </motion.div>
+                  );
+                }
+                return (
+                  <motion.div
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.15 }}
+                    className="flex items-center gap-1.5"
+                    aria-label={`You owe ${formatCurrency(Math.abs(balance), group.currency || currency, locale)}`}
+                  >
+                    <ArrowUpRight size={16} className="text-error" />
+                    <span className="text-sm font-medium text-error">You Owe</span>
+                    <span className="text-lg font-bold text-error">
+                      {formatCurrency(Math.abs(balance), group.currency || currency, locale)}
+                    </span>
+                  </motion.div>
+                );
+              })()}
             </div>
 
             {/* MEMBERS */}

@@ -11,11 +11,14 @@ import { getProfile } from '../../services/settingsService';
 import { useAuthStore } from '../../store/authStore';
 import authService from '../../services/authService';
 import Avatar from '../common/Avatar';
+import { useFriendRequests } from '../../queries/hooks/useFriends';
 
 const SideNavBar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const storeUser = useAuthStore((s) => s.user);
+  const requestsQuery = useFriendRequests({ staleTime: 60 * 1000 });
+  const requestCount = requestsQuery.data?.length || 0;
 
   const [profile, setProfile] = useState({
     firstName: 'Aditya',
@@ -108,6 +111,7 @@ const SideNavBar = () => {
       <nav className="flex-1 px-2 space-y-1">
         {NAVIGATION_ITEMS.map((item) => {
           const Icon = item.icon;
+          const showBadge = item.path === '/friends' && requestCount > 0;
 
           return (
             <Link
@@ -119,13 +123,23 @@ const SideNavBar = () => {
                   : 'text-on-surface-variant hover:text-on-surface hover:bg-white/5 border-transparent'
               }`}
             >
-              <Icon
-                size={20}
-                className={isActive(item.path) ? 'fill-primary/20' : ''}
-              />
+              <div className="relative">
+                <Icon
+                  size={20}
+                  className={isActive(item.path) ? 'fill-primary/20' : ''}
+                />
+                {showBadge && (
+                  <span className="absolute -top-0.5 -right-1 w-2 h-2 rounded-full bg-error" />
+                )}
+              </div>
               <span className="font-body-md font-medium">
                 {item.label}
               </span>
+              {showBadge && (
+                <span className="ml-auto text-[10px] font-bold bg-error/15 text-error px-1.5 py-0.5 rounded-full">
+                  {requestCount}
+                </span>
+              )}
             </Link>
           );
         })}

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ROUTES } from '../constants/routes';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Users, Utensils, UserPlus, Mail, Search, SortAsc, X, Trash2 } from 'lucide-react';
+import { Plus, Users, Utensils, UserPlus, Mail, Search, SortAsc, X, Trash2, CircleCheck, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 import { motion, useAnimation } from 'framer-motion';
 
 import { useGroupStore } from '../store/groupStore';
@@ -259,11 +259,10 @@ const GroupsPage = () => {
                         setSortBy(opt.value);
                         setShowSortMenu(false);
                       }}
-                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
-                        sortBy === opt.value
+                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${sortBy === opt.value
                           ? 'text-primary bg-primary/5 font-medium'
                           : 'text-on-surface-variant hover:text-on-surface hover:bg-white/5'
-                      }`}
+                        }`}
                     >
                       {opt.label}
                     </button>
@@ -340,13 +339,18 @@ const GroupsPage = () => {
         }}
       />
 
-      {/* MOBILE FAB */}
+      {/* MOBILE FAB — Add Expense */}
       <motion.button
         whileTap={{ scale: 0.9 }}
-        onClick={() => navigate(ROUTES.CREATE_GROUP)}
-        className="md:hidden fixed bottom-24 right-5 w-12 h-12 bg-primary rounded-full flex items-center justify-center shadow-[0_4px_20px_rgba(124,108,255,0.4)] z-[60]"
+        onClick={() =>
+          navigate(ROUTES.ADD_EXPENSE.replace(':id', 'all'))
+        }
+        className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-gradient-to-br from-primary-container to-inverse-primary rounded-full flex items-center justify-center shadow-lg neon-glow z-[60]"
       >
-        <Plus className="text-white" size={22} />
+        <Plus
+          className="text-white"
+          size={28}
+        />
       </motion.button>
     </div>
   );
@@ -424,10 +428,27 @@ const GroupRow = ({ group, initials, spending, balance, memberCount, currency, l
           </div>
 
           <div className="text-right">
-            <span className="text-[10px] text-on-surface-variant uppercase tracking-wider">Balance</span>
-            <p className={`text-sm font-bold tabular-nums mt-0.5 ${balance > 0 ? 'text-green-400' : balance < 0 ? 'text-orange-300' : 'text-on-surface-variant'}`}>
-              {balance === 0 ? '—' : (balance > 0 ? '+' : '') + formatCurrency(balance, group.currency || currency, locale)}
-            </p>
+            <span className="text-[10px] text-on-surface-variant uppercase tracking-wider">Status</span>
+            {balance === 0 ? (
+              <div className="flex items-center gap-1 mt-0.5 justify-end">
+                <CircleCheck size={13} className="text-green-400" />
+                <span className="text-xs font-medium text-green-400">Settled</span>
+              </div>
+            ) : balance > 0 ? (
+              <div className="flex items-center gap-1 mt-0.5 justify-end">
+                <ArrowDownLeft size={13} className="text-green-400" />
+                <span className="text-sm font-bold text-green-400 tabular-nums">
+                  {formatCurrency(balance, group.currency || currency, locale)}
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1 mt-0.5 justify-end">
+                <ArrowUpRight size={13} className="text-error" />
+                <span className="text-sm font-bold text-error tabular-nums">
+                  {formatCurrency(Math.abs(balance), group.currency || currency, locale)}
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-1.5 text-on-surface-variant">

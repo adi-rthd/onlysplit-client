@@ -127,7 +127,7 @@ const LoginPage = () => {
               Password
             </label>
 
-            <div className="group auth-input flex items-center h-[58px] px-4 transition-all duration-200">
+            <div className="group auth-input flex items-center h-[58px] px-4 transition-all duration-200 overflow-hidden">
               {/* Lock Icon */}
               <Lock
                 size={18}
@@ -148,7 +148,7 @@ const LoginPage = () => {
                 }
                 placeholder="••••••••"
                 autoComplete="current-password"
-                className="flex-1 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-on-surface placeholder:text-on-surface-variant/50 text-[15px]"
+                className="flex-1 min-w-0 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-on-surface placeholder:text-on-surface-variant/50 text-[15px]"
               />
 
               {/* Toggle Button */}
@@ -157,7 +157,7 @@ const LoginPage = () => {
                 onClick={() =>
                   setShowPassword(!showPassword)
                 }
-                className="ml-3 text-on-surface-variant hover:text-on-surface transition-colors shrink-0"
+                className="ml-2 text-on-surface-variant hover:text-on-surface transition-colors shrink-0"
               >
                 {showPassword ? (
                   <EyeOff size={18} />

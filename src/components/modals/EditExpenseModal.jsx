@@ -16,10 +16,11 @@ import { getExpenseCategory } from '../../utils/expenseIcons';
 import useCurrencyStore from '../../store/useCurrencyStore';
 import { useUpdateExpense } from '../../queries/mutations/useUpdateExpense';
 import { featureFlags } from '../../utils/featureFlags';
+import Avatar from '../common/Avatar';
 
 const EditExpenseModal = ({ expense, groupId, onClose, onUpdated }) => {
   const { updateExpense } = useExpenseStore();
-  const { currentGroup } = useGroupStore();
+  const { currentGroup, fetchGroupById } = useGroupStore();
   const { user } = useAuthStore();
   const { currency: storeCurrency } = useCurrencyStore();
 
@@ -36,17 +37,31 @@ const EditExpenseModal = ({ expense, groupId, onClose, onUpdated }) => {
   const [splitValues, setSplitValues] = useState({});
   const [storeSaving, setStoreSaving] = useState(false);
   const [currencies, setCurrencies] = useState([]);
+  const [groupDetail, setGroupDetail] = useState(null);
 
   // Determine saving state based on feature flag
   const saving = featureFlags.useQueryExpenses
     ? updateExpenseMutation.isPending
     : storeSaving;
 
-  const members = useMemo(() => currentGroup?.members || [], [currentGroup]);
+  const members = useMemo(() => {
+    const group = groupDetail || currentGroup;
+    return group?.members || [];
+  }, [groupDetail, currentGroup]);
 
   useEffect(() => {
     getCurrencies().then((data) => { if (data) setCurrencies(data); });
   }, []);
+
+  // Fetch group detail to get members list
+  useEffect(() => {
+    if (!groupId) return;
+    let cancelled = false;
+    fetchGroupById(groupId).then((data) => {
+      if (!cancelled && data) setGroupDetail(data);
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [groupId]);
 
   // Initialize split values for non-equal methods
   useEffect(() => {
@@ -286,6 +301,12 @@ const EditExpenseModal = ({ expense, groupId, onClose, onUpdated }) => {
                       }`}>
                         {isSelected && <Check size={11} className="text-white" strokeWidth={3} />}
                       </div>
+                      <Avatar
+                        firstName={member.firstName}
+                        lastName={member.lastName}
+                        avatarUrl={member.avatarUrl}
+                        size="sm"
+                      />
                       <span className="text-sm font-medium text-on-surface">
                         {fullName}
                         {isYou && <span className="text-on-surface-variant ml-1">(You)</span>}

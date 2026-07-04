@@ -175,10 +175,10 @@ const SignupPage = () => {
               Password
             </label>
 
-            <div className="auth-input flex items-center h-[58px] px-4">
+            <div className="auth-input flex items-center h-[58px] px-4 overflow-hidden">
               <Lock
                 size={18}
-                className="text-on-surface-variant mr-3"
+                className="text-on-surface-variant mr-3 shrink-0"
               />
 
               <input
@@ -194,7 +194,7 @@ const SignupPage = () => {
                   setPassword(e.target.value)
                 }
                 placeholder="Minimum 8 characters"
-                className="w-full bg-transparent border-none outline-none ring-0 text-on-surface placeholder:text-on-surface-variant/50"
+                className="flex-1 min-w-0 bg-transparent border-none outline-none ring-0 text-on-surface placeholder:text-on-surface-variant/50"
               />
 
               <button
@@ -204,7 +204,7 @@ const SignupPage = () => {
                     !showPassword
                   )
                 }
-                className="text-on-surface-variant hover:text-on-surface transition-colors"
+                className="ml-2 text-on-surface-variant hover:text-on-surface transition-colors shrink-0"
               >
                 {showPassword ? (
                   <EyeOff size={18} />

@@ -117,7 +117,7 @@ const SettingsPage = () => {
         lastName: profile.lastName,
         avatarUrl: profile.avatarUrl
       });
-      
+
     } catch (error) {
       console.error(error);
     } finally {
@@ -200,7 +200,7 @@ const SettingsPage = () => {
               </p>
 
               <p className="text-sm text-on-surface-variant">
-                Coming soon in backend API
+                Coming soon...
               </p>
             </div>
           </div>
@@ -651,10 +651,13 @@ const SettingsPage = () => {
 
               <button
                 onClick={() =>
-                  updateField(
-                    'darkMode',
-                    !profile.darkMode
+                  showComingSoon(
+                    'Dark Mode'
                   )
+                  // updateField(
+                  //   'darkMode',
+                  //   !profile.darkMode
+                  // )
                 }
                 className={`
                   relative
@@ -697,10 +700,13 @@ const SettingsPage = () => {
 
               <button
                 onClick={() =>
-                  updateField(
-                    'notifications',
-                    !profile.notifications
+                  showComingSoon(
+                    'Notifications'
                   )
+                  // updateField(
+                  //   'notifications',
+                  //   !profile.notifications
+                  // )
                 }
                 className={`
                   relative
@@ -783,7 +789,7 @@ const SettingsPage = () => {
                     onClick={async () => {
                       setUpdating(true);
                       try {
-                        const fileUri = await downloadApk(updateAvailable.apkUrl, () => {});
+                        const fileUri = await downloadApk(updateAvailable.apkUrl, () => { });
                         await installApk(fileUri);
                       } catch (err) {
                         console.error(err);

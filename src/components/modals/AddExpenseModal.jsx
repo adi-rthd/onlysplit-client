@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -8,6 +7,7 @@ import {
   ChevronsUpDown,
   Loader2,
   Check,
+  Receipt,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useGroupStore } from '../../store/groupStore';
@@ -18,6 +18,7 @@ import { useAuthStore } from '../../store/authStore';
 import useCurrencyStore from '../../store/useCurrencyStore';
 import { useCreateExpense } from '../../queries/mutations/useCreateExpense';
 import { featureFlags } from '../../utils/featureFlags';
+import Avatar from '../common/Avatar';
 
 const AddExpenseModal = () => {
   const navigate = useNavigate();
@@ -39,6 +40,7 @@ const AddExpenseModal = () => {
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [splitValues, setSplitValues] = useState({});
   const [groupDetail, setGroupDetail] = useState(null);
+  const [fullAmountMemberId, setFullAmountMemberId] = useState(null);
 
   // TanStack Query mutation (used when feature flag is enabled)
   const createExpenseMutation = useCreateExpense(selectedGroupId);
@@ -50,7 +52,8 @@ const AddExpenseModal = () => {
 
   const isGroupContext = Boolean(groupId);
 
-  // Escape key handler
+  // ─── Effects (business logic — unchanged) ──────────────────────────────────
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') navigate(-1);
@@ -59,7 +62,6 @@ const AddExpenseModal = () => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [navigate]);
 
-  // Auto-focus amount input on mount
   useEffect(() => {
     setTimeout(() => amountRef.current?.focus(), 100);
   }, []);
@@ -80,7 +82,6 @@ const AddExpenseModal = () => {
     }
   }, [groups]);
 
-  // Fetch full group detail (with members) when selectedGroupId changes
   useEffect(() => {
     if (!selectedGroupId) {
       setGroupDetail(null);
@@ -100,8 +101,9 @@ const AddExpenseModal = () => {
     return () => { cancelled = true; };
   }, [selectedGroupId]);
 
+  // ─── Derived state (business logic — unchanged) ────────────────────────────
+
   const selectedGroup = useMemo(() => {
-    // Prefer full group detail (has members), fall back to list item
     return groupDetail || groups.find((g) => g.id === selectedGroupId);
   }, [groupDetail, groups, selectedGroupId]);
 
@@ -112,6 +114,7 @@ const AddExpenseModal = () => {
 
   useEffect(() => {
     setSplitValues({});
+    setFullAmountMemberId(null);
     if (members.length > 0) {
       setSelectedMembers(members.map((m) => m.userId));
     } else {
@@ -133,6 +136,14 @@ const AddExpenseModal = () => {
     return selectedMembers.reduce((acc, memberId) => acc + Number(splitValues[memberId] || 0), 0);
   }, [selectedMembers, splitValues]);
 
+  const perPersonAmount = useMemo(() => {
+    if (!amount || selectedMembers.length === 0) return '';
+    if (splitMethod !== 'equal') return '';
+    return (Number(amount) / selectedMembers.length).toFixed(2);
+  }, [amount, selectedMembers.length, splitMethod]);
+
+  // ─── Handlers (business logic — unchanged) ─────────────────────────────────
+
   const toggleMember = (memberId) => {
     if (splitMethod === 'exact') {
       setSelectedMembers(selectedMembers.includes(memberId) ? [] : [memberId]);
@@ -145,6 +156,16 @@ const AddExpenseModal = () => {
 
   const handleSplitValueChange = (memberId, value) => {
     setSplitValues((prev) => ({ ...prev, [memberId]: value }));
+    if (fullAmountMemberId) setFullAmountMemberId(null);
+  };
+
+  const handleFullAmountSelect = (memberId) => {
+    setFullAmountMemberId(memberId);
+    const newValues = {};
+    selectedMembers.forEach((id) => {
+      newValues[id] = id === memberId ? '100' : '0';
+    });
+    setSplitValues(newValues);
   };
 
   const generateSplits = () => {
@@ -197,14 +218,10 @@ const AddExpenseModal = () => {
     };
 
     if (featureFlags.useQueryExpenses) {
-      // Use TanStack Query mutation — toasts handled by the hook
       createExpenseMutation.mutate(expenseData, {
-        onSuccess: () => {
-          navigate(-1);
-        },
+        onSuccess: () => { navigate(-1); },
       });
     } else {
-      // Legacy Zustand store behavior
       try {
         await createExpense(expenseData);
         navigate(-1);
@@ -214,17 +231,12 @@ const AddExpenseModal = () => {
     }
   };
 
-  const perPersonAmount = useMemo(() => {
-    if (!amount || selectedMembers.length === 0) return '';
-    if (splitMethod !== 'equal') return '';
-    return (Number(amount) / selectedMembers.length).toFixed(2);
-  }, [amount, selectedMembers.length, splitMethod]);
+  // ─── Render ────────────────────────────────────────────────────────────────
 
-  return createPortal(
+  return (
     <div
       ref={backdropRef}
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
-      style={{ margin: 0, padding: 16, left: 0, right: 0, top: 0, bottom: 0 }}
+      className="fixed inset-0 z-[100] !ml-0 !left-0 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
       onClick={(e) => e.target === backdropRef.current && navigate(-1)}
     >
       <motion.div
@@ -232,7 +244,7 @@ const AddExpenseModal = () => {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 40 }}
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        className="w-full max-w-md glass-card rounded-2xl shadow-2xl flex flex-col max-h-[80vh] md:max-h-[85vh]"
+        className="w-full max-w-md glass-card rounded-2xl shadow-2xl flex flex-col max-h-[85vh] md:max-h-[85vh]"
       >
         {/* HEADER */}
         <div className="flex items-center justify-between px-5 py-4 shrink-0">
@@ -240,6 +252,7 @@ const AddExpenseModal = () => {
           <button
             onClick={() => navigate(-1)}
             className="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center hover:bg-white/10 transition-colors"
+            aria-label="Close"
           >
             <X size={16} className="text-on-surface-variant" />
           </button>
@@ -248,18 +261,18 @@ const AddExpenseModal = () => {
         {/* SCROLLABLE BODY */}
         <div className="flex-1 overflow-y-auto hide-scrollbar px-5 pb-5 space-y-5">
 
-          {/* AMOUNT INPUT */}
-          <div className="rounded-xl bg-surface-container-low border border-glass-stroke p-4">
-            <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider block mb-2">
+          {/* AMOUNT */}
+          <div>
+            <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider block mb-1.5">
               Amount
             </label>
-            <div className="flex items-center gap-2">
-              <span className="text-xl text-on-surface-variant font-semibold">{currencySymbol}</span>
+            <div className="flex items-center gap-3 bg-surface-container-low border border-glass-stroke rounded-xl px-4 py-3 focus-within:border-primary/40 transition-colors">
+              <span className="text-lg text-on-surface-variant font-semibold">{currencySymbol}</span>
               <input
                 ref={amountRef}
                 type="text"
                 inputMode="decimal"
-                className="flex-1 bg-transparent text-2xl font-bold text-on-surface outline-none border-none ring-0 focus:ring-0 focus:border-none placeholder:text-on-surface-variant/40"
+                className="flex-1 bg-transparent text-xl font-bold text-on-surface outline-none border-none ring-0 focus:ring-0 placeholder:text-on-surface-variant/40"
                 placeholder="0.00"
                 value={amount}
                 onChange={(e) => {
@@ -271,7 +284,7 @@ const AddExpenseModal = () => {
               />
             </div>
             {perPersonAmount && (
-              <p className="text-xs text-on-surface-variant mt-2">
+              <p className="text-[11px] text-on-surface-variant mt-1.5 ml-1">
                 {currencySymbol}{perPersonAmount} per person × {selectedMembers.length}
               </p>
             )}
@@ -282,21 +295,24 @@ const AddExpenseModal = () => {
             <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider block mb-1.5">
               Title
             </label>
-            <input
-              className="w-full bg-surface-container-low border border-glass-stroke rounded-xl px-4 py-3 text-on-surface outline-none ring-0 focus:ring-0 focus:border-primary/40 placeholder:text-on-surface-variant/50 text-sm transition-colors"
-              placeholder="Dinner, groceries, tickets..."
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
+            <div className="flex items-center gap-3 bg-surface-container-low border border-glass-stroke rounded-xl px-4 py-3 focus-within:border-primary/40 transition-colors">
+              <Receipt size={16} className="text-on-surface-variant shrink-0" />
+              <input
+                className="flex-1 bg-transparent border-none ring-0 focus:ring-0 outline-none text-on-surface text-sm placeholder:text-on-surface-variant/50"
+                placeholder="Dinner, groceries, tickets..."
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+            </div>
           </div>
 
           {/* DESCRIPTION */}
           <div>
             <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider block mb-1.5">
-              Description (optional)
+              Description
             </label>
             <input
-              className="w-full bg-surface-container-low border border-glass-stroke rounded-xl px-4 py-3 text-on-surface outline-none ring-0 focus:ring-0 focus:border-primary/40 placeholder:text-on-surface-variant/50 text-sm transition-colors"
+              className="w-full bg-surface-container-low border border-glass-stroke rounded-xl px-4 py-3 text-on-surface text-sm outline-none ring-0 focus:ring-0 focus:border-primary/40 placeholder:text-on-surface-variant/50 transition-colors"
               placeholder="Additional notes..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -312,7 +328,7 @@ const AddExpenseModal = () => {
               <div className="relative">
                 <Users size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" />
                 <select
-                  className="w-full bg-surface-container-low border border-glass-stroke rounded-xl pl-10 pr-10 py-3 text-on-surface outline-none appearance-none cursor-pointer text-sm"
+                  className="w-full bg-surface-container-low border border-glass-stroke rounded-xl pl-10 pr-10 py-3 text-on-surface outline-none appearance-none cursor-pointer text-sm focus:border-primary/40 transition-colors"
                   value={selectedGroupId}
                   onChange={(e) => setSelectedGroupId(e.target.value)}
                 >
@@ -336,7 +352,7 @@ const AddExpenseModal = () => {
               {['equal', 'percentage', 'exact', 'shares'].map((method) => (
                 <button
                   key={method}
-                  onClick={() => setSplitMethod(method)}
+                  onClick={() => { setSplitMethod(method); setFullAmountMemberId(null); }}
                   className={`py-2 rounded-lg text-xs font-medium transition-all capitalize ${
                     splitMethod === method
                       ? 'bg-primary text-white shadow-sm'
@@ -370,21 +386,27 @@ const AddExpenseModal = () => {
                   <div
                     key={member.userId}
                     onClick={() => toggleMember(member.userId)}
-                    className={`flex items-center justify-between rounded-xl px-3 py-2.5 cursor-pointer transition-all border ${
+                    className={`flex items-center justify-between rounded-xl px-3 py-3 cursor-pointer transition-all border min-h-[52px] ${
                       isSelected
                         ? 'border-primary/40 bg-primary/5'
                         : 'border-transparent bg-surface-container-low hover:bg-surface-container'
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all shrink-0 ${
                         isSelected ? 'bg-primary border-primary' : 'border-outline-variant'
                       }`}>
                         {isSelected && <Check size={11} className="text-white" strokeWidth={3} />}
                       </div>
+                      <Avatar
+                        firstName={member.firstName}
+                        lastName={member.lastName}
+                        avatarUrl={member.avatarUrl}
+                        size="sm"
+                      />
                       <span className="text-sm font-medium text-on-surface">
                         {fullName}
-                        {isYou && <span className="text-on-surface-variant ml-1">(You)</span>}
+                        {isYou && <span className="text-on-surface-variant ml-1 text-xs font-normal">(You)</span>}
                       </span>
                     </div>
 
@@ -401,11 +423,33 @@ const AddExpenseModal = () => {
                             }
                           }}
                           placeholder={splitMethod === 'percentage' ? '0' : splitMethod === 'shares' ? '1' : '0'}
-                          className="w-16 bg-surface-container border border-glass-stroke rounded-lg px-2 py-1 text-sm text-center outline-none text-on-surface"
+                          className="w-14 bg-surface-container border border-glass-stroke rounded-lg px-2 py-1.5 text-sm text-center outline-none text-on-surface font-medium"
                         />
                         <span className="text-xs text-on-surface-variant">
                           {splitMethod === 'percentage' ? '%' : splitMethod === 'shares' ? 'sh' : currencySymbol}
                         </span>
+                        {/* Quick 100% radio for percentage mode */}
+                        {splitMethod === 'percentage' && (
+                          <button
+                            type="button"
+                            onClick={() => handleFullAmountSelect(member.userId)}
+                            className="flex items-center gap-1 ml-1"
+                            aria-label={`Assign 100% to ${fullName}`}
+                          >
+                            <div className={`w-3.5 h-3.5 rounded-full border-[1.5px] flex items-center justify-center transition-colors ${
+                              fullAmountMemberId === member.userId ? 'border-primary bg-primary' : 'border-outline-variant'
+                            }`}>
+                              {fullAmountMemberId === member.userId && (
+                                <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                              )}
+                            </div>
+                            <span className={`text-[10px] font-medium ${
+                              fullAmountMemberId === member.userId ? 'text-primary' : 'text-on-surface-variant'
+                            }`}>
+                              All
+                            </span>
+                          </button>
+                        )}
                       </div>
                     )}
                   </div>
@@ -414,7 +458,9 @@ const AddExpenseModal = () => {
             </div>
 
             {splitMethod === 'percentage' && selectedMembers.length > 0 && (
-              <div className={`mt-2 text-xs font-medium text-right ${Math.round(totalPercentage) === 100 ? 'text-neon-lime' : 'text-error'}`}>
+              <div className={`mt-2 text-xs font-medium text-right ${
+                Math.round(totalPercentage) === 100 ? 'text-neon-lime' : 'text-error'
+              }`}>
                 Total: {totalPercentage}%{Math.round(totalPercentage) !== 100 && ' (must be 100%)'}
               </div>
             )}
@@ -438,8 +484,7 @@ const AddExpenseModal = () => {
           </button>
         </div>
       </motion.div>
-    </div>,
-    document.body
+    </div>
   );
 };
 

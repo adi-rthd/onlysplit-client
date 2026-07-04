@@ -1,6 +1,7 @@
 import { X, Receipt, Users, CreditCard, Pencil, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getExpenseIcon } from '../../utils/expenseIcons';
+import { getSplitTypeLabel } from '../../utils/splitTypeLabel';
 import { useExpenseStore } from '../../store/expenseStore';
 import { useState, useEffect } from 'react';
 import ConfirmModal from './ConfirmModal';
@@ -139,8 +140,8 @@ const ExpenseDetailsModal = ({
                                     •
                                 </span>
 
-                                <span className="text-primary capitalize">
-                                    {expense.splits?.[0]?.splitType || 'Equal'} Split
+                                <span className="text-primary">
+                                    {getSplitTypeLabel(expense.splitType || expense.splits?.[0]?.splitType)}
                                 </span>
                             </div>
 

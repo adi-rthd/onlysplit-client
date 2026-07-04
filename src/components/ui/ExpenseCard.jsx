@@ -8,6 +8,7 @@ import {
 
 import { GlassPanel } from './GlassCard';
 import { getExpenseIcon } from '../../utils/expenseIcons';
+import { getSplitTypeLabel } from '../../utils/splitTypeLabel';
 
 import { formatCurrency } from '../../services/currencyService';
 import useCurrencyStore from '../../store/useCurrencyStore';
@@ -66,7 +67,7 @@ const ExpenseCard = ({
           </p>
 
           <p className="mt-0.5 text-[10px] font-medium text-on-surface-variant">
-            {expense.splitType?.toLowerCase() === 'equal' ? 'Equal split' : 'Custom split'}
+            {getSplitTypeLabel(expense.splitType)}
           </p>
         </div>
 

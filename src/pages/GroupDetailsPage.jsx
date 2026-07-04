@@ -34,7 +34,7 @@ import ExpenseDetailsModal from '../components/modals/ExpenseDetailsModal';
 import EditGroupModal from '../components/modals/EditGroupModal';
 import EditExpenseModal from '../components/modals/EditExpenseModal';
 import SettlementDetailPanel from '../components/settlements/SettlementDetailPanel';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useGroupSignalR } from '../hooks/useSignalR';
 import { joinGroup, leaveGroup } from '../socket/signalrClient';
 
@@ -768,6 +768,20 @@ const GroupDetailsPage = () => {
         settlement={selectedSettlement}
         groupId={groupId}
       />
+
+      {/* MOBILE FAB — Add Expense */}
+ <motion.button
+        whileTap={{ scale: 0.9 }}
+        onClick={() =>
+          navigate(ROUTES.ADD_EXPENSE.replace(':id', groupId))
+        }
+        className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-gradient-to-br from-primary-container to-inverse-primary rounded-full flex items-center justify-center shadow-lg neon-glow z-[60]"
+      >
+        <Plus
+          className="text-white"
+          size={28}
+        />
+      </motion.button>
     </div>
   );
 };
