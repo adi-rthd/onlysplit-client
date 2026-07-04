@@ -6,7 +6,13 @@ import toast from 'react-hot-toast';
 export const getProfile = async () => {
     const response = await client.get('/auth/me');
 
-    return response?.data?.data;
+    const user = response.data.data;
+    const apiOrigin = new URL(import.meta.env.VITE_API_BASE_URL).origin;
+
+    if (user.avatarUrl && !user.avatarUrl.startsWith("http")) {
+        user.avatarUrl = `${apiOrigin}${user.avatarUrl}`;
+    }
+    return user;
 };
 
 // ─────────────────────────────────────────────

@@ -8,11 +8,14 @@ import { motion } from 'framer-motion';
 import { ROUTES } from '../../constants/routes';
 import { NAVIGATION_ITEMS } from '../../constants/navigation';
 import { getProfile } from '../../services/settingsService';
+import { useAuthStore } from '../../store/authStore';
 import authService from '../../services/authService';
+import Avatar from '../common/Avatar';
 
 const SideNavBar = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const storeUser = useAuthStore((s) => s.user);
 
   const [profile, setProfile] = useState({
     firstName: 'Aditya',
@@ -24,6 +27,13 @@ const SideNavBar = () => {
     fetchProfile();
   }, []);
 
+  // Keep avatar in sync with auth store (updates after upload)
+  useEffect(() => {
+    if (storeUser?.avatarUrl) {
+      setProfile((prev) => ({ ...prev, avatarUrl: storeUser.avatarUrl }));
+    }
+  }, [storeUser?.avatarUrl]);
+
   const fetchProfile = async () => {
     try {
       const user = await getProfile();
@@ -31,9 +41,7 @@ const SideNavBar = () => {
       setProfile({
         firstName: user?.firstName,
         lastName: user?.lastName,
-        avatarUrl:
-          user?.avatarUrl ||
-          `https://ui-avatars.com/api/?background=6366f1&color=fff&name=${user?.firstName}+${user?.lastName}`
+        avatarUrl: user?.avatarUrl || null
       });
     } catch (error) {
       console.error(error);
@@ -55,13 +63,13 @@ const SideNavBar = () => {
         <div className="flex flex-col items-center text-center gap-3">
           
           {/* AVATAR */}
-          <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-primary/30 shrink-0 shadow-[0_0_20px_rgba(124,108,255,0.15)]">
-            <img
-              src={profile.avatarUrl}
-              alt="Profile"
-              className="w-full h-full object-cover"
-            />
-          </div>
+          <Avatar
+            firstName={profile.firstName}
+            lastName={profile.lastName}
+            avatarUrl={profile.avatarUrl}
+            size="lg"
+            className="border-2 border-primary/30 shadow-[0_0_20px_rgba(124,108,255,0.15)]"
+          />
 
           {/* INFO */}
           <div className="w-full overflow-hidden">

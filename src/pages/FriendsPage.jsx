@@ -13,6 +13,7 @@ import { useAcceptFriendRequest } from '../queries/mutations/useAcceptFriendRequ
 import { useRejectFriendRequest } from '../queries/mutations/useRejectFriendRequest';
 import { useRemoveFriend } from '../queries/mutations/useRemoveFriend';
 import { QueryBoundary } from '../components/ui/QueryBoundary';
+import Avatar from '../components/common/Avatar';
 
 const tabs = ['friends', 'received', 'sent'];
 
@@ -323,9 +324,12 @@ const FriendsPageLayout = ({
                 const alreadyFriend = friends.some((f) => f.id === user.id);
                 return (
                   <div key={user.id} className="flex items-center gap-3 rounded-xl bg-surface-container-low border border-glass-stroke p-4">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-container to-secondary-container flex items-center justify-center text-white font-semibold shrink-0">
-                      {(user.firstName?.[0] || 'U').toUpperCase()}
-                    </div>
+                    <Avatar
+                      firstName={user.firstName}
+                      lastName={user.lastName}
+                      avatarUrl={user.avatarUrl}
+                      size="md"
+                    />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-on-surface truncate">{user.firstName} {user.lastName}</p>
                       <p className="text-xs text-on-surface-variant truncate">{user.email}</p>
@@ -440,9 +444,12 @@ const FriendsPageLayout = ({
 const ReceivedRequestCard = ({ req, processingIds, handleAccept, handleReject }) => (
   <div className="rounded-xl bg-surface-container-low border border-glass-stroke p-4">
     <div className="flex items-center gap-3 mb-3">
-      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-container to-secondary-container flex items-center justify-center text-white font-semibold shrink-0">
-        {(req.requesterName?.[0] || req.firstName?.[0] || 'U').toUpperCase()}
-      </div>
+      <Avatar
+        firstName={req.firstName || req.requesterName?.split(' ')[0]}
+        lastName={req.lastName || req.requesterName?.split(' ')[1]}
+        avatarUrl={req.avatarUrl}
+        size="md"
+      />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-on-surface truncate">{req.requesterName || `${req.firstName || ''} ${req.lastName || ''}`.trim() || 'Unknown'}</p>
         <p className="text-xs text-on-surface-variant truncate">{req.email || ''}</p>
@@ -470,9 +477,12 @@ const ReceivedRequestCard = ({ req, processingIds, handleAccept, handleReject })
 // ─── Sent Request Card ──────────────────────────────────────────────────────
 const SentRequestCard = ({ req }) => (
   <div className="flex items-center gap-3 rounded-xl bg-surface-container-low border border-glass-stroke p-4">
-    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-container to-secondary-container flex items-center justify-center text-white font-semibold shrink-0">
-      {(req.addresseeName?.[0] || req.firstName?.[0] || 'U').toUpperCase()}
-    </div>
+    <Avatar
+      firstName={req.firstName || req.addresseeName?.split(' ')[0]}
+      lastName={req.lastName || req.addresseeName?.split(' ')[1]}
+      avatarUrl={req.avatarUrl}
+      size="md"
+    />
     <div className="flex-1 min-w-0">
       <p className="text-sm font-semibold text-on-surface truncate">{req.addresseeName || `${req.firstName || ''} ${req.lastName || ''}`.trim() || 'Unknown'}</p>
       <p className="text-xs text-on-surface-variant truncate">{req.email || ''}</p>
@@ -517,9 +527,13 @@ const FriendCard = ({ user, isRemoving, onRemove }) => {
         }}
         className="relative z-10 flex items-center gap-4 rounded-2xl bg-surface-container-low border border-glass-stroke p-4"
       >
-        <div className="w-11 h-11 rounded-full bg-gradient-to-br from-primary-container to-secondary-container flex items-center justify-center text-white font-semibold shrink-0">
-          {(user.firstName?.[0] || 'U').toUpperCase()}
-        </div>
+        <Avatar
+          firstName={user.firstName}
+          lastName={user.lastName}
+          avatarUrl={user.avatarUrl}
+          size="md"
+          className="w-11 h-11"
+        />
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-on-surface truncate">{name}</p>
           <p className="text-xs text-on-surface-variant truncate mt-0.5">{user.email}</p>

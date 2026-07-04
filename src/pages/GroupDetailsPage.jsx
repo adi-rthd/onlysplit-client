@@ -81,8 +81,25 @@ const GroupDetailsPage = () => {
 
   // ─── Resolved data (respects feature flag) ─────────────────────────
   const expenses = useQuery ? (expensesQuery.data || []) : legacyExpenses;
-  const balances = useQuery ? (balancesQuery.data || []) : legacyBalances;
+  const rawBalances = useQuery ? (balancesQuery.data || []) : legacyBalances;
   const settlements = useQuery ? (settlementsQuery.data || []) : legacySettlements;
+
+  // Enrich balances with avatarUrl from group members
+  const balances = useMemo(() => {
+    if (!rawBalances?.length || !currentGroup?.members?.length) return rawBalances || [];
+    const memberMap = {};
+    currentGroup.members.forEach((m) => {
+      if (m.userId) memberMap[m.userId] = m;
+      if (m.id) memberMap[m.id] = m;
+    });
+    return rawBalances.map((b) => {
+      const match = memberMap[b.userId] || memberMap[b.id];
+      if (match?.avatarUrl && !b.avatarUrl) {
+        return { ...b, avatarUrl: match.avatarUrl };
+      }
+      return b;
+    });
+  }, [rawBalances, currentGroup?.members]);
 
   const [activeTab, setActiveTab] = useState('expenses');
   const [selectedExpense, setSelectedExpense] = useState(null);

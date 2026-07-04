@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Shield, Camera, Mail, Globe, Bell, CreditCard, Lock, Check, IndianRupee, Smartphone, Moon, Trash2, ChevronRight, BadgeCheck, KeyRound, UploadCloud, AlertTriangle, Download } from 'lucide-react';
+import { User, Shield, Mail, Globe, Bell, CreditCard, Lock, Check, IndianRupee, Smartphone, Moon, Trash2, ChevronRight, BadgeCheck, KeyRound, AlertTriangle, Download } from 'lucide-react';
 import { GlassPanel } from '../components/ui/GlassCard';
 import { getProfile, updateProfile, changePassword } from '../services/settingsService';
 import toast from 'react-hot-toast';
@@ -9,16 +9,16 @@ import authService from '../services/authService';
 import { ROUTES } from '../constants/routes';
 import { Capacitor } from '@capacitor/core';
 import { checkForUpdate, downloadApk, installApk } from '../services/updateService';
+import AvatarUploader from '../components/ui/AvatarUploader';
 
 const SettingsPage = () => {
   const navigate = useNavigate();
-  const fileInputRef = useRef(null);
   const { logout } = useAuthStore();
   const [loading, setLoading] = useState(true);
 
   const [saving, setSaving] = useState(false);
 
-  const [apkUrl, setApkUrl] = useState('https://api-split.onlylabs.in/downloads/onlysplit-v1.0.1.apk');
+  const [apkUrl, setApkUrl] = useState('');
 
   // Native: app version + update state
   const [appVersion, setAppVersion] = useState('');
@@ -123,20 +123,6 @@ const SettingsPage = () => {
     } finally {
       setSaving(false);
     }
-  };
-
-  const handleAvatarUpload = (event) => {
-    const file = event.target.files?.[0];
-
-    if (!file) return;
-
-    const reader = new FileReader();
-
-    reader.onloadend = () => {
-      updateField('avatarUrl', reader.result);
-    };
-
-    reader.readAsDataURL(file);
   };
 
   const showComingSoon = (feature) => {
@@ -244,68 +230,14 @@ const SettingsPage = () => {
           <div className="flex flex-col xl:flex-row gap-10 items-start">
             {/* AVATAR */}
             <div className="flex flex-col items-center gap-5">
-              <div
-                className="
-                  relative
-                  group
-                  cursor-pointer
-                  w-36 h-36
-                  rounded-full
-                  overflow-hidden
-                  border-2 border-primary/20
-                  hover:border-primary
-                  transition-colors
-                "
-                onClick={() =>
-                  fileInputRef.current?.click()
-                }
-              >
-                <img
-                  src={profile.avatarUrl}
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                />
-
-                <div
-                  className="
-                    absolute inset-0
-                    bg-black/60
-                    flex items-center justify-center
-                    opacity-0 group-hover:opacity-100
-                    transition-opacity
-                  "
-                >
-                  <UploadCloud
-                    className="text-white"
-                    size={30}
-                  />
-                </div>
-              </div>
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                hidden
-                onChange={handleAvatarUpload}
+              <AvatarUploader
+                avatarUrl={profile.avatarUrl}
+                onUploaded={(newUrl) => updateField('avatarUrl', newUrl)}
               />
 
-              <button
-                onClick={() =>
-                  fileInputRef.current?.click()
-                }
-                className="
-                  text-[12px]
-                  font-label-caps
-                  text-primary
-                  uppercase
-                  tracking-widest
-                  hover:text-white
-                  transition-colors
-                "
-              >
-                Upload Avatar
-              </button>
+              <span className="text-[12px] font-label-caps text-on-surface-variant uppercase tracking-widest">
+                Tap to change
+              </span>
             </div>
 
             {/* FORM */}

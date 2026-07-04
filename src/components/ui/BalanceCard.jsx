@@ -2,6 +2,7 @@ import React from 'react';
 import { GlassPanel } from './GlassCard';
 import { formatCurrency } from '../../services/currencyService';
 import useCurrencyStore from '../../store/useCurrencyStore';
+import Avatar from '../common/Avatar';
 
 const BalanceCard = ({ member, isCurrentUser }) => {
   const { currency: storeCurrency, locale } = useCurrencyStore();
@@ -25,9 +26,12 @@ const BalanceCard = ({ member, isCurrentUser }) => {
   return (
     <GlassPanel className="p-4 flex items-center justify-between mb-3">
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-primary-container text-white font-bold flex items-center justify-center">
-          {member.name?.slice(0, 2)?.toUpperCase() || 'U'}
-        </div>
+        <Avatar
+          firstName={member.firstName || member.name?.split(' ')[0]}
+          lastName={member.lastName || member.name?.split(' ')[1]}
+          avatarUrl={member.avatarUrl}
+          size="md"
+        />
         <div>
           <h4 className="font-medium text-on-surface">
             {member.name} {isCurrentUser && "(You)"}

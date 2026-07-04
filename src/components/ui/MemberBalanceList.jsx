@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { X, Loader2, AlertTriangle } from 'lucide-react';
 import { formatCurrency } from '../../services/currencyService';
 import useCurrencyStore from '../../store/useCurrencyStore';
+import Avatar from '../common/Avatar';
 
 const RemoveMemberConfirmModal = ({ member, isRemoving, onConfirm, onCancel }) => {
   const displayName = `${member.firstName || ''} ${member.lastName || ''}`.trim() || 'this member';
@@ -114,10 +115,6 @@ const MemberBalanceList = ({ members, currency: propCurrency, isOwner, currentUs
           const displayName =
             `${member.firstName || ''} ${member.lastName || ''}`.trim();
 
-          const initials =
-            `${member.firstName?.[0] || ''}${member.lastName?.[0] || ''}`.toUpperCase() ||
-            'U';
-
           const memberId = member.userId || member.id;
           const isSelf = memberId === currentUserId;
           const canRemove = isOwner && !isSelf && onRemoveMember;
@@ -126,9 +123,12 @@ const MemberBalanceList = ({ members, currency: propCurrency, isOwner, currentUs
             <div key={memberId || index}>
               <div className="flex items-center justify-between px-3 py-3 rounded-xl hover:bg-white/[0.02] transition-colors">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-surface-container-high text-on-surface-variant text-xs font-bold flex items-center justify-center">
-                    {initials}
-                  </div>
+                  <Avatar
+                    firstName={member.firstName}
+                    lastName={member.lastName}
+                    avatarUrl={member.avatarUrl}
+                    size="sm"
+                  />
 
                   <div>
                     <h4 className="text-sm font-medium text-on-surface">

@@ -6,6 +6,7 @@ import React, {
 
 import { useNavigate } from 'react-router-dom';
 import FriendshipStore from '../../services/friendshipService';
+import Avatar from '../common/Avatar';
 
 import {
   motion,
@@ -272,16 +273,15 @@ const FriendshipModal = () => {
     </div>
   );
 
-  const Avatar = ({ user }) => {
-    const initial =
-      user?.firstName?.[0] ||
-      user?.requesterName?.[0] ||
-      'U';
-
+  const FMAvatar = ({ user }) => {
     return (
-      <div className="w-11 h-11 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-primary-container to-secondary-container flex items-center justify-center text-white font-semibold shrink-0">
-        {initial.toUpperCase()}
-      </div>
+      <Avatar
+        firstName={user?.firstName || user?.requesterName?.split(' ')[0]}
+        lastName={user?.lastName || user?.requesterName?.split(' ')[1]}
+        avatarUrl={user?.avatarUrl}
+        size="md"
+        className="w-11 h-11 md:w-12 md:h-12"
+      />
     );
   };
 
@@ -293,18 +293,17 @@ const FriendshipModal = () => {
       user?.requesterName ||
       `${user.firstName || ''} ${user.lastName || ''}`;
 
-    const initial =
-      user?.firstName?.[0] ||
-      user?.requesterName?.[0] ||
-      'U';
-
     return (
       <div className="rounded-2xl border border-glass-stroke bg-surface-container-low px-5 py-4">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-4 min-w-0">
-            <div className="w-11 h-11 rounded-full bg-primary/20 text-primary flex items-center justify-center font-semibold shrink-0">
-              {initial.toUpperCase()}
-            </div>
+            <Avatar
+              firstName={user?.firstName || user?.requesterName?.split(' ')[0]}
+              lastName={user?.lastName || user?.requesterName?.split(' ')[1]}
+              avatarUrl={user?.avatarUrl}
+              size="md"
+              className="w-11 h-11"
+            />
 
             <div className="min-w-0">
               <p className="truncate text-base font-semibold text-on-surface">
@@ -374,7 +373,7 @@ const FriendshipModal = () => {
           className="relative z-10 rounded-2xl border border-white/5 bg-surface-charcoal p-4 cursor-grab active:cursor-grabbing"
         >
           <div className="flex items-center gap-3">
-            <Avatar user={user} />
+            <FMAvatar user={user} />
 
             <div className="flex-1 min-w-0">
               <h3 className="text-white font-semibold truncate">
@@ -461,17 +460,16 @@ const FriendshipModal = () => {
       user?.requesterName ||
       `${user.firstName || ''} ${user.lastName || ''}`;
 
-    const initial =
-      user?.firstName?.[0] ||
-      user?.requesterName?.[0] ||
-      'U';
-
     return (
       <div className="rounded-2xl border border-glass-stroke bg-surface-container-low p-4">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-11 h-11 rounded-full bg-primary/20 text-primary flex items-center justify-center font-semibold shrink-0">
-            {initial.toUpperCase()}
-          </div>
+          <Avatar
+            firstName={user?.firstName || user?.requesterName?.split(' ')[0]}
+            lastName={user?.lastName || user?.requesterName?.split(' ')[1]}
+            avatarUrl={user?.avatarUrl}
+            size="md"
+            className="w-11 h-11"
+          />
           <div className="min-w-0 flex-1">
             <p className="truncate text-base font-semibold text-on-surface">
               {name}
@@ -513,15 +511,18 @@ const FriendshipModal = () => {
     user,
   }) => {
     const name = user?.addresseeName || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown';
-    const initial = user?.addresseeName?.[0] || user?.firstName?.[0] || 'U';
 
     return (
       <div className="rounded-2xl border border-glass-stroke bg-surface-container-low px-5 py-4">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-4 min-w-0">
-            <div className="w-11 h-11 rounded-full bg-primary/20 text-primary flex items-center justify-center font-semibold shrink-0">
-              {initial.toUpperCase()}
-            </div>
+            <Avatar
+              firstName={user?.firstName || user?.addresseeName?.split(' ')[0]}
+              lastName={user?.lastName || user?.addresseeName?.split(' ')[1]}
+              avatarUrl={user?.avatarUrl}
+              size="md"
+              className="w-11 h-11"
+            />
 
             <div className="min-w-0">
               <p className="truncate text-base font-semibold text-on-surface">
