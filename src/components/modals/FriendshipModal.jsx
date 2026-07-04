@@ -511,14 +511,39 @@ const FriendshipModal = () => {
 
   const SentRequestCard = ({
     user,
-  }) => (
-    <UserCard user={user}>
-      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
-        <Clock3 size={16} />
-        Pending
+  }) => {
+    const name = user?.addresseeName || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown';
+    const initial = user?.addresseeName?.[0] || user?.firstName?.[0] || 'U';
+
+    return (
+      <div className="rounded-2xl border border-glass-stroke bg-surface-container-low px-5 py-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-11 h-11 rounded-full bg-primary/20 text-primary flex items-center justify-center font-semibold shrink-0">
+              {initial.toUpperCase()}
+            </div>
+
+            <div className="min-w-0">
+              <p className="truncate text-base font-semibold text-on-surface">
+                {name}
+              </p>
+
+              <p className="truncate text-sm text-on-surface-variant">
+                {user.email || ''}
+              </p>
+            </div>
+          </div>
+
+          <div className="shrink-0">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+              <Clock3 size={16} />
+              Pending
+            </div>
+          </div>
+        </div>
       </div>
-    </UserCard>
-  ); return (
+    );
+  }; return (
     <div className="fixed inset-0 z-[100] !ml-0 !left-0 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={(e) => e.target === e.currentTarget && navigate(-1)}>
       <motion.div
         initial={{ opacity: 0, y: 40 }}

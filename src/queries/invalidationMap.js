@@ -68,5 +68,33 @@ export const invalidationMap = {
   ],
   rejectInvitation: () => [queryKeys.invitations.all()],
   inviteToGroup: (groupId) => [queryKeys.invitations.group(groupId)],
+  removeMember: (groupId) => [
+    queryKeys.groups.detail(groupId),
+    queryKeys.groups.balances(groupId),
+    queryKeys.groups.settlements(groupId),
+    queryKeys.groups.expenses(groupId),
+    queryKeys.dashboard.summary(),
+  ],
   markNotificationsRead: () => [queryKeys.notifications.all()],
+
+  // Settlement Payments
+  recordSettlementPayment: (settlementId, groupId) => [
+    queryKeys.settlements.payments(settlementId),
+    queryKeys.dashboard.summary(),
+    ...(groupId ? [queryKeys.groups.settlements(groupId)] : []),
+  ],
+  confirmSettlementPayment: (settlementId, groupId) => [
+    queryKeys.settlements.payments(settlementId),
+    queryKeys.dashboard.summary(),
+    ...(groupId ? [queryKeys.groups.balances(groupId), queryKeys.groups.settlements(groupId)] : []),
+  ],
+  rejectSettlementPayment: (settlementId) => [
+    queryKeys.settlements.payments(settlementId),
+  ],
+  cancelSettlementPayment: (settlementId) => [
+    queryKeys.settlements.payments(settlementId),
+  ],
+  uploadSettlementProof: (settlementId) => [
+    queryKeys.settlements.payments(settlementId),
+  ],
 };

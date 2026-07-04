@@ -35,4 +35,8 @@ export const queryKeys = {
     list: () => ['invitations', 'list'],
     group: (groupId) => ['invitations', groupId],
   },
+  settlements: {
+    all: () => ['settlements'],
+    payments: (settlementId) => ['settlements', settlementId, 'payments'],
+  },
 };

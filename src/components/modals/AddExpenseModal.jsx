@@ -38,6 +38,7 @@ const AddExpenseModal = () => {
   const [splitMethod, setSplitMethod] = useState('equal');
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [splitValues, setSplitValues] = useState({});
+  const [groupDetail, setGroupDetail] = useState(null);
 
   // TanStack Query mutation (used when feature flag is enabled)
   const createExpenseMutation = useCreateExpense(selectedGroupId);
@@ -79,9 +80,30 @@ const AddExpenseModal = () => {
     }
   }, [groups]);
 
+  // Fetch full group detail (with members) when selectedGroupId changes
+  useEffect(() => {
+    if (!selectedGroupId) {
+      setGroupDetail(null);
+      return;
+    }
+    let cancelled = false;
+    const loadGroupDetail = async () => {
+      try {
+        const { fetchGroupById } = useGroupStore.getState();
+        const data = await fetchGroupById(selectedGroupId);
+        if (!cancelled) setGroupDetail(data);
+      } catch (err) {
+        console.error('[AddExpenseModal] Failed to fetch group detail:', err);
+      }
+    };
+    loadGroupDetail();
+    return () => { cancelled = true; };
+  }, [selectedGroupId]);
+
   const selectedGroup = useMemo(() => {
-    return groups.find((g) => g.id === selectedGroupId);
-  }, [groups, selectedGroupId]);
+    // Prefer full group detail (has members), fall back to list item
+    return groupDetail || groups.find((g) => g.id === selectedGroupId);
+  }, [groupDetail, groups, selectedGroupId]);
 
   const members = useMemo(() => {
     if (!selectedGroup?.members) return [];
@@ -224,7 +246,7 @@ const AddExpenseModal = () => {
         </div>
 
         {/* SCROLLABLE BODY */}
-        <div className="flex-1 hide-scrollbar px-5 pb-5 space-y-5">
+        <div className="flex-1 overflow-y-auto hide-scrollbar px-5 pb-5 space-y-5">
 
           {/* AMOUNT INPUT */}
           <div className="rounded-xl bg-surface-container-low border border-glass-stroke p-4">

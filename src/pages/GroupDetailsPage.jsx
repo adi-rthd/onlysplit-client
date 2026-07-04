@@ -16,6 +16,7 @@ import { useGroupSettlements } from '../queries/hooks/useGroupSettlements';
 import { useGroupDetail } from '../queries/hooks/useGroups';
 import { useRegenerateSettlements } from '../queries/mutations/useRegenerateSettlements';
 import { useDeleteExpense } from '../queries/mutations/useDeleteExpense';
+import { useRemoveMember } from '../queries/mutations/useRemoveMember';
 import { QueryBoundary } from '../components/ui/QueryBoundary';
 import { PendingBadge } from '../components/ui/PendingBadge';
 import { useQueryClient } from '@tanstack/react-query';
@@ -32,6 +33,7 @@ import useCurrencyStore from '../store/useCurrencyStore';
 import ExpenseDetailsModal from '../components/modals/ExpenseDetailsModal';
 import EditGroupModal from '../components/modals/EditGroupModal';
 import EditExpenseModal from '../components/modals/EditExpenseModal';
+import SettlementDetailPanel from '../components/settlements/SettlementDetailPanel';
 import { AnimatePresence } from 'framer-motion';
 import { useGroupSignalR } from '../hooks/useSignalR';
 import { joinGroup, leaveGroup } from '../socket/signalrClient';
@@ -59,6 +61,7 @@ const GroupDetailsPage = () => {
   const settlementsQuery = useGroupSettlements(groupId, { enabled: useQuery && !!groupId });
   const regenerateSettlementsMutation = useRegenerateSettlements(groupId);
   const deleteExpenseMutation = useDeleteExpense(groupId);
+  const removeMemberMutation = useRemoveMember();
   const queryClient = useQueryClient();
 
   // ─── Legacy stores (only active when feature flag is off) ──────────
@@ -89,6 +92,7 @@ const GroupDetailsPage = () => {
   const [expenseSort, setExpenseSort] = useState('recent');
   const [showExpenseSort, setShowExpenseSort] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedSettlement, setSelectedSettlement] = useState(null);
 
   // Check if current user is the group owner
   const isOwner = currentGroup?.createdBy === user?.id || currentGroup?.createdById === user?.id || currentGroup?.ownerId === user?.id;
@@ -437,7 +441,7 @@ const GroupDetailsPage = () => {
               return (
                 <div className="space-y-5">
                   {data.map(settlement => (
-                    <SettlementCard key={settlement.id} settlement={settlement} />
+                    <SettlementCard key={settlement.id} settlement={settlement} onClick={() => setSelectedSettlement(settlement)} />
                   ))}
                 </div>
               );
@@ -468,7 +472,7 @@ const GroupDetailsPage = () => {
       return (
         <div className="space-y-5">
           {settlements.map(settlement => (
-            <SettlementCard key={settlement.id} settlement={settlement} />
+            <SettlementCard key={settlement.id} settlement={settlement} onClick={() => setSelectedSettlement(settlement)} />
           ))}
         </div>
       );
@@ -693,6 +697,18 @@ const GroupDetailsPage = () => {
             <MemberBalanceList
               members={balances || []}
               currency={currency}
+              isOwner={isOwner}
+              currentUserId={user?.id}
+              onRemoveMember={async (memberId) => {
+                if (useQuery) {
+                  removeMemberMutation.mutate({ groupId, memberId });
+                } else {
+                  const { removeMember } = useGroupStore.getState();
+                  await removeMember(groupId, memberId);
+                  await fetchBalances(groupId);
+                  await fetchSettlements(groupId);
+                }
+              }}
             />
           </GlassPanel>
         </div>
@@ -727,6 +743,14 @@ const GroupDetailsPage = () => {
           }}
         />
       )}
+
+      {/* Settlement Detail Panel */}
+      <SettlementDetailPanel
+        isOpen={!!selectedSettlement}
+        onClose={() => setSelectedSettlement(null)}
+        settlement={selectedSettlement}
+        groupId={groupId}
+      />
     </div>
   );
 };

@@ -130,6 +130,37 @@ export function setupSignalRBridge(queryClient, { groupHub, activityHub, payment
     });
   });
 
+  // --- Settlement Payment Events ---
+  const settlementPaymentEvents = {
+    SettlementPaymentSubmitted: (payload) => [
+      queryKeys.settlements.payments(payload?.settlementId),
+    ],
+    SettlementPaymentConfirmed: (payload) => [
+      queryKeys.settlements.payments(payload?.settlementId),
+      ...(payload?.groupId ? [queryKeys.groups.balances(payload.groupId), queryKeys.groups.settlements(payload.groupId)] : []),
+      queryKeys.dashboard.summary(),
+    ],
+    SettlementPaymentRejected: (payload) => [
+      queryKeys.settlements.payments(payload?.settlementId),
+    ],
+    SettlementPaymentCancelled: (payload) => [
+      queryKeys.settlements.payments(payload?.settlementId),
+    ],
+    SettlementCompleted: (payload) => [
+      queryKeys.settlements.payments(payload?.settlementId),
+      ...(payload?.groupId ? [queryKeys.groups.balances(payload.groupId), queryKeys.groups.settlements(payload.groupId)] : []),
+      queryKeys.dashboard.summary(),
+    ],
+  };
+
+  Object.entries(settlementPaymentEvents).forEach(([event, getKeys]) => {
+    paymentHub.on(event, (payload) => {
+      const keys = getKeys(payload || {});
+      logEvent('/payments', event, keys);
+      keys.forEach((key) => queryClient.invalidateQueries({ queryKey: key }));
+    });
+  });
+
   // --- Reconnection handler ---
   // On any hub reconnect, invalidate broad keys to trigger full resync.
   [groupHub, activityHub, paymentHub].forEach((hub) => {

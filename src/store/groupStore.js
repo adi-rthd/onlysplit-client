@@ -200,6 +200,26 @@ export const useGroupStore = create((set, get) => ({
   },
 
   /**
+   * REMOVE MEMBER from group
+   */
+  removeMember: async (groupId, memberId) => {
+    set({ isLoading: true, error: null });
+
+    try {
+      await groupService.removeMember(groupId, memberId);
+
+      // Refresh the current group to update member list
+      await get().fetchGroupById(groupId);
+
+      set({ isLoading: false });
+      return true;
+    } catch (error) {
+      set({ error: error.message, isLoading: false });
+      throw error;
+    }
+  },
+
+  /**
    * CLEAR CURRENT GROUP
    */
   clearCurrentGroup: () =>
