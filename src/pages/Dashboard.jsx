@@ -25,6 +25,8 @@ import { useDashboardSummary } from '../queries/hooks/useDashboardSummary';
 import { useGroups } from '../queries/hooks/useGroups';
 import { useDeleteGroup } from '../queries/mutations/useDeleteGroup';
 import toast from 'react-hot-toast';
+import PageHeader from '../components/layout/PageHeader';
+import { pageConfig } from '../constants/pageConfig';
 
 const DashboardSkeleton = () => (
   <>
@@ -271,19 +273,12 @@ const Dashboard = () => {
   return (
     <>
       {/* HEADER */}
-      <header className="flex justify-between items-end mb-8">
-        <div>
-          <h1 className="text-3xl md:text-4xl font-bold text-on-surface">
-            Overview
-          </h1>
-
-          <p className="text-on-surface-variant">
-            Your financial breakdown for
-            this month.
-          </p>
-        </div>
-        <NotificationBell />
-      </header>
+      <PageHeader
+        title={pageConfig.dashboard.title}
+        description={pageConfig.dashboard.description}
+        actions={<NotificationBell />}
+        guide={pageConfig.dashboard.guide}
+      />
 
       {/* SUMMARY */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">

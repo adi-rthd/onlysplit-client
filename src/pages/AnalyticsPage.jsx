@@ -3,6 +3,8 @@ import { TrendingUp, Wallet, PieChart, Users, Loader2, TrendingDown, Award, Arro
 import { motion } from 'framer-motion';
 import { GlassPanel } from '../components/ui/GlassCard';
 import analyticsService from '../services/analyticsService';
+import PageHeader from '../components/layout/PageHeader';
+import { pageConfig } from '../constants/pageConfig';
 
 const COLORS = ['#7c6cff', '#4f8cff', '#e4f222', '#ff6b6b', '#34d399', '#f59e0b', '#ec4899', '#8b5cf6'];
 
@@ -49,10 +51,11 @@ const AnalyticsPage = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-on-surface">Analytics</h1>
-        <p className="mt-1 text-sm text-on-surface-variant">Insights and patterns from your spending.</p>
-      </div>
+      <PageHeader
+        title={pageConfig.analytics.title}
+        description={pageConfig.analytics.description}
+        guide={pageConfig.analytics.guide}
+      />
 
       {/* INSIGHT CARDS — unique metrics not on dashboard */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

@@ -18,6 +18,8 @@ import paymentService from '../services/paymentService';
 import { useGroupStore } from '../store/groupStore';
 import { useAuthStore } from '../store/authStore';
 import GlowButton from '../components/ui/GlowButton';
+import PageHeader from '../components/layout/PageHeader';
+import { pageConfig } from '../constants/pageConfig';
 
 const SettlementsPage = () => {
   const { currentGroup, groups, fetchGroups } = useGroupStore();
@@ -178,20 +180,11 @@ const SettlementsPage = () => {
 
   return (
     <div className="space-y-4 md:space-y-8 pb-10">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl md:text-4xl font-bold text-on-surface">Settlements</h1>
-          <p className="mt-1 text-xs md:text-sm text-on-surface-variant">Track pending payments and history.</p>
-        </div>
-        {/* <GlowButton
-          className="w-full sm:w-auto min-w-[180px] h-[48px] md:h-[56px] border border-[#4F46FF] text-sm"
-          icon={Sparkles}
-          onClick={handleRegenerate}
-          isLoading={isRefreshing}
-        >
-          Recalculate
-        </GlowButton> */}
-      </header>
+      <PageHeader
+        title={pageConfig.settlements.title}
+        description={pageConfig.settlements.description}
+        guide={pageConfig.settlements.guide}
+      />
 
       <div className="grid grid-cols-2 gap-3 md:gap-4">
         <GlassPanel className="rounded-2xl md:rounded-3xl p-4 md:p-6">

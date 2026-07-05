@@ -14,6 +14,8 @@ import { useRejectFriendRequest } from '../queries/mutations/useRejectFriendRequ
 import { useRemoveFriend } from '../queries/mutations/useRemoveFriend';
 import { QueryBoundary } from '../components/ui/QueryBoundary';
 import Avatar from '../components/common/Avatar';
+import PageHeader from '../components/layout/PageHeader';
+import { pageConfig } from '../constants/pageConfig';
 
 const tabs = ['friends', 'received', 'sent'];
 
@@ -256,10 +258,11 @@ const FriendsPageLayout = ({
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-on-surface">Friends</h1>
-        <p className="text-sm text-on-surface-variant mt-1">Manage your connections</p>
-      </div>
+      <PageHeader
+        title={pageConfig.friends.title}
+        description={pageConfig.friends.description}
+        guide={pageConfig.friends.guide}
+      />
 
       {/* Tabs — underline style */}
       <div className="flex items-center gap-6 border-b border-glass-stroke">

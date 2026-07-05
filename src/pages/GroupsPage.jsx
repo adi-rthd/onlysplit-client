@@ -13,6 +13,8 @@ import ConfirmModal from '../components/modals/ConfirmModal';
 import { featureFlags } from '../utils/featureFlags';
 import { useGroups } from '../queries/hooks/useGroups';
 import { useDeleteGroup } from '../queries/mutations/useDeleteGroup';
+import PageHeader from '../components/layout/PageHeader';
+import { pageConfig } from '../constants/pageConfig';
 
 const SORT_OPTIONS = [
   { value: 'name', label: 'Name' },
@@ -115,44 +117,43 @@ const GroupsPage = () => {
   return (
     <div className="space-y-6">
       {/* HEADER */}
-      <header className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-3xl md:text-4xl font-bold text-on-surface">Your Groups</h1>
-          <p className="text-sm text-on-surface-variant mt-0.5">Manage your shared expenses and groups.</p>
-        </div>
+      <PageHeader
+        title={pageConfig.groups.title}
+        description={pageConfig.groups.description}
+        actions={
+          <>
+            <button
+              onClick={() => navigate(ROUTES.CREATE_GROUP)}
+              className="w-10 h-10 md:w-auto md:h-auto md:px-4 md:py-2.5 rounded-xl glass-button text-on-surface flex items-center justify-center gap-2"
+            >
+              <Plus size={18} className="text-primary" />
+              <span className="hidden md:inline text-sm font-medium">Create Group</span>
+            </button>
 
-        {/* ACTION BUTTONS */}
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            onClick={() => navigate(ROUTES.CREATE_GROUP)}
-            className="w-10 h-10 md:w-auto md:h-auto md:px-4 md:py-2.5 rounded-xl glass-button text-on-surface flex items-center justify-center gap-2"
-          >
-            <Plus size={18} className="text-primary" />
-            <span className="hidden md:inline text-sm font-medium">Create Group</span>
-          </button>
+            <button
+              onClick={() => navigate(ROUTES.FRIEND_MODAL)}
+              className="w-10 h-10 md:w-auto md:h-auto md:px-4 md:py-2.5 rounded-xl glass-button text-on-surface flex items-center justify-center gap-2"
+            >
+              <UserPlus size={18} className="text-primary" />
+              <span className="hidden md:inline text-sm font-medium">Add Friends</span>
+            </button>
 
-          <button
-            onClick={() => navigate(ROUTES.FRIEND_MODAL)}
-            className="w-10 h-10 md:w-auto md:h-auto md:px-4 md:py-2.5 rounded-xl glass-button text-on-surface flex items-center justify-center gap-2"
-          >
-            <UserPlus size={18} className="text-primary" />
-            <span className="hidden md:inline text-sm font-medium">Add Friends</span>
-          </button>
-
-          <button
-            onClick={() => navigate(ROUTES.INVITE_MODAL.replace(':id', 'bell'))}
-            className="relative w-10 h-10 md:w-auto md:h-auto md:px-4 md:py-2.5 rounded-xl glass-button text-on-surface flex items-center justify-center gap-2"
-          >
-            <Mail size={18} className="text-primary" />
-            <span className="hidden md:inline text-sm font-medium">Invites</span>
-            {invitations?.length > 0 && (
-              <span className="absolute -top-1 -right-1 md:static md:ml-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-primary text-white text-[10px] font-bold">
-                {invitations.length}
-              </span>
-            )}
-          </button>
-        </div>
-      </header>
+            <button
+              onClick={() => navigate(ROUTES.INVITE_MODAL.replace(':id', 'bell'))}
+              className="relative w-10 h-10 md:w-auto md:h-auto md:px-4 md:py-2.5 rounded-xl glass-button text-on-surface flex items-center justify-center gap-2"
+            >
+              <Mail size={18} className="text-primary" />
+              <span className="hidden md:inline text-sm font-medium">Invites</span>
+              {invitations?.length > 0 && (
+                <span className="absolute -top-1 -right-1 md:static md:ml-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-primary text-white text-[10px] font-bold">
+                  {invitations.length}
+                </span>
+              )}
+            </button>
+          </>
+        }
+        guide={pageConfig.groups.guide}
+      />
 
       {/* STATS — compact row, more data on desktop */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

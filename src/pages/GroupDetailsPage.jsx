@@ -8,6 +8,8 @@ import { useGroupStore } from '../store/groupStore';
 import { formatCurrency } from '../services/currencyService';
 import { useAuthStore } from '../store/authStore';
 import { featureFlags } from '../utils/featureFlags';
+import PageInfoButton from '../components/common/PageInfoButton';
+import { pageConfig } from '../constants/pageConfig';
 
 // Query hooks (used when feature flag is on)
 import { useGroupExpenses } from '../queries/hooks/useGroupExpenses';
@@ -581,6 +583,8 @@ const GroupDetailsPage = () => {
                 <span className="hidden md:inline text-xs font-medium">Leave</span>
               </button>
             )}
+
+            <PageInfoButton guide={pageConfig.groupDetails.guide} />
           </div>
         </div>
       </header>

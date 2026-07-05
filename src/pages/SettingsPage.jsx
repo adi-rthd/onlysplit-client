@@ -10,6 +10,8 @@ import { ROUTES } from '../constants/routes';
 import { Capacitor } from '@capacitor/core';
 import { checkForUpdate, downloadApk, installApk } from '../services/updateService';
 import AvatarUploader from '../components/ui/AvatarUploader';
+import PageHeader from '../components/layout/PageHeader';
+import { pageConfig } from '../constants/pageConfig';
 
 const SettingsPage = () => {
   const navigate = useNavigate();
@@ -208,16 +210,11 @@ const SettingsPage = () => {
       )}
 
       {/* HEADER */}
-      <header className="mb-10">
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">
-          Settings
-        </h1>
-
-        <p className="text-on-surface-variant text-lg">
-          Manage your profile, account preferences,
-          security and application settings.
-        </p>
-      </header>
+      <PageHeader
+        title={pageConfig.settings.title}
+        description={pageConfig.settings.description}
+        guide={pageConfig.settings.guide}
+      />
 
       <div className="space-y-10">
         {/* PROFILE */}
