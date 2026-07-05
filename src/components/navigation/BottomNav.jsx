@@ -3,18 +3,22 @@ import { Link, useLocation } from 'react-router-dom';
 import { BOTTOM_NAV_ITEMS } from '../../constants/navigation';
 import { motion } from 'framer-motion';
 import { useFriendRequests } from '../../queries/hooks/useFriends';
+import { useGroupInvitations } from '../../queries/hooks/useGroupInvitations';
 
 const BottomNav = () => {
   const location = useLocation();
   const requestsQuery = useFriendRequests({ staleTime: 60 * 1000 });
   const requestCount = requestsQuery.data?.length || 0;
+  const invitationsQuery = useGroupInvitations({ staleTime: 60 * 1000 });
+  const inviteCount = invitationsQuery.data?.length || 0;
 
   return (
     <nav className="md:hidden fixed bottom-0 w-full h-20 bg-surface-charcoal/90 backdrop-blur-2xl border-t border-glass-stroke z-50 flex justify-around items-center px-2 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
       {BOTTOM_NAV_ITEMS.map((item) => {
         const isActive = location.pathname === item.path;
         const Icon = item.icon;
-        const showBadge = item.path === '/friends' && requestCount > 0;
+        const showBadge = (item.path === '/friends' && requestCount > 0) || (item.path === '/groups' && inviteCount > 0);
+        const badgeCount = item.path === '/friends' ? requestCount : inviteCount;
 
         return (
           <Link key={item.path} to={item.path} className={`flex flex-col items-center gap-1 w-16 relative ${isActive ? 'text-primary font-bold' : 'text-on-surface-variant'}`}>
@@ -25,7 +29,7 @@ const BottomNav = () => {
               <Icon size={24} className={isActive ? 'text-primary' : 'text-on-surface-variant'} />
               {showBadge && (
                 <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-error text-white text-[9px] font-bold flex items-center justify-center">
-                  {requestCount > 9 ? '9+' : requestCount}
+                  {badgeCount > 9 ? '9+' : badgeCount}
                 </span>
               )}
             </div>

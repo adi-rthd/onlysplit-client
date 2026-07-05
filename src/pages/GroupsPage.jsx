@@ -407,6 +407,11 @@ const GroupRow = ({ group, initials, spending, balance, memberCount, currency, l
                 <span className="text-[10px] text-on-surface-variant bg-surface-container-high px-1.5 py-0.5 rounded">
                   {group.currency || currency}
                 </span>
+                {group.isActive === false && (
+                  <span className="text-[10px] font-semibold text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 px-1.5 py-0.5 rounded">
+                    Paused
+                  </span>
+                )}
               </div>
               <p className="text-xs text-on-surface-variant">
                 {group.description || 'No description'}

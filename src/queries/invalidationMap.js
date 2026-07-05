@@ -67,6 +67,10 @@ export const invalidationMap = {
     queryKeys.dashboard.summary(),
   ],
   rejectInvitation: () => [queryKeys.invitations.all()],
+  leaveGroup: (groupId) => ({
+    invalidate: [queryKeys.groups.all(), queryKeys.dashboard.summary()],
+    remove: [queryKeys.groups.detail(groupId)],
+  }),
   inviteToGroup: (groupId) => [queryKeys.invitations.group(groupId)],
   removeMember: (groupId) => [
     queryKeys.groups.detail(groupId),
@@ -96,5 +100,10 @@ export const invalidationMap = {
   ],
   uploadSettlementProof: (settlementId) => [
     queryKeys.settlements.payments(settlementId),
+  ],
+  forgiveSettlement: (settlementId, groupId) => [
+    queryKeys.settlements.payments(settlementId),
+    queryKeys.dashboard.summary(),
+    ...(groupId ? [queryKeys.groups.balances(groupId), queryKeys.groups.settlements(groupId)] : []),
   ],
 };

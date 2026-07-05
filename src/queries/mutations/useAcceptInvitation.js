@@ -19,7 +19,7 @@ export function useAcceptInvitation() {
 
       // Optimistically remove from invitations list
       queryClient.setQueryData(queryKeys.invitations.list(), (old) =>
-        (old || []).filter((inv) => inv.id !== invitationId)
+        (old || []).filter((inv) => inv.id !== invitationId && inv.invitationId !== invitationId)
       );
 
       return { previousInvitations };

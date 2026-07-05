@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { ROUTES } from '../constants/routes';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Users, Receipt, Wallet, UserPlus, Search, SortAsc, X, RefreshCw, Pencil } from 'lucide-react';
+import { ArrowLeft, Plus, Users, Receipt, Wallet, UserPlus, Search, SortAsc, X, RefreshCw, Pencil, LogOut, CheckCircle2 } from 'lucide-react';
 
 import { GlassPanel } from '../components/ui/GlassCard';
 import { useGroupStore } from '../store/groupStore';
@@ -17,6 +17,8 @@ import { useGroupDetail } from '../queries/hooks/useGroups';
 import { useRegenerateSettlements } from '../queries/mutations/useRegenerateSettlements';
 import { useDeleteExpense } from '../queries/mutations/useDeleteExpense';
 import { useRemoveMember } from '../queries/mutations/useRemoveMember';
+import { useLeaveGroup } from '../queries/mutations/useLeaveGroup';
+import { useForgiveSettlement } from '../queries/mutations/useForgiveSettlement';
 import { QueryBoundary } from '../components/ui/QueryBoundary';
 import { PendingBadge } from '../components/ui/PendingBadge';
 import { useQueryClient } from '@tanstack/react-query';
@@ -34,6 +36,7 @@ import ExpenseDetailsModal from '../components/modals/ExpenseDetailsModal';
 import EditGroupModal from '../components/modals/EditGroupModal';
 import EditExpenseModal from '../components/modals/EditExpenseModal';
 import SettlementDetailPanel from '../components/settlements/SettlementDetailPanel';
+import ConfirmModal from '../components/modals/ConfirmModal';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useGroupSignalR } from '../hooks/useSignalR';
 import { joinGroup, leaveGroup } from '../socket/signalrClient';
@@ -62,6 +65,8 @@ const GroupDetailsPage = () => {
   const regenerateSettlementsMutation = useRegenerateSettlements(groupId);
   const deleteExpenseMutation = useDeleteExpense(groupId);
   const removeMemberMutation = useRemoveMember();
+  const leaveGroupMutation = useLeaveGroup();
+  const forgiveSettlementMutation = useForgiveSettlement();
   const queryClient = useQueryClient();
 
   // ─── Legacy stores (only active when feature flag is off) ──────────
@@ -110,6 +115,9 @@ const GroupDetailsPage = () => {
   const [showExpenseSort, setShowExpenseSort] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedSettlement, setSelectedSettlement] = useState(null);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const [forgiveTarget, setForgiveTarget] = useState(null);
+  const [forgiveReason, setForgiveReason] = useState('');
 
   // Check if current user is the group owner
   const isOwner = currentGroup?.createdBy === user?.id || currentGroup?.createdById === user?.id || currentGroup?.ownerId === user?.id;
@@ -458,7 +466,7 @@ const GroupDetailsPage = () => {
               return (
                 <div className="space-y-5">
                   {data.map(settlement => (
-                    <SettlementCard key={settlement.id} settlement={settlement} onClick={() => setSelectedSettlement(settlement)} />
+                    <SettlementCard key={settlement.id} settlement={settlement} onClick={() => setSelectedSettlement(settlement)} onMarkAsSettled={(s) => { setForgiveTarget(s); setForgiveReason(''); }} />
                   ))}
                 </div>
               );
@@ -489,7 +497,7 @@ const GroupDetailsPage = () => {
       return (
         <div className="space-y-5">
           {settlements.map(settlement => (
-            <SettlementCard key={settlement.id} settlement={settlement} onClick={() => setSelectedSettlement(settlement)} />
+            <SettlementCard key={settlement.id} settlement={settlement} onClick={() => setSelectedSettlement(settlement)} onMarkAsSettled={(s) => { setForgiveTarget(s); setForgiveReason(''); }} />
           ))}
         </div>
       );
@@ -563,6 +571,16 @@ const GroupDetailsPage = () => {
               <Plus size={16} className="text-primary" />
               <span className="hidden md:inline text-xs font-medium">Add Expense</span>
             </button>
+
+            {!isOwner && (
+              <button
+                onClick={() => setShowLeaveConfirm(true)}
+                className="w-9 h-9 md:w-auto md:h-auto md:px-3 md:py-2 rounded-xl border border-red-500/20 bg-red-500/5 text-red-400 flex items-center justify-center gap-2 hover:bg-red-500/10 transition-colors"
+              >
+                <LogOut size={16} />
+                <span className="hidden md:inline text-xs font-medium">Leave</span>
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -768,6 +786,104 @@ const GroupDetailsPage = () => {
         settlement={selectedSettlement}
         groupId={groupId}
       />
+
+      {/* Leave Group Confirmation */}
+      <ConfirmModal
+        open={showLeaveConfirm}
+        title="Leave Group"
+        message={`Are you sure you want to leave ${currentGroup?.name || 'this group'}? You won't be able to see expenses or settlements from this group anymore.`}
+        confirmText="Leave"
+        cancelText="Cancel"
+        danger
+        isLoading={leaveGroupMutation.isPending}
+        onConfirm={() => {
+          leaveGroupMutation.mutate(groupId, {
+            onSuccess: () => {
+              setShowLeaveConfirm(false);
+              navigate(ROUTES.GROUPS);
+            },
+            onError: () => {
+              setShowLeaveConfirm(false);
+            },
+          });
+        }}
+        onCancel={() => setShowLeaveConfirm(false)}
+      />
+
+      {/* Mark as Settled (Forgive) Confirmation */}
+      <AnimatePresence>
+        {forgiveTarget && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-md flex items-center justify-center p-4"
+            onClick={() => setForgiveTarget(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ duration: 0.2 }}
+              className="w-full max-w-md rounded-3xl bg-[#0f0f12] border border-white/10 shadow-2xl overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6">
+                <div className="flex items-center gap-4 mb-5">
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-green-500/15">
+                    <CheckCircle2 size={28} className="text-green-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-white">Mark as Settled</h3>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl bg-white/[0.03] border border-white/5 p-4 mb-4">
+                  <p className="text-on-surface-variant">
+                    Mark {formatCurrency(Number(forgiveTarget?.amount || 0), forgiveTarget?.currency || currency, locale)} from <span className="text-white font-semibold">{forgiveTarget?.payerName || 'Payer'}</span> as settled?
+                  </p>
+                </div>
+
+                <div className="mb-6">
+                  <label className="text-xs text-on-surface-variant mb-1.5 block">Reason (optional)</label>
+                  <input
+                    type="text"
+                    value={forgiveReason}
+                    onChange={(e) => setForgiveReason(e.target.value)}
+                    placeholder="e.g. Paid cash offline"
+                    className="w-full rounded-xl bg-surface-container-low border border-glass-stroke px-4 py-3 text-sm text-white placeholder:text-on-surface-variant/50 outline-none focus:ring-1 focus:ring-green-500/40 focus:border-green-500/40 transition-all"
+                  />
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setForgiveTarget(null)}
+                    disabled={forgiveSettlementMutation.isPending}
+                    className="flex-1 py-3 rounded-2xl border border-white/10 hover:bg-white/5 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      forgiveSettlementMutation.mutate(
+                        { settlementId: forgiveTarget.id, reason: forgiveReason || undefined, groupId },
+                        {
+                          onSuccess: () => setForgiveTarget(null),
+                          onError: () => setForgiveTarget(null),
+                        }
+                      );
+                    }}
+                    disabled={forgiveSettlementMutation.isPending}
+                    className="flex-1 py-3 rounded-2xl font-semibold bg-green-500/15 text-green-400 border border-green-500/20 hover:bg-green-500/20 transition"
+                  >
+                    {forgiveSettlementMutation.isPending ? 'Please wait...' : 'Confirm'}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* MOBILE FAB — Add Expense */}
  <motion.button

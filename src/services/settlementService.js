@@ -44,6 +44,17 @@ const settlementService = {
       throw { status, message };
     }
   },
+
+  forgiveSettlement: async (settlementId, reason) => {
+    try {
+      const { data } = await client.post(`/settlements/${settlementId}/forgive`, { reason });
+      return data.data;
+    } catch (error) {
+      const status = error.response?.status || 0;
+      const message = error.response?.data?.message || error.message || 'Failed to mark settlement as settled.';
+      throw { status, message };
+    }
+  },
 };
 
 export default settlementService;

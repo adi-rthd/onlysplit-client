@@ -21,6 +21,7 @@ const EditGroupModal = ({ group, onClose, onUpdated }) => {
   const [name, setName] = useState(group?.name || '');
   const [description, setDescription] = useState(group?.description || '');
   const [currency, setCurrency] = useState(group?.currency || 'INR');
+  const [isActive, setIsActive] = useState(group?.isActive !== false);
   const [currencies, setCurrencies] = useState([]);
   const [saving, setSaving] = useState(false);
 
@@ -61,6 +62,7 @@ const EditGroupModal = ({ group, onClose, onUpdated }) => {
     if (name.trim() !== (group.name || '')) updates.name = name.trim();
     if (description !== (group.description || '')) updates.description = description;
     if (currency !== (group.currency || '')) updates.currency = currency;
+    if (isActive !== (group.isActive !== false)) updates.isActive = isActive;
 
     if (Object.keys(updates).length === 0) {
       toast('No changes to save.');
@@ -181,6 +183,27 @@ const EditGroupModal = ({ group, onClose, onUpdated }) => {
                 </>
               )}
             </select>
+          </div>
+
+          {/* Active Group Toggle */}
+          <div className="flex items-center justify-between rounded-xl bg-surface-container-low border border-glass-stroke px-4 py-3.5">
+            <div>
+              <p className="text-sm font-medium text-on-surface">Active Group</p>
+              <p className="text-[11px] text-on-surface-variant mt-0.5">
+                {isActive ? 'Included in dashboard calculations' : 'Hidden from dashboard calculations'}
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={isActive}
+              onClick={() => setIsActive(!isActive)}
+              className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${isActive ? 'bg-primary' : 'bg-surface-container-high border border-glass-stroke'}`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${isActive ? 'translate-x-5' : 'translate-x-0'}`}
+              />
+            </button>
           </div>
         </div>
 

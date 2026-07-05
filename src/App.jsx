@@ -20,7 +20,7 @@ import NotificationListener from './components/listeners/NotificationListener';
 import PaymentListener from './components/listeners/PaymentListener';
 
 function App() {
-  // useDevToolsProtection();
+  useDevToolsProtection();
   const [updateInfo, setUpdateInfo] = useState(null);
   const [updateDismissed, setUpdateDismissed] = useState(false);
   const [isOffline, setIsOffline] = useState(false);

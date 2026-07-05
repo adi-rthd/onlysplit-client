@@ -52,6 +52,11 @@ const groupService = {
     const { data } = await client.post(`/groups/join`, joinData);
     return data?.data || data;
   },
+
+  leaveGroup: async (groupId) => {
+    const { data } = await client.post(`/groups/${groupId}/leave`);
+    return data?.data || data;
+  },
 };
 
 export default groupService;

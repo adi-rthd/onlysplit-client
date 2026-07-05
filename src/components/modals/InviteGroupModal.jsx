@@ -22,10 +22,14 @@ import {
 } from 'lucide-react';
 
 import FriendshipStore from '../../services/friendshipService';
+import invitationService from '../../services/groupInviteService';
 
 import {
   useInvitationStore,
 } from '../../store/groupInvitationStore';
+
+import { useAcceptInvitation } from '../../queries/mutations/useAcceptInvitation';
+import { useRejectInvitation } from '../../queries/mutations/useRejectInvitation';
 
 const InviteGroupModal = () => {
   const { id: groupId } = useParams();
@@ -53,9 +57,10 @@ const InviteGroupModal = () => {
     fetchMyInvitations,
     fetchGroupInvites,
     inviteToGroup,
-    acceptInvitation,
-    rejectInvitation,
   } = useInvitationStore();
+
+  const acceptMutation = useAcceptInvitation();
+  const rejectMutation = useRejectInvitation();
 
   // Escape key
   useEffect(() => {
@@ -122,11 +127,37 @@ const InviteGroupModal = () => {
   };
 
   const handleAccept = async (invitationId, notificationId) => {
-    await acceptInvitation(invitationId, notificationId);
+    // Use mutation hook for API call + React Query cache invalidation (fixes badge)
+    acceptMutation.mutate(invitationId);
+
+    // Update Zustand store locally (remove from UI without duplicate API call)
+    useInvitationStore.setState((state) => ({
+      invitations: state.invitations.filter(
+        (inv) => inv.invitationId !== invitationId && inv.id !== invitationId
+      ),
+    }));
+
+    // Mark notification as read if applicable
+    if (notificationId) {
+      invitationService.markNotificationAsRead(notificationId).catch(() => {});
+    }
   };
 
   const handleReject = async (invitationId, notificationId) => {
-    await rejectInvitation(invitationId, notificationId);
+    // Use mutation hook for API call + React Query cache invalidation (fixes badge)
+    rejectMutation.mutate(invitationId);
+
+    // Update Zustand store locally (remove from UI without duplicate API call)
+    useInvitationStore.setState((state) => ({
+      invitations: state.invitations.filter(
+        (inv) => inv.invitationId !== invitationId && inv.id !== invitationId
+      ),
+    }));
+
+    // Mark notification as read if applicable
+    if (notificationId) {
+      invitationService.markNotificationAsRead(notificationId).catch(() => {});
+    }
   };
 
   const renderUserCard = (user, actions) => (

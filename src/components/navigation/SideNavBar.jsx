@@ -12,6 +12,7 @@ import { useAuthStore } from '../../store/authStore';
 import authService from '../../services/authService';
 import Avatar from '../common/Avatar';
 import { useFriendRequests } from '../../queries/hooks/useFriends';
+import { useGroupInvitations } from '../../queries/hooks/useGroupInvitations';
 
 const SideNavBar = () => {
   const location = useLocation();
@@ -19,6 +20,8 @@ const SideNavBar = () => {
   const storeUser = useAuthStore((s) => s.user);
   const requestsQuery = useFriendRequests({ staleTime: 60 * 1000 });
   const requestCount = requestsQuery.data?.length || 0;
+  const invitationsQuery = useGroupInvitations({ staleTime: 60 * 1000 });
+  const inviteCount = invitationsQuery.data?.length || 0;
 
   const [profile, setProfile] = useState({
     firstName: 'Aditya',
@@ -111,7 +114,8 @@ const SideNavBar = () => {
       <nav className="flex-1 px-2 space-y-1">
         {NAVIGATION_ITEMS.map((item) => {
           const Icon = item.icon;
-          const showBadge = item.path === '/friends' && requestCount > 0;
+          const showBadge = (item.path === '/friends' && requestCount > 0) || (item.path === '/groups' && inviteCount > 0);
+          const badgeCount = item.path === '/friends' ? requestCount : inviteCount;
 
           return (
             <Link
@@ -137,7 +141,7 @@ const SideNavBar = () => {
               </span>
               {showBadge && (
                 <span className="ml-auto text-[10px] font-bold bg-error/15 text-error px-1.5 py-0.5 rounded-full">
-                  {requestCount}
+                  {badgeCount}
                 </span>
               )}
             </Link>
