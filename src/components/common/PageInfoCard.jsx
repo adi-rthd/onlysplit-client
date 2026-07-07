@@ -54,7 +54,7 @@ const PageInfoCard = ({ id, title = 'About this page', description, features, ti
 
   return (
     <section
-      className="w-full rounded-xl border border-glass-stroke/60 bg-surface-container-low/30 overflow-hidden"
+      className="w-full rounded-xl border hide-scrollbar border-glass-stroke/60 bg-surface-container-low/30 overflow-hidden"
       aria-label={title}
     >
       {/* Collapsed header + description — always visible */}

@@ -517,28 +517,18 @@ const GroupDetailsPage = () => {
   return (
     <div className="space-y-6">
       {/* HEADER — back + title left, buttons top-right */}
-      <header>
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <button
-              onClick={() => navigate(ROUTES.GROUPS)}
-              className="mb-2 flex items-center gap-1.5 text-on-surface-variant transition-colors hover:text-on-surface text-sm"
-            >
-              <ArrowLeft size={14} />
-              Back
-            </button>
+      <header className="space-y-3">
+        <div className="flex items-center justify-between gap-4">
+          <button
+            onClick={() => navigate(ROUTES.GROUPS)}
+            className="flex items-center gap-1.5 text-on-surface-variant transition-colors hover:text-on-surface text-sm"
+          >
+            <ArrowLeft size={14} />
+            Back
+          </button>
 
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-on-surface">
-              {currentGroup.name}
-            </h1>
-
-            <p className="mt-1 text-sm text-on-surface-variant">
-              {currentGroup.description || 'No description'}
-            </p>
-          </div>
-
-          {/* Action buttons — top right */}
-          <div className="flex items-center gap-2 shrink-0">
+          {/* Action buttons */}
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
             <button
               onClick={handleRecalculate}
               disabled={recalculateInProgress}
@@ -586,6 +576,15 @@ const GroupDetailsPage = () => {
 
             <PageInfoButton guide={pageConfig.groupDetails.guide} />
           </div>
+        </div>
+
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-on-surface">
+            {currentGroup.name}
+          </h1>
+          <p className="mt-1 text-sm text-on-surface-variant">
+            {currentGroup.description || 'No description'}
+          </p>
         </div>
       </header>
 

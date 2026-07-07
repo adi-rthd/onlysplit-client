@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ROUTES } from '../constants/routes';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Users, Utensils, UserPlus, Mail, Search, SortAsc, X, Trash2, CircleCheck, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
+import { Plus, Users, Utensils, UserPlus, Mail, Search, SortAsc, X, Trash2, CircleCheck } from 'lucide-react';
 import { motion, useAnimation } from 'framer-motion';
 
 import { useGroupStore } from '../store/groupStore';
@@ -298,7 +298,7 @@ const GroupsPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredGroups.map((group) => {
               const spending = Number(group.totalExpenses || group.totalSpending || 0);
-              const balance = Number(group.balance || 0);
+              const balance = Number(group.myBalance ?? group.balance ?? 0);
               const memberCount = group.members?.length || 1;
               const initials = group.name?.slice(0, 2)?.toUpperCase() || 'GR';
 
@@ -442,16 +442,14 @@ const GroupRow = ({ group, initials, spending, balance, memberCount, currency, l
               </div>
             ) : balance > 0 ? (
               <div className="flex items-center gap-1 mt-0.5 justify-end">
-                <ArrowDownLeft size={13} className="text-green-400" />
                 <span className="text-sm font-bold text-green-400 tabular-nums">
-                  {formatCurrency(balance, group.currency || currency, locale)}
+                  +{formatCurrency(balance, group.currency || currency, locale)}
                 </span>
               </div>
             ) : (
               <div className="flex items-center gap-1 mt-0.5 justify-end">
-                <ArrowUpRight size={13} className="text-error" />
                 <span className="text-sm font-bold text-error tabular-nums">
-                  {formatCurrency(Math.abs(balance), group.currency || currency, locale)}
+                  -{formatCurrency(Math.abs(balance), group.currency || currency, locale)}
                 </span>
               </div>
             )}

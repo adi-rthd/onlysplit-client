@@ -39,7 +39,7 @@ const ExpenseDetailsModal = ({
         <AnimatePresence>
 
             <motion.div
-                className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+                className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm hide-scrollbar overflow-y-auto flex items-center justify-center p-4"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -225,7 +225,7 @@ const ExpenseDetailsModal = ({
                                 </h4>
                             </div>
 
-                            <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
+                            <div className="space-y-2 max-h-[320px] hide-scrollbar overflow-y-auto pr-1">
                                 {expense.splits?.map(
                                     (split) => {
                                         const isPayer =

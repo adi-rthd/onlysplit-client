@@ -68,7 +68,7 @@ const PageInfoButton = ({ guide }) => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -4, scale: 0.97 }}
               transition={{ duration: 0.15, ease: 'easeOut' }}
-              className="hidden md:block absolute right-0 top-12 z-[100] w-[380px] max-h-[70vh] overflow-y-auto rounded-2xl border border-glass-stroke bg-[#111113] shadow-2xl"
+              className="hidden md:block hide-scrollbar absolute right-0 top-12 z-[100] w-[380px] max-h-[70vh] overflow-y-auto rounded-2xl border border-glass-stroke bg-[#111113] shadow-2xl"
               role="dialog"
               aria-label={title}
             >

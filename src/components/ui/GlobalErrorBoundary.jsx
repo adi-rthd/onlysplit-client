@@ -23,7 +23,7 @@ class GlobalErrorBoundary extends React.Component {
   }
 
   handleReset = () => {
-    this.setState({ hasError: false, error: null });
+    window.location.reload();
   };
 
   render() {
