@@ -87,9 +87,20 @@ const GroupDetailsPage = () => {
   } = useSettlementStore();
 
   // ─── Resolved data (respects feature flag) ─────────────────────────
-  const expenses = useQuery ? (expensesQuery.data || []) : legacyExpenses;
-  const rawBalances = useQuery ? (balancesQuery.data || []) : legacyBalances;
-  const settlements = useQuery ? (settlementsQuery.data || []) : legacySettlements;
+  const expensesRaw = useQuery ? (expensesQuery.data || []) : legacyExpenses;
+  const expenses = Array.isArray(expensesRaw)
+    ? expensesRaw
+    : expensesRaw?.data || expensesRaw?.expenses || [];
+
+  const rawBalancesRaw = useQuery ? (balancesQuery.data || []) : legacyBalances;
+  const rawBalances = Array.isArray(rawBalancesRaw)
+    ? rawBalancesRaw
+    : rawBalancesRaw?.data || rawBalancesRaw?.balances || [];
+
+  const settlementsRaw = useQuery ? (settlementsQuery.data || []) : legacySettlements;
+  const settlements = Array.isArray(settlementsRaw)
+    ? settlementsRaw
+    : settlementsRaw?.data || settlementsRaw?.settlements || [];
 
   // Enrich balances with avatarUrl from group members
   const balances = useMemo(() => {

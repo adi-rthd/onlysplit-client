@@ -36,7 +36,10 @@ const GroupsPage = () => {
   const deleteGroupMutation = useDeleteGroup();
 
   // Resolved data (respects feature flag)
-  const groups = useQueryGroups ? (groupsQuery.data || []) : legacyGroups;
+  const groupsRaw = useQueryGroups ? (groupsQuery.data || []) : legacyGroups;
+  const groups = Array.isArray(groupsRaw)
+    ? groupsRaw
+    : groupsRaw?.data || groupsRaw?.groups || [];
   const isLoading = useQueryGroups ? (groupsQuery.isLoading && !groupsQuery.data) : legacyLoading;
 
   const [search, setSearch] = useState('');

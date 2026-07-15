@@ -134,7 +134,10 @@ const Dashboard = () => {
 
   // --- Resolve data based on feature flag ---
   const summary = useQueryMode ? summaryQuery.data : zustandSummary;
-  const groups = useQueryMode ? (groupsQuery.data || []) : zustandGroups;
+  const groupsRaw = useQueryMode ? (groupsQuery.data || []) : zustandGroups;
+  const groups = Array.isArray(groupsRaw)
+    ? groupsRaw
+    : groupsRaw?.data || groupsRaw?.groups || [];
   const isLoading = useQueryMode
     ? (summaryQuery.isLoading && !summaryQuery.data)
     : zustandIsLoading;
